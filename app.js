@@ -3029,3 +3029,22 @@ async function guardarDatosEscuela(e) {
     alert("Error al guardar cambios de la escuela.");
   }
 }
+
+
+// ========================================================
+// CONTROL DE MENÚ LATERAL: EXPANDIR / OCULTAR FIJO
+// ========================================================
+function toggleSidebar() {
+  const sidebar = document.getElementById('appSidebar');
+  const mainArea = document.getElementById('mainContentArea');
+  if (!sidebar || !mainArea) return;
+
+  // Alternamos si el menú está contraído o expandido
+  sidebar.classList.toggle('-translate-x-full');
+  sidebar.classList.toggle('w-0');
+  sidebar.classList.toggle('p-0');
+  
+  // Hacemos que el contenido principal ocupe todo el ancho (pl-0) o deje el espacio del menú (pl-64)
+  mainArea.classList.toggle('pl-64');
+  mainArea.classList.toggle('pl-0');
+}
