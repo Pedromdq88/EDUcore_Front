@@ -417,24 +417,22 @@
               <div id="resultadosTutor1" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto z-20 divide-y divide-slate-100 text-xs"></div>
             </div>
 
-            <!-- Tutor Secundario (Original) -->
-            <div class="relative sm:col-span-2 bg-amber-50 p-3.5 rounded-xl border border-amber-200">
-              <label class="block text-xs font-bold text-amber-900 mb-1">Tutor Secundario (Opcional)</label>
+            <!-- Tutor Secundario -->
+            <div class="relative">
+              <label class="block text-xs font-bold text-amber-900 mb-1">Tutor Secundario</label>
               <input type="hidden" id="studentTutor2">
               <div class="flex gap-1.5">
-                <input type="text" id="buscadorTutor2"
-                       onfocus="mostrarTodosLosTutores('studentTutor2')"
-                       oninput="filtrarTutoresInput('studentTutor2', this.value)"
-                       placeholder="🔍 Buscar o seleccionar segundo tutor..." class="w-full p-2 bg-white border border-amber-300 rounded-lg text-xs font-semibold focus:outline-none focus:border-emerald-600">
+                <input type="text" id="buscadorTutor2" oninput="filtrarTutoresInput('studentTutor2', this.value)" placeholder="🔍 Buscar por Nombre, Apellido o DNI..." class="w-full p-2 bg-white border border-amber-300 rounded-lg text-xs font-semibold focus:outline-none focus:border-emerald-600">
                 <button type="button" onclick="abrirModalRapidoTutor('studentTutor2')" title="Agregar nuevo tutor" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3 rounded-lg text-sm font-bold cursor-pointer shadow-xs">+</button>
               </div>
+              <!-- Lista desplegable de resultados del buscador -->
               <div id="resultadosTutor2" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto z-20 divide-y divide-slate-100 text-xs"></div>
             </div>
-
-            <!-- Datos Básicos del Alumno -->
-            <input type="text" id="studentFirstName" placeholder="Nombre/s *" required class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm">
-            <input type="text" id="studentLastName" placeholder="Apellido/s *" required class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm">
-            <input type="text" id="studentDni" placeholder="DNI Argentino *" required class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm">
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <input type="text" id="studentFirstName" placeholder="Nombre" class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm">
+            <input type="text" id="studentLastName" placeholder="Apellido" class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm">
+            <input type="text" id="studentDni" placeholder="DNI" class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm">
             <input type="text" id="studentLegajo" placeholder="N° de Legajo" class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm">
 
             <!-- Nuevos Campos Oficiales: CUIL y Estado DNI -->
