@@ -71,37 +71,42 @@ let currentStudentRestrictions = [];
 // ========================================================
 
 function calcularSala(fechaNacimientoStr, cicloLectivo = (currentSchoolProfile?.academicYear || new Date().getFullYear())) {
-  if (!fechaNacimientoStr) return { valida: false, sala: "", error: "Seleccione fecha de nacimiento" };
+  if (!fechaNacimientoStr) return { valida: false, salaDefecto: "", opciones: [], error: "Seleccione fecha de nacimiento" };
 
   const [anioNac, mesNac, diaNac] = fechaNacimientoStr.split('-').map(Number);
-  if (!anioNac || !mesNac || !diaNac) return { valida: false, sala: "", error: "Fecha incompleta" };
+  if (!anioNac || !mesNac || !diaNac) return { valida: false, salaDefecto: "", opciones: [], error: "Fecha incompleta" };
 
   const nivel = currentSchoolProfile?.educationLevel || 'JARDIN';
 
+  // Cálculo estricto de edad al 30 de junio
   const edadAlCorte = mesNac >= 7
       ? (cicloLectivo - anioNac - 1)
       : (cicloLectivo - anioNac);
 
-  // Si es Nivel Inicial se aplica la regla legal estricta al 30 de junio
   if (nivel === 'JARDIN') {
-    switch (edadAlCorte) {
-      case 3:
-        return { valida: true, sala: "1° Sección (3 años)", error: null };
-      case 4:
-        return { valida: true, sala: "2° Sección (4 años)", error: null };
-      case 5:
-        return { valida: true, sala: "3° Sección (5 años)", error: null };
-      default:
-        if (edadAlCorte < 3) {
-          return { valida: false, sala: null, error: `❌ No admisible: Cumple ${edadAlCorte} años al 30/06 (Mínimo 3 años para Sala de 3)` };
-        } else {
-          return { valida: false, sala: null, error: `❌ Cumple ${edadAlCorte} años al 30/06 (Corresponde a Nivel Primario)` };
-        }
+    // Buscamos TODAS las aulas que correspondan exactamente a esta edad (Mañana, Tarde, etc.)
+    const aulasDisponibles = activeClassroomsConfig.filter(c => c.minimumAge === edadAlCorte);
+
+    if (aulasDisponibles.length > 0) {
+      return { 
+        valida: true, 
+        edadCalculada: edadAlCorte, 
+        opciones: aulasDisponibles, // Pasamos todas las variantes (turnos)
+        salaDefecto: aulasDisponibles[0].name, 
+        error: null 
+      };
+    } else {
+      return { 
+        valida: false, 
+        edadCalculada: edadAlCorte, 
+        opciones: [], 
+        salaDefecto: null, 
+        error: `❌ No admisible: Cumple ${edadAlCorte} años al 30/06 y no hay sala configurada para esa edad.` 
+      };
     }
   }
 
-  // En Primaria y Secundaria la asignación la define el selector oficial
-  return { valida: true, sala: "", edadCalculada: edadAlCorte, error: null };
+  return { valida: true, salaDefecto: "", edadCalculada: edadAlCorte, opciones: [], error: null };
 }
 
 function recalcularSalaFormularioMatricula() {
@@ -119,6 +124,8 @@ function recalcularSalaFormularioMatricula() {
       labelSala.className = "text-sm font-bold text-slate-500";
     }
     if (hiddenClassroom) hiddenClassroom.value = "";
+    // Restaura todas las opciones
+    if (selectClassroom) selectClassroom.innerHTML = '<option value="">Seleccione sala/año...</option>' + activeClassroomsConfig.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
     return;
   }
 
@@ -126,17 +133,34 @@ function recalcularSalaFormularioMatricula() {
 
   if (nivel === 'JARDIN') {
     if (res.valida) {
-      labelSala.textContent = res.sala;
-      labelSala.className = "text-sm font-bold text-emerald-800";
-      if (hiddenClassroom) hiddenClassroom.value = res.sala;
-      if (selectClassroom) selectClassroom.value = res.sala;
+      // 🟢 Si hay más de un turno para esa edad
+      if (res.opciones.length > 1) {
+        labelSala.textContent = `✅ Edad al 30/06: ${res.edadCalculada} años. Múltiples turnos disponibles, elija abajo.`;
+        labelSala.className = "text-sm font-bold text-sky-600";
+      } else {
+        labelSala.textContent = `✅ Edad al 30/06: ${res.edadCalculada} años. Corresponde: ${res.salaDefecto}`;
+        labelSala.className = "text-sm font-bold text-emerald-700";
+      }
+      
+      if (hiddenClassroom) hiddenClassroom.value = res.salaDefecto;
+
+      // 🟢 Filtramos el selector para mostrar SOLO los turnos permitidos para su edad
+      if (selectClassroom) {
+        selectClassroom.innerHTML = res.opciones.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+        selectClassroom.value = res.salaDefecto; // Selecciona el primer turno por defecto
+      }
+
     } else {
-      labelSala.textContent = res.error;
+      labelSala.textContent = `Edad al 30/06: ${res.edadCalculada} años. ${res.error}`;
       labelSala.className = "text-xs font-bold text-rose-600";
       if (hiddenClassroom) hiddenClassroom.value = "";
+      
+      if (selectClassroom) {
+         selectClassroom.innerHTML = '<option value="">-- Sin sala admisible --</option>' + activeClassroomsConfig.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+         selectClassroom.value = "";
+      }
     }
   } else {
-    // Primaria o Secundaria: solo muestra la edad al corte
     if (labelSala) {
       labelSala.textContent = `Edad al 30/06: ${res.edadCalculada} años`;
       labelSala.className = "text-sm font-bold text-slate-700";
@@ -150,7 +174,7 @@ function recalcularSalaFormularioEdicion() {
   const nivel = currentSchoolProfile?.educationLevel || 'JARDIN';
 
   const labelSala = document.getElementById('edit-labelSalaCalculada');
-  const hiddenClassroom = document.getElementById('edit-student-classroom');
+  const selectEditClassroom = document.getElementById('edit-student-classroom');
 
   if (!birthDate) return;
 
@@ -159,16 +183,37 @@ function recalcularSalaFormularioEdicion() {
   if (nivel === 'JARDIN') {
     if (res.valida) {
       if (labelSala) {
-        labelSala.textContent = res.sala;
-        labelSala.className = "text-xs font-bold text-emerald-800";
+        if (res.opciones.length > 1) {
+          labelSala.textContent = `✅ Edad al corte: ${res.edadCalculada} años. Elija el turno abajo.`;
+          labelSala.className = "text-xs font-bold text-sky-600";
+        } else {
+          labelSala.textContent = `✅ Edad al corte: ${res.edadCalculada} años. Corresponde: ${res.salaDefecto}`;
+          labelSala.className = "text-xs font-bold text-emerald-700";
+        }
       }
-      if (hiddenClassroom) hiddenClassroom.value = res.sala;
+      
+      // Filtramos las opciones igual que en el alta
+      if (selectEditClassroom) {
+        const currentVal = selectEditClassroom.value;
+        const isValidForNewAge = res.opciones.some(o => o.name === currentVal);
+        
+        selectEditClassroom.innerHTML = res.opciones.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+        
+        // Mantenemos el turno que ya tenía elegido si sigue siendo válido para su edad
+        if (isValidForNewAge) {
+            selectEditClassroom.value = currentVal;
+        } else {
+            selectEditClassroom.value = res.salaDefecto;
+        }
+      }
     } else {
       if (labelSala) {
-        labelSala.textContent = res.error;
+        labelSala.textContent = `Edad al corte: ${res.edadCalculada} años. ${res.error}`;
         labelSala.className = "text-xs font-bold text-rose-600";
       }
-      if (hiddenClassroom) hiddenClassroom.value = "";
+      if (selectEditClassroom) {
+          selectEditClassroom.innerHTML = '<option value="">-- Sin sala admisible --</option>' + activeClassroomsConfig.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+      }
     }
   } else {
     if (labelSala) {
@@ -349,13 +394,15 @@ function showSection(sectionId, clearHistory = true) {
   if (sectionId === 'retirosView') renderRetirosView();
   if (sectionId === 'restriccionesView') renderRestriccionesView();
   if (sectionId === 'comunicadosView') renderComunicadosView();
-if (sectionId === 'fichaMedicaView') renderFichaMedicaView();
+  if (sectionId === 'fichaMedicaView') renderFichaMedicaView();
+  if (sectionId === 'classroomsConfigView') renderClassroomsConfigView(); 
 }
 
 function toggleForm(id) { document.getElementById(id).classList.toggle('hidden'); }
 
 function refreshAllData() {
   fetchSchoolProfile();
+  fetchClassroomsConfig();
   fetchTutors();
   fetchStudents();
   fetchStaff();
@@ -479,7 +526,8 @@ async function eliminarMateria(id) {
 // ========================================================
 
 function generarFilaAsignacionDocenteHtml(data = {}) {
-  const defaultClass = currentLevelClassrooms[0] || '1° Sección (3 años)';
+  // 🟢 Usamos la primera aula configurada dinámicamente
+  const defaultClass = activeClassroomsConfig.length > 0 ? activeClassroomsConfig[0].name : 'Sin Aula';
   const subjectSelected = data.subject || (activeSubjects[0]?.name || 'Docente Titular');
   const classroomSelected = data.classroom || defaultClass;
   const shiftSelected = data.shift || 'MANANA';
@@ -489,8 +537,9 @@ function generarFilaAsignacionDocenteHtml(data = {}) {
       ? activeSubjects.map(s => `<option value="${s.name}" ${s.name === subjectSelected ? 'selected' : ''}>${s.name}</option>`).join('')
       : `<option value="Docente Titular">Docente Titular</option>`;
 
-  const classroomOptions = currentLevelClassrooms.map(c =>
-      `<option value="${c}" ${c === classroomSelected ? 'selected' : ''}>${c}</option>`
+  // 🟢 Iteramos sobre el catálogo dinámico
+  const classroomOptions = activeClassroomsConfig.map(c =>
+      `<option value="${c.name}" ${c.name === classroomSelected ? 'selected' : ''}>${c.name}</option>`
   ).join('');
 
   return `
@@ -1503,11 +1552,11 @@ function openEditStudentModal() {
   document.getElementById('edit-student-nativePeople').value = currentStudentData.belongsToNativePeople ? 'true' : 'false';
   document.getElementById('edit-student-transport').value = currentStudentData.transportationMethods || 'A_PIE';
 
-  // Llenar el selector de aula
+  // 🟢 CORRECCIÓN: Llenar el selector leyendo del catálogo dinámico (activeClassroomsConfig)
   const selectClassroom = document.getElementById('edit-student-classroom');
-  if (selectClassroom && Array.isArray(currentLevelClassrooms)) {
+  if (selectClassroom && Array.isArray(activeClassroomsConfig)) {
     selectClassroom.innerHTML = '<option value="">-- Seleccionar sección manualmente --</option>' + 
-      currentLevelClassrooms.map(c => `<option value="${c}">${c}</option>`).join('');
+      activeClassroomsConfig.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
     selectClassroom.value = currentStudentData.classroom || '';
   }
 
@@ -2737,15 +2786,19 @@ function renderSchoolProfile() {
 }
 
 function actualizarTodosLosSelectoresDeAulas() {
-  if (!Array.isArray(currentLevelClassrooms) || currentLevelClassrooms.length === 0) return;
+  // 🟢 Ahora leemos del gestor dinámico (activeClassroomsConfig)
+  if (!activeClassroomsConfig || activeClassroomsConfig.length === 0) return;
 
-  const optionsHtml = currentLevelClassrooms.map(c => `<option value="${c}">${c}</option>`).join('');
+  const optionsHtml = activeClassroomsConfig.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
 
   const filtroAlumnos = document.getElementById('filterStudentClassroom');
   if (filtroAlumnos) filtroAlumnos.innerHTML = '<option value="TODAS">Todas las Secciones</option>' + optionsHtml;
 
   const selectModalAlumno = document.getElementById('student-classroom');
   if (selectModalAlumno) selectModalAlumno.innerHTML = '<option value="">Seleccione sala/año...</option>' + optionsHtml;
+  
+  const selectModalAlumnoEdit = document.getElementById('edit-student-classroom');
+  if (selectModalAlumnoEdit) selectModalAlumnoEdit.innerHTML = '<option value="">Seleccione sala/año...</option>' + optionsHtml;
 
   const filtroCuotas = document.getElementById('filterCuotasClassroom');
   if (filtroCuotas) filtroCuotas.innerHTML = '<option value="TODAS">Todas las Secciones</option>' + optionsHtml;
@@ -3497,4 +3550,181 @@ function cancelarEdicionMedica() {
 
 function cerrarCuestionarioMedico() {
   document.getElementById('cuestionarioMedicoModal')?.classList.add('hidden');
+}
+let activeClassroomsConfig = [];
+
+async function fetchClassroomsConfig() {
+  try {
+    const res = await apiFetch('/classrooms-config');
+    activeClassroomsConfig = res.ok ? await res.json() : [];
+    
+    // Ordenar de menor a mayor edad mínima
+    activeClassroomsConfig.sort((a, b) => (a.minimumAge || 0) - (b.minimumAge || 0));
+
+    renderClassroomsConfigList();
+
+    actualizarTodosLosSelectoresDeAulas();
+  } catch (error) {
+    console.error("Error al cargar configuración de aulas:", error);
+  }
+}
+
+function renderClassroomsConfigView() {
+  fetchClassroomsConfig();
+}
+
+function renderClassroomsConfigList() {
+  const container = document.getElementById('classroomsConfigListContainer');
+  const countLabel = document.getElementById('labelTotalClassroomsConfig');
+  if (!container) return;
+
+  if (countLabel) countLabel.innerText = `${activeClassroomsConfig.length} Aulas`;
+
+  if (activeClassroomsConfig.length === 0) {
+    container.innerHTML = `
+      <div class="col-span-2 p-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-xl">
+        No hay aulas configuradas. Agrega aulas usando el formulario de la izquierda.
+      </div>
+    `;
+    return;
+  }
+
+  const esAdmin = ['DIRECTOR', 'ADMINISTRATIVE'].includes(currentSession?.role);
+
+  container.innerHTML = activeClassroomsConfig.map(c => {
+    // Traducir el enum visualmente si viene en inglés/mayúscula
+    let badgeTurnoColor = 'bg-sky-50 text-sky-700 border-sky-200';
+    let textoTurno = c.shift;
+    if (c.shift === 'MANANA') { textoTurno = 'Mañana'; badgeTurnoColor = 'bg-amber-50 text-amber-700 border-amber-200'; }
+    else if (c.shift === 'TARDE') { textoTurno = 'Tarde'; badgeTurnoColor = 'bg-indigo-50 text-indigo-700 border-indigo-200'; }
+
+    return `
+      <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between shadow-2xs hover:border-emerald-400 transition-all">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="material-icons-outlined text-emerald-700 text-sm">school</span>
+            <span class="text-xs font-bold text-slate-800">${c.name}</span>
+          </div>
+          <div class="flex items-center gap-2 mt-1">
+            <span class="text-[11px] text-slate-500">Edad mín. (30/06): <strong>${c.minimumAge} años</strong></span>
+            <span class="text-[10px] font-semibold px-2 py-0.5 border rounded-md ${badgeTurnoColor}">${textoTurno}</span>
+          </div>
+        </div>
+      ${esAdmin ? `
+          <div class="flex items-center gap-1">
+            <button onclick="abrirModalEdicionAula('${c.id}')" title="Editar aula" class="text-slate-400 hover:text-emerald-600 p-1.5 rounded-lg hover:bg-emerald-50 cursor-pointer transition-colors">
+              <span class="material-icons-outlined text-sm">edit</span>
+            </button>
+            <button onclick="eliminarAulaConfig('${c.id}')" title="Eliminar aula" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 cursor-pointer transition-colors">
+              <span class="material-icons-outlined text-sm">delete</span>
+            </button>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+async function crearAulaConfigSubmit(e) {
+  e.preventDefault();
+  const inputName = document.getElementById('inputNombreAulaConfig');
+  const inputAge = document.getElementById('inputEdadMinimaConfig');
+  const selectShift = document.getElementById('inputShiftConfig');
+  if (!inputName || !inputAge || !selectShift) return;
+
+  const payload = {
+    name: inputName.value.trim(),
+    minimumAge: parseInt(inputAge.value) || 0,
+    shift: selectShift.value // 'MANANA', 'TARDE', 'AMBOS'
+  };
+
+  try {
+    const res = await apiFetch('/classrooms-config', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      inputName.value = '';
+      inputAge.value = '';
+      selectShift.value = 'MANANA';
+      await fetchClassroomsConfig();
+      alert("✅ Aula(s) configurada(s) correctamente.");
+    } else {
+      const err = await res.text();
+      alert(`No se pudo agregar el aula: ${err}`);
+    }
+  } catch (error) {
+    console.error("Error al crear aula config:", error);
+  }
+}
+
+async function eliminarAulaConfig(id) {
+  if (!confirm("¿Deseas eliminar esta configuración de aula?")) return;
+
+  try {
+    const res = await apiFetch(`/classrooms-config/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      await fetchClassroomsConfig();
+    } else {
+      alert("No se pudo eliminar el aula.");
+    }
+  } catch (error) {
+    console.error("Error al eliminar aula config:", error);
+  }
+}
+
+function abrirModalEdicionAula(id) {
+  const aula = activeClassroomsConfig.find(c => c.id === id);
+  if (!aula) return;
+
+  document.getElementById('edit-classroom-id').value = aula.id;
+  document.getElementById('edit-classroom-name').value = aula.name;
+  document.getElementById('edit-classroom-age').value = aula.minimumAge;
+  
+  let textoTurno = aula.shift;
+  if (aula.shift === 'MANANA') textoTurno = 'Mañana';
+  if (aula.shift === 'TARDE') textoTurno = 'Tarde';
+  
+  document.getElementById('edit-classroom-shift-display').value = textoTurno;
+  document.getElementById('classroomEditModal').classList.remove('hidden');
+}
+
+function cerrarModalEdicionAula() {
+  document.getElementById('classroomEditModal').classList.add('hidden');
+}
+
+async function guardarEdicionAula(e) {
+  e.preventDefault();
+  
+  const id = document.getElementById('edit-classroom-id').value;
+  const aulaOrig = activeClassroomsConfig.find(c => c.id === id);
+  if (!aulaOrig) return;
+
+  // Armamos el payload respetando el turno original para no pisarlo
+  const payload = {
+    ...aulaOrig,
+    name: document.getElementById('edit-classroom-name').value.trim(),
+    minimumAge: parseInt(document.getElementById('edit-classroom-age').value) || 0,
+    shift: aulaOrig.shift 
+  };
+
+  try {
+    const res = await apiFetch(`/classrooms-config/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      cerrarModalEdicionAula();
+      await fetchClassroomsConfig(); // 🟢 Recarga la lista y actualiza los selectores de toda la app
+      alert("✅ Aula actualizada correctamente.");
+    } else {
+      const err = await res.text();
+      alert(`No se pudo actualizar el aula: ${err}`);
+    }
+  } catch (error) {
+    console.error("Error al editar aula config:", error);
+    alert("Error de red al intentar actualizar el aula.");
+  }
 }
