@@ -84,3 +84,17 @@ input:disabled, select:disabled, textarea:disabled {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+/* Resaltar checkboxes marcados en formularios de solo lectura (disabled) */
+input[type="checkbox"]:disabled:checked {
+  accent-color: #000000; /* Tono cyan corporativo */
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+/* Darle más peso y color al texto de los elementos que están tildados */
+input[type="checkbox"]:disabled:checked + span,
+input[type="checkbox"]:disabled:checked ~ span,
+label:has(input[type="checkbox"]:disabled:checked) {
+  font-weight: 700;
+  color: #000000;
+}

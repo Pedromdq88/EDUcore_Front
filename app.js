@@ -71,37 +71,42 @@ let currentStudentRestrictions = [];
 // ========================================================
 
 function calcularSala(fechaNacimientoStr, cicloLectivo = (currentSchoolProfile?.academicYear || new Date().getFullYear())) {
-  if (!fechaNacimientoStr) return { valida: false, sala: "", error: "Seleccione fecha de nacimiento" };
+  if (!fechaNacimientoStr) return { valida: false, salaDefecto: "", opciones: [], error: "Seleccione fecha de nacimiento" };
 
   const [anioNac, mesNac, diaNac] = fechaNacimientoStr.split('-').map(Number);
-  if (!anioNac || !mesNac || !diaNac) return { valida: false, sala: "", error: "Fecha incompleta" };
+  if (!anioNac || !mesNac || !diaNac) return { valida: false, salaDefecto: "", opciones: [], error: "Fecha incompleta" };
 
   const nivel = currentSchoolProfile?.educationLevel || 'JARDIN';
 
+  // Cálculo estricto de edad al 30 de junio
   const edadAlCorte = mesNac >= 7
       ? (cicloLectivo - anioNac - 1)
       : (cicloLectivo - anioNac);
 
-  // Si es Nivel Inicial se aplica la regla legal estricta al 30 de junio
   if (nivel === 'JARDIN') {
-    switch (edadAlCorte) {
-      case 3:
-        return { valida: true, sala: "1° Sección (3 años)", error: null };
-      case 4:
-        return { valida: true, sala: "2° Sección (4 años)", error: null };
-      case 5:
-        return { valida: true, sala: "3° Sección (5 años)", error: null };
-      default:
-        if (edadAlCorte < 3) {
-          return { valida: false, sala: null, error: `❌ No admisible: Cumple ${edadAlCorte} años al 30/06 (Mínimo 3 años para Sala de 3)` };
-        } else {
-          return { valida: false, sala: null, error: `❌ Cumple ${edadAlCorte} años al 30/06 (Corresponde a Nivel Primario)` };
-        }
+    // Buscamos TODAS las aulas que correspondan exactamente a esta edad (Mañana, Tarde, etc.)
+    const aulasDisponibles = activeClassroomsConfig.filter(c => c.minimumAge === edadAlCorte);
+
+    if (aulasDisponibles.length > 0) {
+      return { 
+        valida: true, 
+        edadCalculada: edadAlCorte, 
+        opciones: aulasDisponibles, // Pasamos todas las variantes (turnos)
+        salaDefecto: aulasDisponibles[0].name, 
+        error: null 
+      };
+    } else {
+      return { 
+        valida: false, 
+        edadCalculada: edadAlCorte, 
+        opciones: [], 
+        salaDefecto: null, 
+        error: `❌ No admisible: Cumple ${edadAlCorte} años al 30/06 y no hay sala configurada para esa edad.` 
+      };
     }
   }
 
-  // En Primaria y Secundaria la asignación la define el selector oficial
-  return { valida: true, sala: "", edadCalculada: edadAlCorte, error: null };
+  return { valida: true, salaDefecto: "", edadCalculada: edadAlCorte, opciones: [], error: null };
 }
 
 function recalcularSalaFormularioMatricula() {
@@ -119,6 +124,8 @@ function recalcularSalaFormularioMatricula() {
       labelSala.className = "text-sm font-bold text-slate-500";
     }
     if (hiddenClassroom) hiddenClassroom.value = "";
+    // Restaura todas las opciones
+    if (selectClassroom) selectClassroom.innerHTML = '<option value="">Seleccione sala/año...</option>' + activeClassroomsConfig.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
     return;
   }
 
@@ -126,17 +133,34 @@ function recalcularSalaFormularioMatricula() {
 
   if (nivel === 'JARDIN') {
     if (res.valida) {
-      labelSala.textContent = res.sala;
-      labelSala.className = "text-sm font-bold text-emerald-800";
-      if (hiddenClassroom) hiddenClassroom.value = res.sala;
-      if (selectClassroom) selectClassroom.value = res.sala;
+      // 🟢 Si hay más de un turno para esa edad
+      if (res.opciones.length > 1) {
+        labelSala.textContent = `✅ Edad al 30/06: ${res.edadCalculada} años. Múltiples turnos disponibles, elija abajo.`;
+        labelSala.className = "text-sm font-bold text-sky-600";
+      } else {
+        labelSala.textContent = `✅ Edad al 30/06: ${res.edadCalculada} años. Corresponde: ${res.salaDefecto}`;
+        labelSala.className = "text-sm font-bold text-emerald-700";
+      }
+      
+      if (hiddenClassroom) hiddenClassroom.value = res.salaDefecto;
+
+      // 🟢 Filtramos el selector para mostrar SOLO los turnos permitidos para su edad
+      if (selectClassroom) {
+        selectClassroom.innerHTML = res.opciones.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+        selectClassroom.value = res.salaDefecto; // Selecciona el primer turno por defecto
+      }
+
     } else {
-      labelSala.textContent = res.error;
+      labelSala.textContent = `Edad al 30/06: ${res.edadCalculada} años. ${res.error}`;
       labelSala.className = "text-xs font-bold text-rose-600";
       if (hiddenClassroom) hiddenClassroom.value = "";
+      
+      if (selectClassroom) {
+         selectClassroom.innerHTML = '<option value="">-- Sin sala admisible --</option>' + activeClassroomsConfig.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+         selectClassroom.value = "";
+      }
     }
   } else {
-    // Primaria o Secundaria: solo muestra la edad al corte
     if (labelSala) {
       labelSala.textContent = `Edad al 30/06: ${res.edadCalculada} años`;
       labelSala.className = "text-sm font-bold text-slate-700";
@@ -150,7 +174,7 @@ function recalcularSalaFormularioEdicion() {
   const nivel = currentSchoolProfile?.educationLevel || 'JARDIN';
 
   const labelSala = document.getElementById('edit-labelSalaCalculada');
-  const hiddenClassroom = document.getElementById('edit-student-classroom');
+  const selectEditClassroom = document.getElementById('edit-student-classroom');
 
   if (!birthDate) return;
 
@@ -159,16 +183,37 @@ function recalcularSalaFormularioEdicion() {
   if (nivel === 'JARDIN') {
     if (res.valida) {
       if (labelSala) {
-        labelSala.textContent = res.sala;
-        labelSala.className = "text-xs font-bold text-emerald-800";
+        if (res.opciones.length > 1) {
+          labelSala.textContent = `✅ Edad al corte: ${res.edadCalculada} años. Elija el turno abajo.`;
+          labelSala.className = "text-xs font-bold text-sky-600";
+        } else {
+          labelSala.textContent = `✅ Edad al corte: ${res.edadCalculada} años. Corresponde: ${res.salaDefecto}`;
+          labelSala.className = "text-xs font-bold text-emerald-700";
+        }
       }
-      if (hiddenClassroom) hiddenClassroom.value = res.sala;
+      
+      // Filtramos las opciones igual que en el alta
+      if (selectEditClassroom) {
+        const currentVal = selectEditClassroom.value;
+        const isValidForNewAge = res.opciones.some(o => o.name === currentVal);
+        
+        selectEditClassroom.innerHTML = res.opciones.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+        
+        // Mantenemos el turno que ya tenía elegido si sigue siendo válido para su edad
+        if (isValidForNewAge) {
+            selectEditClassroom.value = currentVal;
+        } else {
+            selectEditClassroom.value = res.salaDefecto;
+        }
+      }
     } else {
       if (labelSala) {
-        labelSala.textContent = res.error;
+        labelSala.textContent = `Edad al corte: ${res.edadCalculada} años. ${res.error}`;
         labelSala.className = "text-xs font-bold text-rose-600";
       }
-      if (hiddenClassroom) hiddenClassroom.value = "";
+      if (selectEditClassroom) {
+          selectEditClassroom.innerHTML = '<option value="">-- Sin sala admisible --</option>' + activeClassroomsConfig.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+      }
     }
   } else {
     if (labelSala) {
@@ -349,12 +394,15 @@ function showSection(sectionId, clearHistory = true) {
   if (sectionId === 'retirosView') renderRetirosView();
   if (sectionId === 'restriccionesView') renderRestriccionesView();
   if (sectionId === 'comunicadosView') renderComunicadosView();
+  if (sectionId === 'fichaMedicaView') renderFichaMedicaView();
+  if (sectionId === 'classroomsConfigView') renderClassroomsConfigView(); 
 }
 
 function toggleForm(id) { document.getElementById(id).classList.toggle('hidden'); }
 
 function refreshAllData() {
   fetchSchoolProfile();
+  fetchClassroomsConfig();
   fetchTutors();
   fetchStudents();
   fetchStaff();
@@ -478,7 +526,8 @@ async function eliminarMateria(id) {
 // ========================================================
 
 function generarFilaAsignacionDocenteHtml(data = {}) {
-  const defaultClass = currentLevelClassrooms[0] || '1° Sección (3 años)';
+  // 🟢 Usamos la primera aula configurada dinámicamente
+  const defaultClass = activeClassroomsConfig.length > 0 ? activeClassroomsConfig[0].name : 'Sin Aula';
   const subjectSelected = data.subject || (activeSubjects[0]?.name || 'Docente Titular');
   const classroomSelected = data.classroom || defaultClass;
   const shiftSelected = data.shift || 'MANANA';
@@ -488,8 +537,9 @@ function generarFilaAsignacionDocenteHtml(data = {}) {
       ? activeSubjects.map(s => `<option value="${s.name}" ${s.name === subjectSelected ? 'selected' : ''}>${s.name}</option>`).join('')
       : `<option value="Docente Titular">Docente Titular</option>`;
 
-  const classroomOptions = currentLevelClassrooms.map(c =>
-      `<option value="${c}" ${c === classroomSelected ? 'selected' : ''}>${c}</option>`
+  // 🟢 Iteramos sobre el catálogo dinámico
+  const classroomOptions = activeClassroomsConfig.map(c =>
+      `<option value="${c.name}" ${c.name === classroomSelected ? 'selected' : ''}>${c.name}</option>`
   ).join('');
 
   return `
@@ -1351,9 +1401,34 @@ async function showStudentProfile(studentId, isBackNavigation = false) {
     document.getElementById('alumno-legajo').textContent = `Legajo: ${legajoVisual}`;
     document.getElementById('alumno-curso').textContent = `Sección: ${data.classroom || '-'}`;
     document.getElementById('alumno-estado').textContent = `Estado: ${data.status || 'ACTIVO'}`;
+
+    // 🟢 Bloque 1: Identidad y Documentación
     document.getElementById('alumno-dni').textContent = data.documentNumber || '-';
+    document.getElementById('alumno-cuil').textContent = data.cuil || '-';
+    document.getElementById('alumno-dniStatus').textContent = data.dniStatus === 'FISICO' ? 'DNI Físico' : (data.dniStatus === 'EN_TRAMITE' ? 'En Trámite' : 'No posee');
+    document.getElementById('alumno-genderIdentity').textContent = data.genderIdentity || '-';
     document.getElementById('alumno-nacimiento').textContent = data.birthDate || '-';
-    document.getElementById('alumno-domicilio').textContent = data.address || data.direccion || '-';
+
+    // 🟢 Bloque 2: Origen y Nacimiento
+    document.getElementById('alumno-birthCountry').textContent = data.birthCountry || '-';
+    document.getElementById('alumno-nationality').textContent = data.nationality || 'Argentina';
+    document.getElementById('alumno-birthProvince').textContent = data.birthProvince || '-';
+    document.getElementById('alumno-birthLocality').textContent = data.birthLocality || '-';
+
+    // 🟢 Bloque 3: Domicilio Actual
+    const calleNro = `${data.street || ''} ${data.streetNumber || ''}`.trim();
+    document.getElementById('alumno-domicilio').textContent = calleNro || data.address || '-';
+    const pisoDeptoStr = `Piso: ${data.floor || '-'} | Torre: ${data.tower || '-'} | Depto: ${data.apartment || '-'}`;
+    document.getElementById('alumno-pisoDepto').textContent = pisoDeptoStr;
+    document.getElementById('alumno-addressLocality').textContent = data.addressLocality || '-';
+    document.getElementById('alumno-betweenStreets').textContent = data.betweenStreets || 'Sin especificar';
+
+    // 🟢 Bloque 4: Datos Sociodemográficos
+    const hermanosStr = data.hasSiblings ? `Sí (${data.siblingCount || 0} total, ${data.siblingsInThisSchool || 0} en escuela)` : 'No';
+    document.getElementById('alumno-hermanos').textContent = hermanosStr;
+    document.getElementById('alumno-auh').textContent = data.receivesAuh ? 'Sí' : 'No';
+    document.getElementById('alumno-native').textContent = data.belongsToNativePeople ? 'Sí' : 'No';
+    document.getElementById('alumno-transport').textContent = data.transportationMethods || 'A pie';
 
     const btnBaja = document.getElementById('btn-baja-alumno');
     if (btnBaja) {
@@ -1397,6 +1472,7 @@ async function showStudentProfile(studentId, isBackNavigation = false) {
     await fetchAndRenderPickupsGeneral(studentId, 'autorizados-container');
     await fetchAndRenderRestrictionsGeneral(studentId, 'restricciones-container');
     await renderComunicadosPrivadosAlumno(studentId);
+    await cargarDetalleFichaMedicaPanel(studentId, 'perfilFichaMedicaContainer');
 
   } catch (error) {
     console.error("Error perfil alumno:", error);
@@ -1417,53 +1493,124 @@ function hideStudentProfile() {
   }
 }
 
+
+
+function recalcularSalaFormularioEdicion() {
+  const birthDate = document.getElementById('edit-student-nacimiento')?.value;
+  const cicloLectivo = currentSchoolProfile?.academicYear || new Date().getFullYear();
+  const labelSala = document.getElementById('edit-labelSalaCalculada');
+
+  if (!birthDate) {
+    if (labelSala) labelSala.textContent = "Seleccione fecha de nacimiento";
+    return;
+  }
+
+  const res = calcularSala(birthDate, cicloLectivo);
+
+  if (labelSala) {
+    if (res.valida) {
+      labelSala.textContent = `Sugerencia legal al corte: ${res.sala || (res.edadCalculada + ' años')}`;
+      labelSala.className = "text-xs font-bold text-emerald-800";
+    } else {
+      labelSala.textContent = res.error;
+      labelSala.className = "text-xs font-bold text-rose-600";
+    }
+  }
+}
+
 function openEditStudentModal() {
   if (!currentStudentData) return;
 
+  // Cargar datos básicos y nuevos
   document.getElementById('edit-student-nombre').value = currentStudentData.firstName || '';
   document.getElementById('edit-student-apellido').value = currentStudentData.lastName || '';
   document.getElementById('edit-student-legajo').value = currentStudentData.legajoNumber || currentStudentData.legajo || '';
   document.getElementById('edit-student-dni').value = currentStudentData.documentNumber || '';
   document.getElementById('edit-student-nacimiento').value = currentStudentData.birthDate || '';
-  document.getElementById('edit-student-direccion').value = currentStudentData.address || currentStudentData.direccion || '';
+  
+  document.getElementById('edit-student-cuil').value = currentStudentData.cuil || '';
+  document.getElementById('edit-student-dniStatus').value = currentStudentData.dniStatus || 'FISICO';
+  document.getElementById('edit-student-genderIdentity').value = currentStudentData.genderIdentity || 'NO_RESPONDE';
+  
+  document.getElementById('edit-student-birthCountry').value = currentStudentData.birthCountry || 'ARGENTINA';
+  document.getElementById('edit-student-nationality').value = currentStudentData.nationality || 'Argentina';
+  document.getElementById('edit-student-birthProvince').value = currentStudentData.birthProvince || '';
+  document.getElementById('edit-student-birthLocality').value = currentStudentData.birthLocality || '';
 
-  const hiddenClassroom = document.getElementById('edit-student-classroom');
-  if (hiddenClassroom) hiddenClassroom.value = currentStudentData.classroom || '';
+  document.getElementById('edit-student-street').value = currentStudentData.street || '';
+  document.getElementById('edit-student-streetNumber').value = currentStudentData.streetNumber || '';
+  document.getElementById('edit-student-floor').value = currentStudentData.floor || '';
+  document.getElementById('edit-student-tower').value = currentStudentData.tower || '';
+  document.getElementById('edit-student-apartment').value = currentStudentData.apartment || '';
+  document.getElementById('edit-student-betweenStreets').value = currentStudentData.betweenStreets || '';
+  document.getElementById('edit-student-addressLocality').value = currentStudentData.addressLocality || '';
+
+  document.getElementById('edit-student-hasSiblings').value = currentStudentData.hasSiblings ? 'true' : 'false';
+  document.getElementById('edit-student-siblingCount').value = currentStudentData.siblingCount || 0;
+  document.getElementById('edit-student-siblingsInSchool').value = currentStudentData.siblingsInThisSchool || 0;
+  document.getElementById('edit-student-receivesAuh').value = currentStudentData.receivesAuh ? 'true' : 'false';
+  document.getElementById('edit-student-nativePeople').value = currentStudentData.belongsToNativePeople ? 'true' : 'false';
+  document.getElementById('edit-student-transport').value = currentStudentData.transportationMethods || 'A_PIE';
+
+  // 🟢 CORRECCIÓN: Llenar el selector leyendo del catálogo dinámico (activeClassroomsConfig)
+  const selectClassroom = document.getElementById('edit-student-classroom');
+  if (selectClassroom && Array.isArray(activeClassroomsConfig)) {
+    selectClassroom.innerHTML = '<option value="">-- Seleccionar sección manualmente --</option>' + 
+      activeClassroomsConfig.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+    selectClassroom.value = currentStudentData.classroom || '';
+  }
 
   recalcularSalaFormularioEdicion();
   document.getElementById('studentEditModal').classList.remove('hidden');
-}
-
-function closeEditStudentModal() {
-  document.getElementById('studentEditModal').classList.add('hidden');
 }
 
 async function guardarDatosAlumno(e) {
   e.preventDefault();
   if (!currentStudentData?.id) return;
 
-  const birthDateVal = document.getElementById('edit-student-nacimiento').value;
+  const birthDateVal = document.getElementById('edit-student-nacimiento')?.value;
   const academicYearVal = currentSchoolProfile?.academicYear || new Date().getFullYear();
-  const nivel = currentSchoolProfile?.educationLevel || 'JARDIN';
 
-  let aulaFinal = document.getElementById('edit-student-classroom')?.value;
+  const selectEditClassroom = document.getElementById('edit-student-classroom');
+  let aulaFinal = selectEditClassroom ? selectEditClassroom.value : null;
 
-  if (nivel === 'JARDIN') {
-    const checkSala = calcularSala(birthDateVal, academicYearVal);
-    if (!checkSala.valida) { alert(checkSala.error); return; }
-    aulaFinal = checkSala.sala;
+  if (!aulaFinal || aulaFinal === "") {
+    aulaFinal = currentStudentData.classroom; 
   }
 
   const updatedPayload = {
     ...currentStudentData,
-    firstName: document.getElementById('edit-student-nombre').value.trim(),
-    lastName: document.getElementById('edit-student-apellido').value.trim(),
-    legajoNumber: document.getElementById('edit-student-legajo').value.trim(),
-    documentNumber: document.getElementById('edit-student-dni').value.trim(),
-    birthDate: birthDateVal,
+    firstName: document.getElementById('edit-student-nombre')?.value.trim() || currentStudentData.firstName,
+    lastName: document.getElementById('edit-student-apellido')?.value.trim() || currentStudentData.lastName,
+    legajoNumber: document.getElementById('edit-student-legajo')?.value.trim() || currentStudentData.legajoNumber,
+    documentNumber: document.getElementById('edit-student-dni')?.value.trim() || currentStudentData.documentNumber,
+    birthDate: birthDateVal || currentStudentData.birthDate,
     academicYear: academicYearVal,
     classroom: aulaFinal,
-    address: document.getElementById('edit-student-direccion').value.trim()
+    seccion: aulaFinal,
+
+    cuil: document.getElementById('edit-student-cuil')?.value.trim() || '',
+    dniStatus: document.getElementById('edit-student-dniStatus')?.value || 'FISICO',
+    genderIdentity: document.getElementById('edit-student-genderIdentity')?.value || 'NO_RESPONDE',
+    birthCountry: document.getElementById('edit-student-birthCountry')?.value || 'ARGENTINA',
+    nationality: document.getElementById('edit-student-nationality')?.value.trim() || 'Argentina',
+    birthProvince: document.getElementById('edit-student-birthProvince')?.value.trim() || '',
+    birthLocality: document.getElementById('edit-student-birthLocality')?.value.trim() || '',
+    
+    street: document.getElementById('edit-student-street')?.value.trim() || '',
+    streetNumber: document.getElementById('edit-student-streetNumber')?.value.trim() || '',
+    floor: document.getElementById('edit-student-floor')?.value.trim() || '',
+    tower: document.getElementById('edit-student-tower')?.value.trim() || '',
+    apartment: document.getElementById('edit-student-apartment')?.value.trim() || '',
+    betweenStreets: document.getElementById('edit-student-betweenStreets')?.value.trim() || '',
+    addressLocality: document.getElementById('edit-student-addressLocality')?.value.trim() || '',
+    
+    hasSiblings: document.getElementById('edit-student-hasSiblings')?.value === 'true',
+    siblingCount: parseInt(document.getElementById('edit-student-siblingCount')?.value) || 0,
+    siblingsInThisSchool: parseInt(document.getElementById('edit-student-siblingsInSchool')?.value) || 0,
+    receivesAuh: document.getElementById('edit-student-receivesAuh')?.value === 'true',
+    belongsToNativePeople: document.getElementById('edit-student-nativePeople')?.value === 'true',
+    transportationMethods: document.getElementById('edit-student-transport')?.value || 'A_PIE'
   };
 
   try {
@@ -1471,7 +1618,8 @@ async function guardarDatosAlumno(e) {
       method: 'PUT',
       body: JSON.stringify(updatedPayload)
     });
-    if (!response.ok) throw new Error("Error al actualizar alumno");
+    
+    if (!response.ok) throw new Error("Error al actualizar alumno en el servidor");
 
     const alumnoActualizado = await response.json();
     currentStudentData = alumnoActualizado;
@@ -1482,10 +1630,14 @@ async function guardarDatosAlumno(e) {
     closeEditStudentModal();
     renderStudentsTable(activeStudents);
     await showStudentProfile(alumnoActualizado.id, true);
-    alert("¡Ficha del alumno actualizada!");
+    alert(`¡Ficha y datos oficiales actualizados correctamente!`);
   } catch (error) {
     alert(error.message);
   }
+}
+
+function closeEditStudentModal() {
+  document.getElementById('studentEditModal').classList.add('hidden');
 }
 
 async function confirmarBajaAlumno() {
@@ -1505,11 +1657,25 @@ async function confirmarBajaAlumno() {
 }
 
 async function submitStudent() {
+  // 🟢 VALIDACIÓN OBLIGATORIA DE CAMPOS PRINCIPALES
+  const firstName = document.getElementById('studentFirstName')?.value.trim();
+  const lastName = document.getElementById('studentLastName')?.value.trim();
+  const dni = document.getElementById('studentDni')?.value.trim();
   const birthDateValue = document.getElementById('studentBirthDate')?.value;
+  const tutor1Id = document.getElementById('studentTutor1')?.value;
+
+  if (!firstName || !lastName || !dni || !birthDateValue) {
+    alert("❌ Error: Por favor complete los campos obligatorios principales (Nombre, Apellido, DNI y Fecha de Nacimiento).");
+    return; // Frena el proceso y no deja enviar
+  }
+
+  if (!tutor1Id) {
+    alert("❌ Error: Es obligatorio asignar un Tutor Principal al alumno.");
+    return;
+  }
+
   const academicYearVal = currentSchoolProfile?.academicYear || new Date().getFullYear();
   const nivel = currentSchoolProfile?.educationLevel || 'JARDIN';
-
-  if (!birthDateValue) { alert("Fecha de nacimiento obligatoria."); return; }
 
   let aulaFinal = document.getElementById('student-classroom')?.value;
 
@@ -1521,7 +1687,6 @@ async function submitStudent() {
     if (!aulaFinal) { alert("Debe seleccionar un año/grado."); return; }
   }
 
-  const tutor1Id = document.getElementById('studentTutor1')?.value;
   const tutor2Id = document.getElementById('studentTutor2')?.value;
   const tutors = [];
   if (tutor1Id) tutors.push({ tutorId: tutor1Id, isPrimary: true });
@@ -1529,6 +1694,7 @@ async function submitStudent() {
 
   if (tutors.length === 0) { alert("Debes seleccionar al menos un tutor responsable."); return; }
 
+  // Objeto completo con los datos básicos y los nuevos campos oficiales de la planilla
   const studentData = {
     firstName: document.getElementById('studentFirstName')?.value.trim() || '',
     lastName: document.getElementById('studentLastName')?.value.trim() || '',
@@ -1537,8 +1703,31 @@ async function submitStudent() {
     birthDate: birthDateValue,
     academicYear: academicYearVal,
     classroom: aulaFinal,
-    address: document.getElementById('studentDireccion')?.value.trim() || '',
-    status: "ACTIVE"
+    status: "ACTIVE",
+
+    // Nuevos campos oficiales añadidos:
+    cuil: document.getElementById('studentCuil')?.value.trim() || '',
+    dniStatus: document.getElementById('studentDniStatus')?.value || 'FISICO',
+    genderIdentity: document.getElementById('studentGenderIdentity')?.value || 'NO_RESPONDE',
+    birthCountry: document.getElementById('studentBirthCountry')?.value || 'ARGENTINA',
+    nationality: document.getElementById('studentNationality')?.value.trim() || 'Argentina',
+    birthProvince: document.getElementById('studentBirthProvince')?.value.trim() || '',
+    birthLocality: document.getElementById('studentBirthLocality')?.value.trim() || '',
+    
+    street: document.getElementById('studentStreet')?.value.trim() || '',
+    streetNumber: document.getElementById('studentStreetNumber')?.value.trim() || '',
+    floor: document.getElementById('studentFloor')?.value.trim() || '',
+    tower: document.getElementById('studentTower')?.value.trim() || '',
+    apartment: document.getElementById('studentApartment')?.value.trim() || '',
+    betweenStreets: document.getElementById('studentBetweenStreets')?.value.trim() || '',
+    addressLocality: document.getElementById('studentAddressLocality')?.value.trim() || '',
+    
+    hasSiblings: document.getElementById('studentHasSiblings')?.value === 'true',
+    siblingCount: parseInt(document.getElementById('studentSiblingCount')?.value) || 0,
+    siblingsInThisSchool: parseInt(document.getElementById('studentSiblingsInSchool')?.value) || 0,
+    receivesAuh: document.getElementById('studentReceivesAuh')?.value === 'true',
+    belongsToNativePeople: document.getElementById('studentNativePeople')?.value === 'true',
+    transportationMethods: document.getElementById('studentTransport')?.value || 'A_PIE'
   };
 
   try {
@@ -1563,7 +1752,6 @@ async function submitStudent() {
     alert(error.message);
   }
 }
-
 // ========================================================
 // GESTIÓN DE CUOTAS
 // ========================================================
@@ -2598,15 +2786,19 @@ function renderSchoolProfile() {
 }
 
 function actualizarTodosLosSelectoresDeAulas() {
-  if (!Array.isArray(currentLevelClassrooms) || currentLevelClassrooms.length === 0) return;
+  // 🟢 Ahora leemos del gestor dinámico (activeClassroomsConfig)
+  if (!activeClassroomsConfig || activeClassroomsConfig.length === 0) return;
 
-  const optionsHtml = currentLevelClassrooms.map(c => `<option value="${c}">${c}</option>`).join('');
+  const optionsHtml = activeClassroomsConfig.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
 
   const filtroAlumnos = document.getElementById('filterStudentClassroom');
   if (filtroAlumnos) filtroAlumnos.innerHTML = '<option value="TODAS">Todas las Secciones</option>' + optionsHtml;
 
   const selectModalAlumno = document.getElementById('student-classroom');
   if (selectModalAlumno) selectModalAlumno.innerHTML = '<option value="">Seleccione sala/año...</option>' + optionsHtml;
+  
+  const selectModalAlumnoEdit = document.getElementById('edit-student-classroom');
+  if (selectModalAlumnoEdit) selectModalAlumnoEdit.innerHTML = '<option value="">Seleccione sala/año...</option>' + optionsHtml;
 
   const filtroCuotas = document.getElementById('filterCuotasClassroom');
   if (filtroCuotas) filtroCuotas.innerHTML = '<option value="TODAS">Todas las Secciones</option>' + optionsHtml;
@@ -3027,5 +3219,512 @@ async function guardarDatosEscuela(e) {
     }
   } catch (err) {
     alert("Error al guardar cambios de la escuela.");
+  }
+}
+
+
+// ========================================================
+// CONTROL DE MENÚ LATERAL: EXPANDIR / OCULTAR FIJO
+// ========================================================
+function toggleSidebar() {
+  const sidebar = document.getElementById('appSidebar');
+  const mainArea = document.getElementById('mainContentArea');
+  if (!sidebar || !mainArea) return;
+
+  // Alternamos si el menú está contraído o expandido
+  sidebar.classList.toggle('-translate-x-full');
+  sidebar.classList.toggle('w-0');
+  sidebar.classList.toggle('p-0');
+  
+  // Hacemos que el contenido principal ocupe todo el ancho (pl-0) o deje el espacio del menú (pl-64)
+  mainArea.classList.toggle('pl-64');
+  mainArea.classList.toggle('pl-0');
+}
+// ========================================================
+// MÓDULO: GESTIÓN DE FICHA MÉDICA EN APARTADO Y PERFIL
+// ========================================================
+
+let selectedStudentForFicha = null;
+
+function renderFichaMedicaView() {
+  actualizarFiltrosFichaMedica();
+  filterFichasTable();
+}
+
+function actualizarFiltrosFichaMedica() {
+  const select = document.getElementById('filterFichaClassroom');
+  if (!select || !Array.isArray(currentLevelClassrooms)) return;
+  select.innerHTML = '<option value="TODAS">Todas las Secciones</option>' + 
+    currentLevelClassrooms.map(c => `<option value="${c}">${c}</option>`).join('');
+}
+
+function filterFichasTable() {
+  const container = document.getElementById('fichasAlumnosList');
+  if (!container) return;
+
+  const filterClass = document.getElementById('filterFichaClassroom')?.value || 'TODAS';
+  const rawQuery = document.getElementById('inputFilterFichas')?.value || '';
+  const terms = normalizarTexto(rawQuery).split(/\s+/).filter(t => t.length > 0);
+
+  const filtrados = activeStudents.filter(s => {
+    if (filterClass !== 'TODAS' && s.classroom !== filterClass) return false;
+    if (terms.length === 0) return true;
+    const fullStr = normalizarTexto(`${s.firstName} ${s.lastName} ${s.documentNumber}`);
+    return terms.every(t => fullStr.includes(t));
+  });
+
+  if (filtrados.length === 0) {
+    container.innerHTML = '<p class="text-xs text-slate-400 p-4 text-center">No se encontraron alumnos.</p>';
+    return;
+  }
+
+  container.innerHTML = filtrados.map(s => `
+    <div onclick="seleccionarAlumnoFicha('${s.id}')" class="p-3 hover:bg-cyan-50/60 cursor-pointer flex justify-between items-center transition-colors ${selectedStudentForFicha === s.id ? 'bg-cyan-50 border-l-4 border-cyan-600' : ''}">
+      <div>
+        <h4 class="font-bold text-slate-800 text-xs">${s.lastName || ''}, ${s.firstName || ''}</h4>
+        <span class="text-slate-400 text-[11px] block">DNI: ${s.documentNumber || '--'} | ${s.classroom || 'Sin sección'}</span>
+      </div>
+      <span class="material-icons-outlined text-slate-300 text-sm">chevron_right</span>
+    </div>
+  `).join('');
+}
+
+async function seleccionarAlumnoFicha(studentId) {
+  selectedStudentForFicha = studentId;
+  const alumno = activeStudents.find(s => s.id === studentId);
+  if (!alumno) return;
+
+  document.getElementById('fichaAlumnoNombreHeader').textContent = `${alumno.lastName}, ${alumno.firstName}`;
+  document.getElementById('fichaAlumnoInfoSub').textContent = `DNI: ${alumno.documentNumber || '--'} | Sección: ${alumno.classroom || '--'}`;
+  document.getElementById('btnGestionarFichaPanel').classList.remove('hidden');
+
+  filterFichasTable();
+  await cargarDetalleFichaMedicaPanel(studentId, 'fichaDetallePanelContainer');
+}
+
+async function cargarDetalleFichaMedicaPanel(studentId, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  try {
+    const res = await apiFetch(`/students/${studentId}/medical-record`);
+    if (res.ok) {
+      const med = await res.json();
+      
+      // Botón para crear si no existe
+      const btnCrear = document.getElementById('btnPerfilCrearFicha');
+
+      if (!med || !med.id) {
+        if (btnCrear) btnCrear.classList.remove('hidden');
+        container.innerHTML = `
+          <div class="p-4 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-center text-xs text-slate-400">
+            No hay ficha médica registrada para este alumno.
+          </div>
+        `;
+        return;
+      }
+
+      if (btnCrear) btnCrear.classList.add('hidden');
+
+      // Recopilamos patologías marcadas para mostrarlas tipo etiqueta
+      let patologias = [];
+      if (med.asma) patologias.push('Asma');
+      if (med.convulsiones) patologias.push('Convulsiones');
+      if (med.diabetes) patologias.push('Diabetes');
+      if (med.problemasCardiacos) patologias.push('Cardíacos');
+      if (med.alergiaGeneral) patologias.push('Alergias');
+
+      const patologiasTexto = patologias.length > 0 ? patologias.join(' • ') : 'Ninguna patología grave declarada';
+
+      // Renderizado idéntico a las tarjetas de tutores/restricciones
+      container.innerHTML = `
+        <div onclick="abrirCuestionarioMedicoSeleccionado()" class="p-4 bg-white border border-slate-200 rounded-xl shadow-xs hover:border-cyan-500 transition-all cursor-pointer flex justify-between items-center group">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-cyan-100 text-cyan-700 flex items-center justify-center font-bold text-sm">
+              <span class="material-icons-outlined text-base">medical_services</span>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h4 class="font-bold text-slate-900 group-hover:text-cyan-700 text-xs uppercase">Declaración Jurada de Salud Vigente</h4>
+                <span class="bg-cyan-50 text-cyan-700 border border-cyan-200 text-[10px] font-bold px-2 py-0.5 rounded-md">Obra Social: ${med.obraSocial}</span>
+              </div>
+              <p class="text-xs text-slate-500 mt-1">N° Afiliado: ${med.nroAfiliado || 'Sin especificar'} | <strong>Patologías:</strong> ${patologiasTexto}</p>
+            </div>
+          </div>
+          <span class="material-icons-outlined text-slate-400 group-hover:text-cyan-600">chevron_right</span>
+        </div>
+      `;
+    }
+  } catch (e) {
+    console.error("Error al cargar ficha en perfil:", e);
+    container.innerHTML = `<p class="text-xs text-slate-400 p-3">Error al cargar la información médica.</p>`;
+  }
+}
+
+function abrirCuestionarioMedicoSeleccionado() {
+  const studentId = selectedStudentForFicha || currentStudentData?.id;
+  if (!studentId) {
+    alert("Seleccione un alumno primero.");
+    return;
+  }
+  cargarDatosEnCuestionario(studentId);
+}
+
+function abrirCuestionarioMedicoDesdePerfil() {
+  if (!currentStudentData?.id) return;
+  selectedStudentForFicha = currentStudentData.id;
+  cargarDatosEnCuestionario(currentStudentData.id);
+}
+
+/// Variable global para controlar el modo del modal médico (declarada arriba de todo)
+let isEditingMedicalRecord = false;
+
+async function cargarDatosEnCuestionario(studentId, readOnly = true) {
+  isEditingMedicalRecord = !readOnly; 
+  const form = document.getElementById('formCuestionarioMedico');
+  if (form) form.reset();
+
+  try {
+    const res = await apiFetch(`/students/${studentId}/medical-record`);
+    if (res.ok) {
+      const med = await res.json();
+      if (med && med.id) {
+        document.getElementById('medObraSocial').value = med.obraSocial || 'NO';
+        document.getElementById('medDetalleObra').value = med.detalleObraSocial || '';
+        document.getElementById('medNroAfiliado').value = med.nroAfiliado || '';
+
+        // Checkboxes
+        const setChk = (id, val) => { const el = document.getElementById(id); if(el) el.checked = !!val; };
+        setChk('chkAsma', med.asma);
+        setChk('chkAlergiaGeneral', med.alergiaGeneral);
+        setChk('chkCardiacos', med.problemasCardiacos);
+        setChk('chkDiabetes', med.diabetes);
+        setChk('chkPresion', med.presionArterialElevada);
+        setChk('chkConvulsiones', med.convulsiones);
+        setChk('chkAlteracionesSangre', med.alteracionesSanguineas);
+        setChk('chkQuemaduras', med.quemadurasSeveras);
+        setChk('chkFaltaOrgano', med.faltaOrgano);
+        setChk('chkOnco', med.enfermedadOncohematologica);
+        setChk('chkInmuno', med.inmunodeficiencias);
+        setChk('chkFracturas', med.fracturasLesiones);
+        setChk('chkProblemasHuesos', med.otroProblemaHuesos);
+        setChk('chkTrauma', med.traumatismoCraneo);
+        setChk('chkPiel', med.problemasPiel);
+
+        setChk('chkDesmayos', med.desmayos);
+        setChk('chkDolorPecho', med.dolorPecho);
+        setChk('chkMareos', med.mareos);
+        setChk('chkCansancio', med.mayorCansancio);
+        setChk('chkPalpitaciones', med.palpitaciones);
+        setChk('chkDificultadRespirar', med.dificultadRespirar);
+
+        setChk('chkDisminucionAuditiva', med.disminucionAuditiva);
+        setChk('chkDisminucionVisual', med.disminucionVisual);
+        setChk('chkMedicacionHabitual', med.medicacionHabitual);
+        document.getElementById('txtCualMedicacion').value = med.cualMedicacion || '';
+      }
+    }
+  } catch (e) {
+    console.error("Error al cargar datos en cuestionario:", e);
+  }
+
+  actualizarEstadoFormularioMedico();
+  document.getElementById('cuestionarioMedicoModal')?.classList.remove('hidden');
+}
+
+async function guardarCuestionarioMedico(e) {
+  // 🛑 Prevenimos estrictamente cualquier recarga o redirección por defecto del navegador
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  const studentId = selectedStudentForFicha || currentStudentData?.id;
+  if (!studentId) {
+    alert("No se ha seleccionado ningún alumno.");
+    return;
+  }
+
+  const payload = {
+    obraSocial: document.getElementById('medObraSocial').value,
+    detalleObraSocial: document.getElementById('medDetalleObra').value.trim(),
+    nroAfiliado: document.getElementById('medNroAfiliado').value.trim(),
+
+    asma: document.getElementById('chkAsma').checked,
+    alergiaGeneral: document.getElementById('chkAlergiaGeneral').checked,
+    problemasCardiacos: document.getElementById('chkCardiacos').checked,
+    diabetes: document.getElementById('chkDiabetes').checked,
+    presionArterialElevada: document.getElementById('chkPresion').checked,
+    convulsiones: document.getElementById('chkConvulsiones').checked,
+    alteracionesSanguineas: document.getElementById('chkAlteracionesSangre').checked,
+    quemadurasSeveras: document.getElementById('chkQuemaduras').checked,
+    faltaOrgano: document.getElementById('chkFaltaOrgano').checked,
+    enfermedadOncohematologica: document.getElementById('chkOnco').checked,
+    inmunodeficiencias: document.getElementById('chkInmuno').checked,
+    fracturasLesiones: document.getElementById('chkFracturas').checked,
+    otroProblemaHuesos: document.getElementById('chkProblemasHuesos').checked,
+    traumatismoCraneo: document.getElementById('chkTrauma').checked,
+    problemasPiel: document.getElementById('chkPiel').checked,
+
+    desmayos: document.getElementById('chkDesmayos').checked,
+    dolorPecho: document.getElementById('chkDolorPecho').checked,
+    mareos: document.getElementById('chkMareos').checked,
+    mayorCansancio: document.getElementById('chkCansancio').checked,
+    palpitaciones: document.getElementById('chkPalpitaciones').checked,
+    dificultadRespirar: document.getElementById('chkDificultadRespirar')?.checked || false,
+
+    disminucionAuditiva: document.getElementById('chkDisminucionAuditiva').checked,
+    disminucionVisual: document.getElementById('chkDisminucionVisual').checked,
+    medicacionHabitual: document.getElementById('chkMedicacionHabitual').checked,
+    cualMedicacion: document.getElementById('txtCualMedicacion').value.trim()
+  };
+
+  try {
+    const res = await apiFetch(`/students/${studentId}/medical-record`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      alert("✅ ¡Ficha médica guardada con éxito!");
+      
+      // 1. Cerramos el cuestionario y volvemos a poner el flag en modo lectura
+      cerrarCuestionarioMedico();
+      isEditingMedicalRecord = false;
+
+      // 2. Refrescamos el panel o tarjeta en el lugar exacto donde estás (sin navegar al home)
+      if (selectedStudentForFicha) {
+        await cargarDetalleFichaMedicaPanel(studentId, 'fichaDetallePanelContainer');
+      }
+      if (currentStudentData && currentStudentData.id === studentId) {
+        await cargarDetalleFichaMedicaPanel(studentId, 'perfilFichaMedicaContainer');
+      }
+    } else {
+      const errText = await res.text();
+      alert(`Error al guardar: ${errText}`);
+    }
+  } catch (error) {
+    console.error("Error al guardar ficha:", error);
+    alert("Error de conexión al intentar guardar la ficha médica.");
+  }
+
+  return false; // Asegura que el evento de submit no propague acciones no deseadas
+}
+
+function actualizarEstadoFormularioMedico() {
+  const form = document.getElementById('formCuestionarioMedico');
+  if (!form) return;
+
+  // Bloquea o desbloquea los inputs según el modo lectura o edición
+  form.querySelectorAll('input, select, textarea').forEach(el => {
+    el.disabled = !isEditingMedicalRecord;
+  });
+
+  const footerContainer = form.querySelector('.flex.justify-end');
+  if (footerContainer) {
+    if (isEditingMedicalRecord) {
+      footerContainer.innerHTML = `
+        <button type="button" onclick="cancelarEdicionMedica()" class="px-4 py-2 border border-slate-200 rounded-lg font-semibold hover:bg-slate-50 cursor-pointer">Cancelar</button>
+        <button type="submit" class="px-4 py-2 bg-cyan-700 hover:bg-cyan-800 text-white rounded-lg font-semibold cursor-pointer">Guardar Cambios</button>
+      `;
+    } else {
+      footerContainer.innerHTML = `
+        <button type="button" onclick="cerrarCuestionarioMedico()" class="px-4 py-2 border border-slate-200 rounded-lg font-semibold hover:bg-slate-50 cursor-pointer">Cerrar</button>
+        <button type="button" onclick="habilitarEdicionMedica()" class="px-4 py-2 bg-cyan-700 hover:bg-cyan-800 text-white rounded-lg font-semibold cursor-pointer">Editar Ficha</button>
+      `;
+    }
+  }
+}
+
+function habilitarEdicionMedica() {
+  isEditingMedicalRecord = true;
+  actualizarEstadoFormularioMedico();
+}
+
+function cancelarEdicionMedica() {
+  const studentId = selectedStudentForFicha || currentStudentData?.id;
+  if (studentId) {
+    cargarDatosEnCuestionario(studentId, true);
+  }
+}
+
+function cerrarCuestionarioMedico() {
+  document.getElementById('cuestionarioMedicoModal')?.classList.add('hidden');
+}
+let activeClassroomsConfig = [];
+
+async function fetchClassroomsConfig() {
+  try {
+    const res = await apiFetch('/classrooms-config');
+    activeClassroomsConfig = res.ok ? await res.json() : [];
+    
+    // Ordenar de menor a mayor edad mínima
+    activeClassroomsConfig.sort((a, b) => (a.minimumAge || 0) - (b.minimumAge || 0));
+
+    renderClassroomsConfigList();
+
+    actualizarTodosLosSelectoresDeAulas();
+  } catch (error) {
+    console.error("Error al cargar configuración de aulas:", error);
+  }
+}
+
+function renderClassroomsConfigView() {
+  fetchClassroomsConfig();
+}
+
+function renderClassroomsConfigList() {
+  const container = document.getElementById('classroomsConfigListContainer');
+  const countLabel = document.getElementById('labelTotalClassroomsConfig');
+  if (!container) return;
+
+  if (countLabel) countLabel.innerText = `${activeClassroomsConfig.length} Aulas`;
+
+  if (activeClassroomsConfig.length === 0) {
+    container.innerHTML = `
+      <div class="col-span-2 p-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-xl">
+        No hay aulas configuradas. Agrega aulas usando el formulario de la izquierda.
+      </div>
+    `;
+    return;
+  }
+
+  const esAdmin = ['DIRECTOR', 'ADMINISTRATIVE'].includes(currentSession?.role);
+
+  container.innerHTML = activeClassroomsConfig.map(c => {
+    // Traducir el enum visualmente si viene en inglés/mayúscula
+    let badgeTurnoColor = 'bg-sky-50 text-sky-700 border-sky-200';
+    let textoTurno = c.shift;
+    if (c.shift === 'MANANA') { textoTurno = 'Mañana'; badgeTurnoColor = 'bg-amber-50 text-amber-700 border-amber-200'; }
+    else if (c.shift === 'TARDE') { textoTurno = 'Tarde'; badgeTurnoColor = 'bg-indigo-50 text-indigo-700 border-indigo-200'; }
+
+    return `
+      <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between shadow-2xs hover:border-emerald-400 transition-all">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="material-icons-outlined text-emerald-700 text-sm">school</span>
+            <span class="text-xs font-bold text-slate-800">${c.name}</span>
+          </div>
+          <div class="flex items-center gap-2 mt-1">
+            <span class="text-[11px] text-slate-500">Edad mín. (30/06): <strong>${c.minimumAge} años</strong></span>
+            <span class="text-[10px] font-semibold px-2 py-0.5 border rounded-md ${badgeTurnoColor}">${textoTurno}</span>
+          </div>
+        </div>
+      ${esAdmin ? `
+          <div class="flex items-center gap-1">
+            <button onclick="abrirModalEdicionAula('${c.id}')" title="Editar aula" class="text-slate-400 hover:text-emerald-600 p-1.5 rounded-lg hover:bg-emerald-50 cursor-pointer transition-colors">
+              <span class="material-icons-outlined text-sm">edit</span>
+            </button>
+            <button onclick="eliminarAulaConfig('${c.id}')" title="Eliminar aula" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 cursor-pointer transition-colors">
+              <span class="material-icons-outlined text-sm">delete</span>
+            </button>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+async function crearAulaConfigSubmit(e) {
+  e.preventDefault();
+  const inputName = document.getElementById('inputNombreAulaConfig');
+  const inputAge = document.getElementById('inputEdadMinimaConfig');
+  const selectShift = document.getElementById('inputShiftConfig');
+  if (!inputName || !inputAge || !selectShift) return;
+
+  const payload = {
+    name: inputName.value.trim(),
+    minimumAge: parseInt(inputAge.value) || 0,
+    shift: selectShift.value // 'MANANA', 'TARDE', 'AMBOS'
+  };
+
+  try {
+    const res = await apiFetch('/classrooms-config', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      inputName.value = '';
+      inputAge.value = '';
+      selectShift.value = 'MANANA';
+      await fetchClassroomsConfig();
+      alert("✅ Aula(s) configurada(s) correctamente.");
+    } else {
+      const err = await res.text();
+      alert(`No se pudo agregar el aula: ${err}`);
+    }
+  } catch (error) {
+    console.error("Error al crear aula config:", error);
+  }
+}
+
+async function eliminarAulaConfig(id) {
+  if (!confirm("¿Deseas eliminar esta configuración de aula?")) return;
+
+  try {
+    const res = await apiFetch(`/classrooms-config/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      await fetchClassroomsConfig();
+    } else {
+      alert("No se pudo eliminar el aula.");
+    }
+  } catch (error) {
+    console.error("Error al eliminar aula config:", error);
+  }
+}
+
+function abrirModalEdicionAula(id) {
+  const aula = activeClassroomsConfig.find(c => c.id === id);
+  if (!aula) return;
+
+  document.getElementById('edit-classroom-id').value = aula.id;
+  document.getElementById('edit-classroom-name').value = aula.name;
+  document.getElementById('edit-classroom-age').value = aula.minimumAge;
+  
+  let textoTurno = aula.shift;
+  if (aula.shift === 'MANANA') textoTurno = 'Mañana';
+  if (aula.shift === 'TARDE') textoTurno = 'Tarde';
+  
+  document.getElementById('edit-classroom-shift-display').value = textoTurno;
+  document.getElementById('classroomEditModal').classList.remove('hidden');
+}
+
+function cerrarModalEdicionAula() {
+  document.getElementById('classroomEditModal').classList.add('hidden');
+}
+
+async function guardarEdicionAula(e) {
+  e.preventDefault();
+  
+  const id = document.getElementById('edit-classroom-id').value;
+  const aulaOrig = activeClassroomsConfig.find(c => c.id === id);
+  if (!aulaOrig) return;
+
+  // Armamos el payload respetando el turno original para no pisarlo
+  const payload = {
+    ...aulaOrig,
+    name: document.getElementById('edit-classroom-name').value.trim(),
+    minimumAge: parseInt(document.getElementById('edit-classroom-age').value) || 0,
+    shift: aulaOrig.shift 
+  };
+
+  try {
+    const res = await apiFetch(`/classrooms-config/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      cerrarModalEdicionAula();
+      await fetchClassroomsConfig(); // 🟢 Recarga la lista y actualiza los selectores de toda la app
+      alert("✅ Aula actualizada correctamente.");
+    } else {
+      const err = await res.text();
+      alert(`No se pudo actualizar el aula: ${err}`);
+    }
+  } catch (error) {
+    console.error("Error al editar aula config:", error);
+    alert("Error de red al intentar actualizar el aula.");
   }
 }
