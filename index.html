@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -106,6 +108,7 @@
       <button onclick="showSection('staffView')" id="nav-staffView" class="w-full flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-xl text-sm font-medium text-left cursor-pointer">
         <span class="material-icons-outlined text-emerald-600">badge</span><span>Cuerpo Docente y Personal</span>
       </button>
+      
       <button onclick="showSection('materiasView')" id="nav-materiasView" class="w-full flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-xl text-sm font-medium text-left cursor-pointer">
         <span class="material-icons-outlined text-cyan-600">menu_book</span><span>Gestión de Materias</span>
       </button>
@@ -123,6 +126,10 @@
       </button>
       <button onclick="showSection('restriccionesView')" id="nav-restriccionesView" class="w-full flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-xl text-sm font-medium text-left cursor-pointer">
         <span class="material-icons-outlined text-rose-600">gavel</span><span>Restricciones Judiciales</span>
+      </button>
+      <!-- Pegar justo debajo del botón de Restricciones Judiciales -->
+      <button onclick="showSection('calendarioView'); loadEvents(); loadEduRoomSchedules()" id="nav-calendarioView" class="w-full flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-xl text-sm font-medium text-left cursor-pointer">
+        <span class="material-icons-outlined text-amber-500">event</span><span>Calendarios</span>
       </button>
     </nav>
   </aside>
@@ -919,6 +926,7 @@
               <div class="bg-slate-50 p-3 rounded-lg border border-slate-100"><label class="block text-[10px] font-bold text-slate-400 uppercase">Teléfono</label><span id="docente-telefono" class="text-sm font-semibold text-slate-700">-</span></div>
               <div class="bg-slate-50 p-3 rounded-lg border border-slate-100"><label class="block text-[10px] font-bold text-slate-400 uppercase">Fecha Ingreso</label><span id="docente-ingreso" class="text-sm font-semibold text-slate-700">-</span></div>
             </div>
+            
 
             <div>
               <h3 class="font-bold text-base text-slate-800 border-l-4 border-teal-600 pl-3 mb-3">Materias y Aulas a Cargo</h3>
@@ -935,7 +943,160 @@
           </div>
         </div>
       </div>
+      <!-- ======================================================= -->
+<!-- SECCIÓN: CALENDARIO ESCOLAR (VISTA CUADRÍCULA COMPLETA) -->
+<!-- ======================================================= -->
+<div id="calendarioView" class="dashboard-view hidden flex-col h-[calc(100vh-6rem)]">\n<div class="flex gap-2 mb-3">
+<button onclick="switchEduCalendar('school')" id="eduTabSchool" class="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold">Calendario escolar</button>
+<button onclick="switchEduCalendar('rooms')" id="eduTabRooms" class="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 text-sm font-semibold">Calendario de aulas</button>
+</div>
 
+  
+  <!-- Cabecera y Navegación del Calendario -->
+  <div id="eduSchoolHeader" class="flex flex-wrap items-center justify-between border-b border-slate-200 pb-4 mb-4 gap-4">
+    <div>
+      <h2 class="text-2xl font-bold text-slate-900">Calendario Escolar</h2>
+      <p class="text-xs text-slate-500 mt-0.5">Gestión visual de ciclo lectivo, feriados y evaluaciones</p>
+    </div>
+    
+    <div class="flex items-center gap-4">
+      <!-- Navegación de Meses -->
+      <div class="flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
+        <button type="button" onclick="cambiarMes(-1)" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors cursor-pointer">
+          <span class="material-icons-outlined text-sm">chevron_left</span>
+        </button>
+        <span id="calendarMonthYearDisplay" class="px-4 font-bold text-slate-700 w-44 text-center text-sm capitalize">Cargando...</span>
+        <button type="button" onclick="cambiarMes(1)" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors cursor-pointer">
+          <span class="material-icons-outlined text-sm">chevron_right</span>
+        </button>
+      </div>
+      
+      <button type="button" onclick="abrirModalEvento()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition-colors flex items-center gap-2 cursor-pointer">
+        <span class="material-icons-outlined text-sm">add</span> Nuevo Evento
+      </button>
+    </div>
+  </div>
+
+  <!-- Cuadrícula del Calendario -->
+  <div id="eduSchoolGrid" class="flex-1 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col">
+    <!-- Días de la semana -->
+    <div class="grid grid-cols-7 bg-slate-50 border-b border-slate-200">
+      <div class="py-2.5 text-center text-[11px] font-bold text-slate-500 uppercase">Dom</div>
+      <div class="py-2.5 text-center text-[11px] font-bold text-slate-500 uppercase">Lun</div>
+      <div class="py-2.5 text-center text-[11px] font-bold text-slate-500 uppercase">Mar</div>
+      <div class="py-2.5 text-center text-[11px] font-bold text-slate-500 uppercase">Mié</div>
+      <div class="py-2.5 text-center text-[11px] font-bold text-slate-500 uppercase">Jue</div>
+      <div class="py-2.5 text-center text-[11px] font-bold text-slate-500 uppercase">Vie</div>
+      <div class="py-2.5 text-center text-[11px] font-bold text-slate-500 uppercase">Sáb</div>
+    </div>
+    <!-- Contenedor de los días (Se inyecta por JS) -->
+    <div id="calendarGrid" class="grid grid-cols-7 flex-1 auto-rows-fr bg-slate-100 gap-px">
+      <!-- Las celdas van acá -->
+    </div>
+  </div>
+<div id="eduRoomsCalendar" class="hidden flex-1 flex flex-col gap-3">
+<div class="flex flex-wrap items-center justify-between gap-2">
+ <h2 class="text-xl font-bold">Horarios de aulas</h2>
+ <div class="flex flex-wrap items-center gap-2">
+  <select id="eduRoomFilter" onchange="renderEduRooms()" class="border rounded-lg p-2 text-sm"><option value="">Todas las aulas</option></select>
+  <button onclick="eduRoomMode='week';renderEduRooms()" id="eduWeekBtn" class="border rounded-lg px-3 py-2 text-sm">Semana</button>
+  <button onclick="eduRoomMode='month';renderEduRooms()" id="eduMonthBtn" class="border rounded-lg px-3 py-2 text-sm">Mes</button>
+  <button onclick="eduRoomMonth--;renderEduRooms()" class="border rounded-lg px-3 py-2">‹</button>
+  <span id="eduRoomPeriod" class="text-sm font-bold"></span>
+  <button onclick="eduRoomMonth++;renderEduRooms()" class="border rounded-lg px-3 py-2">›</button>
+  <button onclick="openEduScheduleForm()" class="bg-emerald-600 text-white rounded-lg px-4 py-2 text-sm">+ Nuevo horario</button>
+ </div>
+</div>
+<div id="eduRoomCalendarGrid" class="bg-white border rounded-2xl p-3 overflow-x-auto flex-1"></div>
+<p id="eduRoomError" class="text-sm text-rose-600"></p>
+</div>
+<div id="eduScheduleModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 flex items-center justify-center p-4">
+ <form onsubmit="saveEduSchedule(event)" class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-lg space-y-3">
+  <h3 class="text-lg font-bold">Horario de aula</h3>
+  <input type="hidden" id="eduScheduleId">
+  <label class="block text-sm">Aula<select id="eduScheduleClassroom" required class="w-full border p-2 rounded-lg"></select></label>
+  <label class="block text-sm">Materia / Actividad<input id="eduScheduleSubject" required maxlength="255" class="w-full border p-2 rounded-lg"></label>
+  <label class="block text-sm">Docente<input id="eduScheduleTeacher" required maxlength="255" class="w-full border p-2 rounded-lg"></label>
+  <label class="block text-sm">Día<select id="eduScheduleDay" class="w-full border p-2 rounded-lg">
+  <option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option><option value="7">Domingo</option></select></label>
+  <div class="grid grid-cols-2 gap-3"><label class="text-sm">Desde<input type="time" id="eduScheduleStart" required class="w-full border p-2 rounded-lg"></label><label class="text-sm">Hasta<input type="time" id="eduScheduleEnd" required class="w-full border p-2 rounded-lg"></label></div>
+  <p id="eduScheduleError" class="text-sm text-rose-600"></p>
+  <div class="flex justify-end gap-2"><button type="button" onclick="closeEduScheduleForm()" class="border rounded-lg px-4 py-2">Cancelar</button><button type="submit" class="bg-emerald-600 text-white rounded-lg px-4 py-2">Guardar</button></div>
+ </form>
+</div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL: CREAR/VER EVENTO CALENDARIO         -->
+<!-- ========================================== -->
+<div id="calendarEventModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden border border-slate-100">
+    <div class="p-4 bg-emerald-700 text-white flex justify-between items-center">
+      <h3 class="font-bold text-base flex items-center gap-2">
+        <span class="material-icons-outlined">event</span> Programar Evento
+      </h3>
+      <button type="button" onclick="cerrarModalEvento()" class="text-white/80 hover:text-white cursor-pointer transition-colors">
+        <span class="material-icons-outlined">close</span>
+      </button>
+    </div>
+    
+    <form id="formCalendarEvent" onsubmit="guardarEvento(event)" class="p-6 space-y-4">
+      <div>
+        <label class="block mb-1 text-xs font-semibold text-slate-600">Título del evento *</label>
+        <input type="text" id="eventTitle" required placeholder="Ej: Acto del 25 de Mayo" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-emerald-600 focus:bg-white transition-colors">
+      </div>
+      
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block mb-1 text-xs font-semibold text-slate-600">Fecha *</label>
+          <input type="date" id="eventDate" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-emerald-600 focus:bg-white transition-colors">
+        </div>
+        <div>
+          <label class="block mb-1 text-xs font-semibold text-slate-600">Categoría *</label>
+          <select id="eventCategory" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-emerald-600 focus:bg-white transition-colors">
+            <option value="EXAMEN">Examen / Evaluación</option>
+            <option value="REUNION">Reunión Docente/Padres</option>
+            <option value="FERIADO">Feriado / Asueto</option>
+          </select>
+        </div>
+      </div>
+      
+      <div>
+        <label class="block mb-1 text-xs font-semibold text-slate-600">Sección a la que aplica *</label>
+        <select id="eventSection" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-emerald-600 focus:bg-white transition-colors">
+          <option value="TODAS">Todas las secciones (Global)</option>
+          <option value="INICIAL">Nivel Inicial</option>
+          <option value="PRIMARIA">Nivel Primario</option>
+          <option value="SECUNDARIA">Nivel Secundario</option>
+        </select>
+      </div>
+      
+      <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+        <button type="button" onclick="cerrarModalEvento()" class="px-4 py-2 border border-slate-200 rounded-lg text-xs font-semibold hover:bg-slate-50 cursor-pointer transition-colors">Cancelar</button>
+        <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-700 cursor-pointer transition-colors">Guardar Evento</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- Modal de Confirmación de Eliminación -->
+<div id="deleteConfirmModal" class="hidden fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-96 max-w-[90%]">
+        <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+            <span class="material-icons-outlined text-rose-600">warning</span>
+            Eliminar Evento
+        </h3>
+        <p class="text-slate-600 mb-6 text-sm">¿Estás seguro de que deseas eliminar este evento escolar de forma permanente? Esta acción no se puede deshacer.</p>
+        <div class="flex justify-end gap-3">
+            <button onclick="cerrarModalEliminar()" class="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded transition-colors">
+                Cancelar
+            </button>
+            <button onclick="confirmarEliminar()" class="px-4 py-2 text-sm font-medium bg-rose-600 text-white rounded hover:bg-rose-700 transition-colors shadow-sm">
+                Eliminar
+            </button>
+        </div>
+    </div>
+</div>
+        
       <!-- SECCIÓN: CUOTAS -->
       <div id="cuotasView" class="dashboard-view hidden">
         <div id="cuotasListView">
@@ -1946,3 +2107,5 @@
 <script src="app.js"></script>
 </body>
 </html>
+
+

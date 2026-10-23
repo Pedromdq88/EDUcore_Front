@@ -1637,7 +1637,7 @@ async function guardarDatosAlumno(e) {
 }
 
 function closeEditStudentModal() {
-  document.getElementById('studentEditModal').classList.add('hidden');
+  document.getElementById('studentEditModal').classList.add('hidden');
 }
 
 async function confirmarBajaAlumno() {
@@ -3728,3 +3728,396 @@ async function guardarEdicionAula(e) {
     alert("Error de red al intentar actualizar el aula.");
   }
 }
+// ==========================================
+// 1. SISTEMA DE NAVEGACIÓN (VISTAS)
+// ==========================================
+function showSection(sectionId) {
+    const views = document.querySelectorAll('.dashboard-view');
+    
+    // Ocultar todas las pantallas y quitarles la propiedad flex
+    views.forEach(view => {
+        view.classList.add('hidden');
+        view.classList.remove('flex'); 
+    });
+
+    // Mostrar la pantalla solicitada
+    const activeView = document.getElementById(sectionId);
+    if (activeView) {
+        activeView.classList.remove('hidden');
+        // Si la vista es el calendario, necesitamos devolverle flex para la altura
+        if (sectionId === 'calendarioView') {
+            activeView.classList.add('flex');
+        }
+    }
+}
+
+// ==========================================
+// 2. MÓDULO CALENDARIO ESCOLAR (GRID COMPLETO)
+// ==========================================
+const CALENDAR_API_URL = `${API_BASE_URL}/calendar/events`;
+let currentDate = new Date();
+let currentMonth = currentDate.getMonth();
+let currentYear = currentDate.getFullYear();
+let calendarEvents = [];
+
+const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+// 1. Cargar eventos desde el backend Java (Spring Boot)
+async function loadEvents() {
+    try {
+        const response = await apiFetch('/calendar/events');
+        if (response.ok) {
+            const data = await response.json();
+            
+            // NORMALIZAR FECHA: Previene el bug numérico desde Java
+            calendarEvents = data.map(evt => {
+                if (Array.isArray(evt.date)) {
+                    evt.date = `${evt.date[0]}-${String(evt.date[1]).padStart(2, '0')}-${String(evt.date[2]).padStart(2, '0')}`;
+                }
+                return evt;
+            });
+        }
+    } catch (error) {
+        console.error('Error de conexión con Spring Boot:', error);
+    }
+    renderCalendarGrid(); // Dibuja la grilla siempre, aunque no haya conexión
+}
+
+// 2. Navegación de meses (Botones < y >)
+function cambiarMes(offset) {
+    currentMonth += offset;
+    if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+    } else if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+    }
+    renderCalendarGrid();
+}
+
+// 3. Dibujar la cuadrícula y ubicar los eventos
+function renderCalendarGrid() {
+    const monthYearDisplay = document.getElementById('calendarMonthYearDisplay');
+    const grid = document.getElementById('calendarGrid');
+    
+    if (!monthYearDisplay || !grid) return;
+    
+    monthYearDisplay.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+    grid.innerHTML = '';
+
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const today = new Date();
+    const isCurrentMonth = today.getMonth() === currentMonth && today.getFullYear() === currentYear;
+
+    // Rellenar los días en blanco antes del inicio del mes
+    for (let i = 0; i < firstDay; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = "bg-slate-50/50";
+        grid.appendChild(emptyCell);
+    }
+
+    // Dibujar los días con sus eventos
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateString = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const dayEvents = calendarEvents.filter(e => e.date === dateString);
+
+        const isToday = isCurrentMonth && day === today.getDate();
+        const cellBg = isToday ? 'bg-emerald-50/30' : 'bg-white';
+        const dayNumberStyle = isToday 
+            ? 'bg-emerald-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-sm' 
+            : 'text-slate-700 font-semibold w-6 h-6 flex items-center justify-center';
+
+        const cell = document.createElement('div');
+        cell.className = `${cellBg} p-1.5 min-h-[65px] lg:min-h-[85px] border-b border-r border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer flex flex-col gap-1 relative group overflow-y-auto custom-scrollbar`;
+        cell.onclick = () => abrirModalEvento(dateString);
+
+        let cellHTML = `<div class="flex justify-between items-start mb-1"><span class="text-xs ${dayNumberStyle}">${day}</span></div>`;
+        
+        dayEvents.forEach(evt => {
+            let badgeColors = "bg-slate-100 text-slate-700 border-slate-200"; 
+            if (evt.category === 'FERIADO') badgeColors = "bg-emerald-50 text-emerald-700 border-emerald-200";
+            if (evt.category === 'EXAMEN') badgeColors = "bg-rose-50 text-rose-700 border-rose-200";
+            if (evt.category === 'REUNION') badgeColors = "bg-indigo-50 text-indigo-700 border-indigo-200";
+
+            cellHTML += `
+                <div class="border ${badgeColors} px-1.5 py-1 rounded text-[10px] font-bold truncate shadow-xs flex items-center justify-between group/badge relative z-10 transition-all hover:shadow-md cursor-pointer" onclick="event.stopPropagation(); verDetalleEvento(${evt.id})">
+                    <span class="truncate" title="${escapeCalendarText(evt.title)}">${escapeCalendarText(evt.title)}</span>
+                    <button onclick="event.stopPropagation(); eliminarEvento(${evt.id})" class="text-slate-400 hover:text-rose-600 opacity-0 group-hover/badge:opacity-100 transition-opacity ml-1 cursor-pointer">
+                        <span class="material-icons-outlined text-[11px]">close</span>
+                    </button>
+                </div>`;
+        });
+
+        cell.innerHTML = cellHTML;
+        grid.appendChild(cell);
+    }
+}
+
+// 4. Control del Modal de Eventos (Crear)
+function abrirModalEvento(dateString = '') {
+    const modal = document.getElementById('calendarEventModal');
+    const form = document.getElementById('formCalendarEvent');
+    
+    form.reset();
+    
+    // Asegurar que los campos estén habilitados para crear
+    const inputs = form.querySelectorAll('input, select, button[type="submit"]');
+    inputs.forEach(el => el.disabled = false);
+    
+    // Mostrar botón de guardar por si estuvo oculto en modo detalle
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.style.display = 'inline-block';
+
+    if (dateString) document.getElementById('eventDate').value = dateString;
+    modal.classList.remove('hidden');
+}
+
+function cerrarModalEvento() {
+    document.getElementById('calendarEventModal').classList.add('hidden');
+}
+
+// 5. Enviar evento al backend
+async function guardarEvento(e) {
+    e.preventDefault();
+    const newEvent = {
+        title: document.getElementById('eventTitle').value,
+        date: document.getElementById('eventDate').value,
+        category: document.getElementById('eventCategory').value,
+        section: document.getElementById('eventSection').value
+    };
+
+    try {
+        const response = await apiFetch('/calendar/events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newEvent)
+        });
+
+        if (response.ok) {
+            cerrarModalEvento();
+            loadEvents(); // Recarga la grilla
+        } else {
+            const errorText = await response.text();
+            alert("El servidor rechazó el evento. Código: " + response.status + " - " + errorText);
+        }
+    } catch (error) {
+        console.error('Error al guardar:', error);
+        alert("Error de conexión. Asegúrate de que Spring Boot está corriendo y tiene CORS configurado.");
+    }
+}
+
+// 6. Sistema de Eliminación con Modal Personalizado
+let eventIdToDelete = null; // Variable para recordar qué evento se va a borrar
+
+function eliminarEvento(id) {
+    eventIdToDelete = id; // Guardamos el ID
+    document.getElementById('deleteConfirmModal').classList.remove('hidden');
+}
+
+function cerrarModalEliminar() {
+    eventIdToDelete = null; // Limpiamos el ID
+    document.getElementById('deleteConfirmModal').classList.add('hidden');
+}
+
+async function confirmarEliminar() {
+    if (eventIdToDelete == null) return;
+    
+    try {
+        const response = await apiFetch(`/calendar/events/${eventIdToDelete}`, { method: 'DELETE' });
+        if (response.ok) {
+            cerrarModalEliminar();
+            loadEvents(); // Recarga la grilla sin el evento
+        } else {
+            alert("Error al intentar eliminar el evento desde el servidor.");
+        }
+    } catch (error) {
+        console.error('Error al eliminar:', error);
+        alert("Error de conexión al eliminar.");
+    }
+}
+
+// 7. Ver información detallada en la misma ventana modal
+function verDetalleEvento(id) {
+    const evt = calendarEvents.find(e => e.id === id);
+    if (!evt) return;
+
+    const modal = document.getElementById('calendarEventModal');
+    const form = document.getElementById('formCalendarEvent');
+
+    // Rellenar los campos con la información del evento
+    document.getElementById('eventTitle').value = evt.title;
+    document.getElementById('eventDate').value = evt.date;
+    document.getElementById('eventCategory').value = evt.category;
+    document.getElementById('eventSection').value = evt.section;
+
+    // Deshabilitar los campos para que actúe como ventana de "Solo lectura"
+    const inputs = form.querySelectorAll('input, select');
+    inputs.forEach(el => el.disabled = true);
+
+    // Ocultar el botón de Guardar ya que solo estamos viendo detalles
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.style.display = 'none';
+
+    // Abrir la ventana modal
+    modal.classList.remove('hidden');
+}
+function escapeCalendarText(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+
+// CALENDARIO DE AULAS — horarios semanales recurrentes; la vista mensual repite esos horarios.
+let eduRoomMode = 'week';
+let eduRoomMonth = 0;
+let eduSchedules = [];
+const eduDayNames = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+const eduById = id => document.getElementById(id);
+const eduRoomName = id => activeClassroomsConfig.find(x => x.id === id)?.name || 'Aula eliminada';
+const eduEsc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function switchEduCalendar(which) {
+  const rooms = which === 'rooms';
+  eduById('eduSchoolHeader').classList.toggle('hidden', rooms);
+  eduById('eduSchoolGrid').classList.toggle('hidden', rooms);
+  eduById('eduRoomsCalendar').classList.toggle('hidden', !rooms);
+  for (const [id, selected] of [['eduTabSchool',!rooms],['eduTabRooms',rooms]]) {
+    eduById(id).className = 'px-4 py-2 rounded-lg text-sm font-semibold ' +
+      (selected ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700');
+  }
+  if (rooms) loadEduRoomSchedules();
+}
+
+async function loadEduRoomSchedules() {
+  const error = eduById('eduRoomError');
+  if (!error) return;
+  error.textContent = '';
+  try {
+    const [roomResponse, scheduleResponse] = await Promise.all([
+      apiFetch('/classrooms-config'), apiFetch('/class-schedules')
+    ]);
+    if (!roomResponse.ok || !scheduleResponse.ok) throw new Error('No se pudieron obtener aulas u horarios');
+    activeClassroomsConfig = await roomResponse.json();
+    eduSchedules = await scheduleResponse.json();
+    const filter = eduById('eduRoomFilter');
+    const previous = filter.value;
+    filter.replaceChildren(new Option('Todas las aulas',''));
+    activeClassroomsConfig.forEach(r => filter.add(new Option(r.name,r.id)));
+    if ([...filter.options].some(x => x.value === previous)) filter.value = previous;
+    renderEduRooms();
+  } catch(e) { error.textContent = e.message; }
+}
+
+function eduScheduleCard(item) {
+  const el = document.createElement('div');
+  el.className = 'border border-emerald-200 bg-emerald-50 rounded-lg p-2 mb-1 text-xs';
+  const text = document.createElement('div');
+  text.textContent = `${item.startTime.slice(0,5)}–${item.endTime.slice(0,5)} · ${item.subject} · ${eduRoomName(item.classroomId)} · ${item.teacherName}`;
+  el.appendChild(text);
+  const edit = document.createElement('button');
+  edit.textContent = 'Editar';
+  edit.className = 'text-emerald-700 mr-3 underline';
+  edit.onclick = () => openEduScheduleForm(item.id);
+  const remove = document.createElement('button');
+  remove.textContent = 'Eliminar';
+  remove.className = 'text-rose-700 underline';
+  remove.onclick = () => deleteEduSchedule(item.id);
+  el.append(edit,remove);
+  return el;
+}
+function renderEduRooms() {
+  const grid = eduById('eduRoomCalendarGrid');
+  if (!grid) return;
+  grid.replaceChildren();
+  const filter = eduById('eduRoomFilter').value;
+  const data = eduSchedules.filter(x => !filter || x.classroomId === filter);
+  eduById('eduWeekBtn').classList.toggle('bg-emerald-100', eduRoomMode === 'week');
+  eduById('eduMonthBtn').classList.toggle('bg-emerald-100', eduRoomMode === 'month');
+  const today = new Date();
+  const base = new Date(today.getFullYear(), today.getMonth() + eduRoomMonth, 1);
+  eduById('eduRoomPeriod').textContent = eduRoomMode === 'month'
+    ? base.toLocaleDateString('es-AR',{month:'long',year:'numeric'}) : 'Semana tipo';
+  if (eduRoomMode === 'week') {
+    const table = document.createElement('div');
+    table.className = 'grid grid-cols-7 min-w-[850px] gap-1';
+    eduDayNames.forEach(day => {
+      const col = document.createElement('div');
+      col.className = 'bg-slate-50 rounded-lg p-2 min-h-[280px]';
+      const heading = document.createElement('h4');
+      heading.className = 'font-bold text-sm mb-3';
+      heading.textContent = day;
+      col.append(heading);
+      data.filter(x => x.dayOfWeek === eduDayNames.indexOf(day)+1)
+        .sort((a,b)=>a.startTime.localeCompare(b.startTime)).forEach(x => col.append(eduScheduleCard(x)));
+      table.append(col);
+    });
+    grid.append(table);
+  } else {
+    const wrap = document.createElement('div');
+    wrap.className = 'grid grid-cols-7 min-w-[850px] gap-px bg-slate-200';
+    eduDayNames.forEach(day => {
+      const h=document.createElement('div');h.className='bg-slate-50 p-2 text-center text-xs font-bold';h.textContent=day;wrap.append(h);
+    });
+    const first = (base.getDay()+6)%7;
+    const count = new Date(base.getFullYear(),base.getMonth()+1,0).getDate();
+    for(let i=0;i<first;i++) { const blank=document.createElement('div');blank.className='bg-slate-50';wrap.append(blank); }
+    for(let d=1;d<=count;d++) {
+      const cell=document.createElement('div');cell.className='bg-white p-2 min-h-[120px]';
+      const dayLabel=document.createElement('div');dayLabel.className='text-xs font-bold mb-2';dayLabel.textContent=d;cell.append(dayLabel);
+      const dow=(new Date(base.getFullYear(),base.getMonth(),d).getDay()+6)%7+1;
+      data.filter(x=>x.dayOfWeek===dow).sort((a,b)=>a.startTime.localeCompare(b.startTime))
+        .forEach(x=>cell.append(eduScheduleCard(x)));
+      wrap.append(cell);
+    }
+    grid.append(wrap);
+  }
+}
+
+function openEduScheduleForm(id = '') {
+  const modal=eduById('eduScheduleModal');
+  eduById('eduScheduleError').textContent='';
+  const select=eduById('eduScheduleClassroom');
+  select.replaceChildren();
+  activeClassroomsConfig.forEach(r=>select.add(new Option(r.name,r.id)));
+  const item=eduSchedules.find(x=>x.id===id);
+  eduById('eduScheduleId').value=item?.id||'';
+  select.value=item?.classroomId||select.options[0]?.value||'';
+  eduById('eduScheduleSubject').value=item?.subject||'';
+  eduById('eduScheduleTeacher').value=item?.teacherName||'';
+  eduById('eduScheduleDay').value=item?.dayOfWeek||1;
+  eduById('eduScheduleStart').value=item?.startTime?.slice(0,5)||'08:00';
+  eduById('eduScheduleEnd').value=item?.endTime?.slice(0,5)||'09:00';
+  modal.classList.remove('hidden');
+}
+function closeEduScheduleForm() { eduById('eduScheduleModal').classList.add('hidden'); }
+async function saveEduSchedule(event) {
+  event.preventDefault();
+  const id=eduById('eduScheduleId').value;
+  const payload={
+    classroomId:eduById('eduScheduleClassroom').value,
+    subject:eduById('eduScheduleSubject').value.trim(),
+    teacherName:eduById('eduScheduleTeacher').value.trim(),
+    dayOfWeek:Number(eduById('eduScheduleDay').value),
+    startTime:eduById('eduScheduleStart').value,
+    endTime:eduById('eduScheduleEnd').value
+  };
+  try {
+    const res=await apiFetch('/class-schedules'+(id?'/'+encodeURIComponent(id):''),{
+      method:id?'PUT':'POST',body:JSON.stringify(payload)
+    });
+    if(!res.ok) throw new Error(res.status===409?'Hay superposición de aula o docente':`Error ${res.status}: ${await res.text()}`);
+    closeEduScheduleForm();
+    await loadEduRoomSchedules();
+  } catch(e) { eduById('eduScheduleError').textContent=e.message; }
+}
+async function deleteEduSchedule(id) {
+  if(!confirm('¿Eliminar este horario?')) return;
+  try {
+    const res=await apiFetch('/class-schedules/'+encodeURIComponent(id),{method:'DELETE'});
+    if(!res.ok) throw new Error(`Error ${res.status}`);
+    await loadEduRoomSchedules();
+  } catch(e) { eduById('eduRoomError').textContent=e.message; }
+}
+
+
