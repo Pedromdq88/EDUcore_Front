@@ -1,10 +1,23 @@
+
+
+
+
+
+
+
+
+
+
+
+
 const API_BASE_URL = 'http://localhost:8080/api/v1';
 
 // Estado de sesión dinámico persistido por multi-tenant
 let currentSession = {
   email: sessionStorage.getItem('current_user_email') || '',
   role: sessionStorage.getItem('current_user_role') || '',
-  institutionId: sessionStorage.getItem('current_institution_id') || ''
+  institutionId: sessionStorage.getItem('current_institution_id') || '',
+  token: sessionStorage.getItem('educore_access_token') || ''
 };
 
 let activeTutors = [];
@@ -27,15 +40,14 @@ let navigationHistory = [];
 
 // Helper global para peticiones HTTP Multi-Tenant blindadas
 async function apiFetch(endpoint, options = {}) {
-  if (!currentSession.institutionId) {
-    alert("Error: No se ha detectado la institución activa. Vuelva a iniciar sesión.");
-    throw new Error("Missing institutionId");
+  if (!currentSession.institutionId || !currentSession.token) {
+    throw new Error("Primero iniciá sesión");
   }
 
   const defaultHeaders = {
     'Content-Type': 'application/json',
     'X-Institution-Id': currentSession.institutionId,
-    'X-User-Role': currentSession.role
+    'Authorization': `Bearer ${currentSession.token}`
   };
 
   options.headers = {
@@ -43,7 +55,19 @@ async function apiFetch(endpoint, options = {}) {
     ...options.headers
   };
 
-  return fetch(`${API_BASE_URL}${endpoint}`, options);
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+  if (response.status === 401 && !endpoint.startsWith('/auth/logout')) {
+    sessionStorage.removeItem('educore_access_token');
+    sessionStorage.removeItem('current_user_email');
+    sessionStorage.removeItem('current_user_role');
+    sessionStorage.removeItem('current_institution_id');
+    currentSession = { email: '', role: '', institutionId: '', token: '' };
+    document.getElementById('mainDashboard')?.classList.add('hidden');
+    document.getElementById('loginPage')?.classList.remove('hidden');
+    document.getElementById('loginError').textContent = 'La sesión venció. Iniciá sesión nuevamente.';
+    throw new Error('Sesión vencida');
+  }
+  return response;
 }
 
 function pushNavigation(viewType, entityId = null) {
@@ -252,59 +276,58 @@ async function loadLoginInstitutions() {
   }
 }
 
-function handleLogin() {
+async function handleLogin() {
   const email = document.getElementById('emailInput').value.trim();
-  const selectInst = document.getElementById('loginInstitutionSelect');
-  const detectedInstitutionId = selectInst ? selectInst.value : '';
-
-  if (!email) {
-    alert("Por favor ingrese su email institucional.");
-    return;
-  }
-
-  if (!detectedInstitutionId) {
-    alert("Debe seleccionar una institución válida.");
-    return;
-  }
-
-  // 🧹 Limpieza preventiva de datos previos en memoria
-  activeStudents = [];
-  activeTutors = [];
-  activeStaff = [];
-
-  let role = 'TEACHER';
-  if (email.includes('direccion') || email.includes('director')) role = 'DIRECTOR';
-  else if (email.includes('admin')) role = 'ADMINISTRATIVE';
-  else if (email.includes('preceptor')) role = 'PRECEPTOR';
-  else if (email.includes('tutor') || email.includes('padre')) role = 'TUTOR';
-
-  currentSession.email = email;
-  currentSession.role = role;
-  currentSession.institutionId = detectedInstitutionId;
-
-  // Persistencia limpia en sessionStorage
-  sessionStorage.setItem('current_user_email', email);
-  sessionStorage.setItem('current_user_role', role);
-  sessionStorage.setItem('current_institution_id', detectedInstitutionId);
-
-  document.getElementById('userDisplay').innerText = email;
-  document.getElementById('roleBadge').innerText =
-      role === 'DIRECTOR' ? 'Directora' :
-          (role === 'ADMINISTRATIVE' ? 'Administrativo' :
-              (role === 'PRECEPTOR' ? 'Preceptor/a' :
-                  (role === 'TUTOR' ? 'Tutor' : 'Docente')));
-
-  document.getElementById('loginPage').classList.add('hidden');
-  document.getElementById('mainDashboard').classList.remove('hidden');
-
-  refreshAllData();
+  const password = document.getElementById('passwordInput').value;
+  const institutionId = document.getElementById('loginInstitutionSelect').value;
+  const error = document.getElementById('loginError');
+  error.textContent = '';
+  if (!email || !password || !institutionId) { error.textContent = 'Ingresá institución, correo y contraseña.'; return; }
+  try {
+    const res = await fetch(`${API_BASE_URL}/auth/login`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({institutionId,email,password})
+    });
+    if (!res.ok) throw new Error(res.status===401?'Correo o contraseña incorrectos o cuenta bloqueada.':'Error de inicio de sesión ('+res.status+').');
+    const session = await res.json();
+    currentSession = {...session};
+    sessionStorage.setItem('educore_access_token',session.token);
+    sessionStorage.setItem('current_user_email',session.email);
+    sessionStorage.setItem('current_user_role',session.role);
+    sessionStorage.setItem('current_institution_id',session.institutionId);
+    document.getElementById('passwordInput').value='';
+    openEduDashboard();
+  } catch(e) { error.textContent=e.message; }
 }
 
-function handleLogout() {
+function openEduDashboard() {
+  document.getElementById('loginPage').classList.add('hidden');
+  document.getElementById('mainDashboard').classList.remove('hidden');
+  document.getElementById('userDisplay').textContent=currentSession.email;
+  document.getElementById('roleBadge').textContent={
+    DIRECTOR:'Dirección', ADMINISTRATIVE:'Administrativo', PRECEPTOR:'Preceptor/a',
+    TEACHER:'Docente', TUTOR:'Tutor'
+  }[currentSession.role] || currentSession.role;
+  if (currentSession.role === 'TUTOR') {
+    document.getElementById('appSidebar').classList.add('hidden');
+    document.getElementById('mainContentArea').classList.remove('pl-64');
+    document.querySelectorAll('.dashboard-view').forEach(v=>v.classList.add('hidden'));
+    document.getElementById('tutorHomeView').classList.remove('hidden');
+    loadTutorHome();
+  } else { refreshAllData(); }
+}
+
+async function handleLogout() {
+  try {
+    if (currentSession.token) await fetch(`${API_BASE_URL}/auth/logout`,{
+      method:'POST', headers:{Authorization:`Bearer ${currentSession.token}`,
+      'X-Institution-Id':currentSession.institutionId}
+    });
+  } catch(e) { console.warn('No se pudo revocar sesión desde el servidor',e); }
   sessionStorage.removeItem('current_user_email');
   sessionStorage.removeItem('current_user_role');
   sessionStorage.removeItem('current_institution_id');
-  sessionStorage.clear();
+  sessionStorage.removeItem('educore_access_token');
   location.reload();
 }
 
@@ -673,6 +696,7 @@ function renderStaffTable(list) {
           <div class="flex flex-wrap">${assignmentsBadges}</div>
         </td>
         <td class="p-3 text-center">
+          ${['DIRECTOR','ADMINISTRATIVE'].includes(currentSession.role) ? `<button type="button" onclick="sendEduAccess('STAFF','${u.id}')" title="Enviar acceso al personal" class="text-emerald-700 hover:text-emerald-900 text-xs underline mr-2">Dar acceso</button>` : ''}
           <button onclick="viewStaffProfile('${u.id}')" class="text-slate-400 hover:text-emerald-600 p-1 rounded-full hover:bg-slate-100 cursor-pointer">
             <span class="material-icons-outlined">contact_page</span>
           </button>
@@ -727,7 +751,6 @@ async function submitStaff() {
     firstName,
     lastName,
     email,
-    password: "123",
     role,
     phone,
     hireDate: hireDateValue,
@@ -756,7 +779,7 @@ async function submitStaff() {
     document.getElementById('altaAssignmentsListContainer').innerHTML = '';
     toggleForm('staffFormContainer');
 
-    alert("¡Personal y asignaciones guardadas exitosamente!");
+    alert('Personal registrado. Si Gmail está configurado, recibirá un enlace para activar su cuenta.');
     await fetchStaff();
 
   } catch (error) {
@@ -1105,6 +1128,7 @@ async function fetchTutors() {
         <td class="p-3 text-slate-600 font-medium">${t.documentNumber || '--'}</td>
         <td class="p-3"><span class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-1 rounded-md">${t.relationship || 'Tutor'}</span></td>
         <td class="p-3 text-center">
+          ${['DIRECTOR','ADMINISTRATIVE'].includes(currentSession.role) ? `<button type="button" onclick="sendEduAccess('TUTOR','${t.id}')" title="Enviar acceso al tutor" class="text-emerald-700 hover:text-emerald-900 text-xs underline mr-2">Dar acceso</button>` : ''}
           <button onclick="viewTutorProfile('${t.id}')" class="text-slate-400 hover:text-emerald-600 p-1 rounded-full hover:bg-slate-100 cursor-pointer">
             <span class="material-icons-outlined">contact_page</span>
           </button>
@@ -1135,12 +1159,17 @@ async function submitTutor() {
     phone: document.getElementById('tutorPhone').value.trim(),
     email: document.getElementById('tutorEmail').value.trim()
   };
-  await apiFetch('/tutors', {
+  const response = await apiFetch('/tutors', {
     method: 'POST',
     body: JSON.stringify(payload)
   });
+  if (!response.ok) {
+    alert('No se pudo crear la cuenta del tutor. Verificá el correo y la configuración de Gmail.');
+    return;
+  }
   toggleForm('tutorFormContainer');
   fetchTutors();
+  alert('Tutor registrado. Le enviamos el enlace para activar su cuenta.');
 }
 
 async function viewTutorProfile(id, isBackNavigation = false) {
@@ -2644,18 +2673,32 @@ async function eliminarComunicado(id) {
   }
 }
 
-document.addEventListener('DOMContentLoaded', async () =>{
-  if (currentSession.email && currentSession.institutionId) {
-    document.getElementById('loginPage').classList.add('hidden');
-    document.getElementById('mainDashboard').classList.remove('hidden');
-    document.getElementById('userDisplay').innerText = currentSession.email;
-    document.getElementById('roleBadge').innerText =
-        currentSession.role === 'DIRECTOR' ? 'Directora' :
-            (currentSession.role === 'ADMINISTRATIVE' ? 'Administrativo' :
-                (currentSession.role === 'PRECEPTOR' ? 'Preceptor/a' :
-                    (currentSession.role === 'TUTOR' ? 'Tutor' : 'Docente')));
-    refreshAllData();
+document.addEventListener('DOMContentLoaded', async () => {
+  const params = new URLSearchParams(location.search);
+  const tokenFromLink = params.get('reset');
+  if (tokenFromLink) {
+    eduResetToken = tokenFromLink;
+    history.replaceState(null, '', location.pathname);
+    document.getElementById('eduResetModal').classList.remove('hidden');
+  }
+  if (currentSession.token && currentSession.institutionId) {
+    try {
+      const res = await apiFetch('/auth/me');
+      if (!res.ok) throw new Error('Sesión vencida');
+      const me = await res.json();
+      currentSession.email=me.email;
+      currentSession.role=me.role;
+      currentSession.institutionId=me.tenantId;
+      sessionStorage.setItem('current_user_role',me.role);
+      sessionStorage.setItem('current_user_email',me.email);
+      openEduDashboard();
+    } catch(e) {
+      sessionStorage.clear();
+      currentSession={email:'',role:'',institutionId:'',token:''};
+      loadLoginInstitutions();
+    }
   } else {
+    sessionStorage.removeItem('current_user_role');
     loadLoginInstitutions();
   }
 });
@@ -4118,6 +4161,87 @@ async function deleteEduSchedule(id) {
     if(!res.ok) throw new Error(`Error ${res.status}`);
     await loadEduRoomSchedules();
   } catch(e) { eduById('eduRoomError').textContent=e.message; }
+}
+
+
+
+
+// === EduCore: correo de recuperación / nueva contraseña / vista segura tutor ===
+let eduResetToken = null;
+function showEduForgot() { document.getElementById('eduForgotBox').classList.toggle('hidden'); }
+async function requestEduReset() {
+  const institutionId=document.getElementById('loginInstitutionSelect').value;
+  const email=document.getElementById('emailInput').value.trim();
+  const msg=document.getElementById('eduForgotMessage');
+  if(!institutionId || !email) { msg.textContent='Seleccioná institución e ingresá tu email arriba.'; return; }
+  try {
+    const res=await fetch(`${API_BASE_URL}/auth/forgot-password`,{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({institutionId,email})
+    });
+    if(!res.ok) throw new Error('No se pudo procesar la solicitud.');
+    msg.textContent='Si existe una cuenta vinculada a ese correo, recibirás un enlace. Revisá también spam.';
+  } catch(e) { msg.textContent=e.message; }
+}
+async function submitEduReset(event) {
+  event.preventDefault();
+  const msg=document.getElementById('eduResetMessage');
+  const password=document.getElementById('eduNewPassword').value;
+  const again=document.getElementById('eduConfirmPassword').value;
+  if(password!==again) { msg.textContent='Las contraseñas no coinciden';return; }
+  try {
+    const res=await fetch(`${API_BASE_URL}/auth/reset-password`,{
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:eduResetToken,newPassword:password})
+    });
+    if(!res.ok) throw new Error('Enlace inválido/vencido o contraseña demasiado corta (mínimo 12 caracteres).');
+    eduResetToken=null;
+    document.getElementById('eduResetModal').classList.add('hidden');
+    document.getElementById('eduNewPassword').value='';
+    document.getElementById('eduConfirmPassword').value='';
+    alert('Contraseña guardada. Ya podés iniciar sesión.');
+  } catch(e) { msg.textContent=e.message; }
+}
+function showEduChangePassword() {
+  document.getElementById('eduPasswordModal').classList.remove('hidden');
+  document.getElementById('eduPasswordMessage').textContent='';
+}
+async function submitEduChange(event) {
+  event.preventDefault();
+  const oldPw=document.getElementById('eduOldPassword').value;
+  const newPw=document.getElementById('eduChangeNewPassword').value;
+  const msg=document.getElementById('eduPasswordMessage');
+  try {
+    const res=await apiFetch('/auth/change-password',{method:'POST',body:JSON.stringify({currentPassword:oldPw,newPassword:newPw})});
+    if(!res.ok) throw new Error('Contraseña anterior incorrecta o nueva contraseña menor a 12 caracteres.');
+    alert('Contraseña actualizada. Por seguridad tendrás que iniciar sesión nuevamente.');
+    sessionStorage.clear(); location.reload();
+  } catch(e) { msg.textContent=e.message; }
+}
+async function loadTutorHome() {
+  const dest=document.getElementById('eduTutorStudents');
+  dest.replaceChildren();
+  try {
+    const response=await apiFetch('/auth/my-students');
+    if(!response.ok) throw new Error('No se pudo consultar la información de tus estudiantes.');
+    const rows=await response.json();
+    if(!rows.length) { dest.textContent='Todavía no tenés estudiantes vinculados a tu cuenta.';return; }
+    rows.forEach(student=>{
+      const card=document.createElement('div');
+      card.className='bg-white border border-slate-200 rounded-xl p-4';
+      card.textContent=`${student.firstName} ${student.lastName} — ${student.classroom||'Sin aula asignada'}`;
+      dest.append(card);
+    });
+  } catch(e) { dest.textContent=e.message; }
+}
+
+async function sendEduAccess(personType, personId) {
+  if (!confirm('¿Enviar acceso/activación al correo registrado?')) return;
+  try {
+    const response=await apiFetch('/auth/provision-existing',{
+      method:'POST',body:JSON.stringify({personType,personId})
+    });
+    if (!response.ok) throw new Error(`No se pudo enviar el acceso (${response.status}). Comprobá Gmail y el correo de la persona.`);
+    alert('Cuenta vinculada. Si la persona aún no la activó, recibió un enlace válido por 30 minutos.');
+  } catch(e) { alert(e.message); }
 }
 
 

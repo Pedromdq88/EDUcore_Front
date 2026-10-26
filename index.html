@@ -49,11 +49,18 @@
       </div>
       <div>
         <label class="block text-sm font-medium text-slate-600 mb-1.5">Contraseña</label>
-        <input type="password" id="passwordInput" value="••••••••" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 focus:bg-white">
+        <input type="password" id="passwordInput" autocomplete="current-password" onkeydown="if(event.key==='Enter') handleLogin()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 focus:bg-white">
       </div>
+      <p id="loginError" role="alert" aria-live="polite" class="text-sm font-semibold text-rose-600"></p>
       <button onclick="handleLogin()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 rounded-xl text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer">
         <span>Ingresar al Sistema</span><span class="material-icons-outlined text-md">login</span>
       </button>
+      <button type="button" onclick="showEduForgot()" class="text-emerald-700 text-sm underline">¿Olvidaste tu contraseña?</button>
+      <div id="eduForgotBox" class="hidden bg-emerald-50 border rounded-xl p-3 space-y-2">
+        <p class="text-xs">Seleccioná institución e ingresá tu correo arriba. Te enviaremos un enlace de recuperación.</p>
+        <button type="button" onclick="requestEduReset()" class="bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm">Enviar enlace de recuperación</button>
+        <p id="eduForgotMessage" aria-live="polite" class="text-xs text-slate-600"></p>
+      </div>
     </div>
   </div>
 </div>
@@ -78,6 +85,7 @@
         <p id="userDisplay" class="text-sm font-semibold text-slate-800 tracking-tight"></p>
         <p id="roleBadge" class="text-[11px] font-bold text-emerald-600 tracking-wider uppercase"></p>
       </div>
+      <button onclick="showEduChangePassword()" title="Cambiar contraseña" class="p-2 hover:bg-emerald-50 text-slate-500 rounded-full"><span class="material-icons-outlined">lock_reset</span></button>
       <button onclick="handleLogout()" title="Cerrar Sesión" class="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-full transition-colors cursor-pointer">
         <span class="material-icons-outlined">logout</span>
       </button>
@@ -136,6 +144,13 @@
 
 <main id="mainContentArea" class="flex-1 pl-64 pt-16 transition-all duration-300 w-full overflow-x-hidden">
     <div class="p-6 max-w-6xl mx-auto w-full">
+
+      <!-- ESPACIO PRIVADO PARA TUTORES -->
+      <div id="tutorHomeView" class="dashboard-view hidden">
+        <h2 class="text-2xl font-bold mb-2">Mi espacio de tutor</h2>
+        <p class="text-sm text-slate-500 mb-5">Solo se muestran estudiantes vinculados a tu cuenta.</p>
+        <div id="eduTutorStudents" class="space-y-3"></div>
+      </div>
 
       <!-- INICIO -->
       <div id="inicioView" class="dashboard-view">
@@ -946,7 +961,8 @@
       <!-- ======================================================= -->
 <!-- SECCIÓN: CALENDARIO ESCOLAR (VISTA CUADRÍCULA COMPLETA) -->
 <!-- ======================================================= -->
-<div id="calendarioView" class="dashboard-view hidden flex-col h-[calc(100vh-6rem)]">\n<div class="flex gap-2 mb-3">
+<div id="calendarioView" class="dashboard-view hidden flex-col h-[calc(100vh-6rem)]">
+<div class="flex gap-2 mb-3">
 <button onclick="switchEduCalendar('school')" id="eduTabSchool" class="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-semibold">Calendario escolar</button>
 <button onclick="switchEduCalendar('rooms')" id="eduTabRooms" class="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 text-sm font-semibold">Calendario de aulas</button>
 </div>
@@ -2103,6 +2119,27 @@
   </div>
 </div>
 
+
+<div id="eduResetModal" class="hidden fixed inset-0 z-[100] bg-slate-900/70 flex items-center justify-center p-4">
+  <form onsubmit="submitEduReset(event)" class="bg-white p-7 rounded-xl w-full max-w-md space-y-4">
+    <h2 class="font-bold text-xl">Establecer contraseña</h2>
+    <p class="text-sm text-slate-500">Para activar o recuperar la cuenta, usá al menos 12 caracteres.</p>
+    <input id="eduNewPassword" type="password" autocomplete="new-password" minlength="12" required placeholder="Nueva contraseña" class="w-full border rounded-lg p-3">
+    <input id="eduConfirmPassword" type="password" autocomplete="new-password" minlength="12" required placeholder="Confirmar contraseña" class="w-full border rounded-lg p-3">
+    <p id="eduResetMessage" class="text-sm text-rose-600"></p>
+    <button type="submit" class="bg-emerald-600 text-white px-4 py-3 rounded-lg w-full">Guardar contraseña</button>
+  </form>
+</div>
+<div id="eduPasswordModal" class="hidden fixed inset-0 z-[100] bg-slate-900/70 flex items-center justify-center p-4">
+  <form onsubmit="submitEduChange(event)" class="bg-white p-7 rounded-xl w-full max-w-md space-y-3">
+    <h2 class="font-bold text-xl">Cambiar mi contraseña</h2>
+    <input id="eduOldPassword" type="password" autocomplete="current-password" required placeholder="Contraseña actual" class="w-full border rounded-lg p-3">
+    <input id="eduChangeNewPassword" type="password" autocomplete="new-password" minlength="12" required placeholder="Nueva contraseña (mínimo 12 caracteres)" class="w-full border rounded-lg p-3">
+    <p id="eduPasswordMessage" class="text-sm text-rose-600"></p>
+    <div class="flex gap-2"><button type="button" onclick="document.getElementById('eduPasswordModal').classList.add('hidden')" class="border rounded-lg p-3 flex-1">Cancelar</button>
+    <button type="submit" class="bg-emerald-600 text-white rounded-lg p-3 flex-1">Actualizar</button></div>
+  </form>
+</div>
 
 <script src="app.js"></script>
 </body>
