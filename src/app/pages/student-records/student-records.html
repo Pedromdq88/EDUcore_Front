@@ -1,0 +1,22 @@
+<div class="view-wrapper">
+ <div class="view-header"><div><p class="eyebrow">SEGUIMIENTO DEL ALUMNO</p><h2 class="view-title"><span class="material-icons-outlined section-icon">{{icon}}</span>{{title}}</h2><p class="view-subtitle">{{description}}</p></div><a routerLink="/students" class="btn-secondary"><span class="material-icons-outlined">groups</span>Ver alumnos</a></div>
+ <div class="eco-card records-filter"><label class="form-label" for="recordsStudent">Seleccionar alumno</label><div class="eco-row"><select class="form-input" id="recordsStudent" [(ngModel)]="selectedId" (change)="load()"><option value="">Elegí un alumno para consultar su legajo…</option>@for(s of students();track s.id){<option [value]="s.id">{{s.lastName}}, {{s.firstName}} · {{s.documentNumber}}</option>}</select>
+ @if(selectedId){<a [routerLink]="['/students',selectedId]" class="btn-secondary">Ver ficha completa</a>}</div></div>
+ @if(error){<p class="eco-error">{{error}}</p>}
+ @if(!selectedId){<div class="eco-empty"><span class="material-icons-outlined">{{icon}}</span><p>Seleccioná un alumno para consultar la información correspondiente.</p></div>}
+ @if(selectedId){<div class="eco-card records-content">
+   <h3 class="block-title">{{title}}</h3>
+   @if(loading){<p class="eco-muted">Cargando datos…</p>}
+   @else if(mode==='medical'){
+     @if(medical();as m){<div class="info-grid"><div class="info-box"><label>Obra social</label><span>{{m.obraSocial || 'No declarada'}}</span></div><div class="info-box"><label>Número de afiliado</label><span>{{m.nroAfiliado || '—'}}</span></div><div class="info-box"><label>Medicación habitual</label><span>{{m.medicacionHabitual?'Sí':'No declarada'}}</span></div><div class="info-box"><label>Observaciones</label><span>{{m.cualMedicacion || '—'}}</span></div></div>}
+     @else{<p class="eco-empty">El alumno todavía no tiene una ficha médica registrada.</p>}
+   } @else if(records().length===0){<p class="eco-empty">No hay registros para este alumno.</p>}
+   @else{
+    @for(item of records();track item.id){<div class="records-tile"><div class="records-tile-icon"><span class="material-icons-outlined">{{icon}}</span></div><div>
+     <strong>{{mode==='pickups'?item.fullName:((item.lastName||'')+', '+(item.firstName||''))}}</strong>
+     <p>DNI: {{item.documentNumber || '—'}} · {{mode==='pickups'?(item.relationship || 'Autorizado'):(item.description || 'Restricción registrada')}}</p>
+    </div></div>}
+   }
+   <p class="records-tip">Para editar o registrar datos completos, accedé a la ficha individual del alumno.</p>
+ </div>}
+</div>

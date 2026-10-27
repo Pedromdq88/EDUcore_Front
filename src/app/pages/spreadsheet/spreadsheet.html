@@ -1,0 +1,13 @@
+<div class="view-wrapper">
+ <div class="view-header"><div><p class="eyebrow">MATRÍCULA ESCOLAR</p><h2 class="view-title"><span class="material-icons-outlined">table_view</span> Planilla de Alumnos y Contactos</h2><p class="view-subtitle">Matrícula consolidada con búsqueda, filtro y exportación</p></div><span class="badge-role">{{filtered().length}} alumnos</span></div>
+ <div class="eco-card spreadsheet-filters"><div class="eco-row filter-fields">
+  <label class="form-label">Sección:<select class="eco-select" [ngModel]="classroom()" (ngModelChange)="classroom.set($event)"><option value="ALL">Todas las secciones</option>@for(c of classrooms();track c){<option [value]="c">{{c}}</option>}</select></label>
+  <label class="form-label">Buscar alumno:<input class="eco-search" [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="Apellido, nombre o DNI…"></label>
+ </div><button type="button" class="btn-primary" (click)="exportCsv()"><span class="material-icons-outlined">file_download</span>Exportar planilla (CSV)</button></div>
+ @if(error){<div class="eco-error">{{error}}</div>}
+ <div class="table-container"><table class="data-table"><thead><tr><th>N° Legajo</th><th>Apellido y Nombre</th><th>DNI</th><th>Fecha de Nacimiento</th><th>Sección / Aula</th><th>Ficha</th></tr></thead>
+  <tbody>@for(s of filtered();track s.id){<tr><td>{{s.legajoNumber || '—'}}</td><td class="font-bold">{{s.lastName}}, {{s.firstName}}</td><td>{{s.documentNumber}}</td><td>{{s.birthDate}}</td><td><span class="badge-classroom">{{s.classroom || 'Sin asignar'}}</span></td><td><a [routerLink]="['/students',s.id]" class="btn-icon" aria-label="Ver ficha"><span class="material-icons-outlined">contact_page</span></a></td></tr>}
+  @if(filtered().length===0){<tr><td colspan="6" class="empty-row">No hay alumnos para los filtros seleccionados.</td></tr>}
+ </tbody></table></div>
+ <p class="spreadsheet-foot">La exportación es CSV compatible con Excel. No incluye información médica ni datos sensibles.</p>
+</div>

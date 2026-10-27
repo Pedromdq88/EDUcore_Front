@@ -1,0 +1,68 @@
+<div class="view-wrapper">
+  <div class="view-header">
+    <div><p class="eyebrow">AULAS Y TURNOS</p><h2 class="view-title">Configuración de Aulas y Horarios</h2><p class="view-subtitle">Salas, grados, turnos y cronogramas de clases</p></div>
+  </div>
+
+  <div class="eco-toolbar shift-summary"><div class="eco-row"><span class="badge-classroom">{{classrooms().length}} aulas</span><span class="badge-role">{{schedules().length}} horarios</span></div><a routerLink="/calendar" class="btn-primary"><span class="material-icons-outlined">event</span>Ver calendario de aulas</a></div>
+  <div class="section-block">
+    <h3 class="block-title">Aulas y Secciones Habilitadas</h3>
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nombre de Sala / Aula</th>
+            <th>Nivel</th>
+            <th>Turno</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (classrooms().length === 0) {
+            <tr>
+              <td colspan="3" class="empty-row">No hay aulas configuradas.</td>
+            </tr>
+          } @else {
+            @for (c of classrooms(); track c.id) {
+              <tr>
+                <td class="font-bold">{{ c.name }}</td>
+                <td>{{ c.level || '-' }}</td>
+                <td>{{ c.shift || '-' }}</td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section-block mt-6">
+    <h3 class="block-title">Horarios de Clases Recurrentes</h3>
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Materia</th>
+            <th>Aula</th>
+            <th>Docente</th>
+            <th>Día y Horario</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (schedules().length === 0) {
+            <tr>
+              <td colspan="4" class="empty-row">No hay horarios de clases registrados.</td>
+            </tr>
+          } @else {
+            @for (s of schedules(); track s.id) {
+              <tr>
+                <td class="font-bold">{{ s.subject }}</td>
+                <td>{{ s.classroomId }}</td>
+                <td>{{ s.teacherName }}</td>
+                <td>{{ days[s.dayOfWeek - 1] || s.dayOfWeek }} · {{ s.startTime }} a {{ s.endTime }}</td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

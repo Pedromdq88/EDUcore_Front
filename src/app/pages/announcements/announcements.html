@@ -1,0 +1,22 @@
+<div class="view-wrapper">
+ <div class="view-header"><div><p class="eyebrow">COMUNICACIÓN ESCOLAR</p><h2 class="view-title">Tablón de Comunicados</h2><p class="view-subtitle">Novedades, circulares y avisos para la comunidad educativa</p></div>
+ @if(canEdit){<button type="button" class="btn-primary" (click)="creating=!creating"><span class="material-icons-outlined">add_circle_outline</span>Nuevo comunicado</button>}
+ </div>
+ @if(creating){<form class="eco-card announcement-form" (ngSubmit)="save()">
+  <h3 class="block-title">Publicar comunicado</h3><div class="form-grid">
+  <div><label class="form-label">Título *</label><input name="title" [(ngModel)]="title" required class="form-input" placeholder="Asunto del comunicado"></div>
+  <div><label class="form-label">Categoría</label><select name="category" [(ngModel)]="category" class="form-input"><option value="GENERAL">General</option><option value="IMPORTANTE">Importante</option><option value="EVENTO">Evento</option></select></div>
+  <div><label class="form-label">Destinatarios</label><select name="scope" [(ngModel)]="scope" class="form-input"><option value="GLOBAL">Toda la escuela</option><option value="CLASSROOM">Una sala / sección</option></select></div>
+  @if(scope==='CLASSROOM'){<div><label class="form-label">Aula / Sección</label><select name="classroom" [(ngModel)]="targetClassroom" class="form-input"><option value="">Seleccionar</option>@for(r of rooms();track r.id){<option [value]="r.name">{{r.name}}</option>}</select></div>}
+  <div class="full-row"><label class="form-label">Contenido *</label><textarea name="content" [(ngModel)]="content" required rows="5" class="form-input" placeholder="Escribí el comunicado"></textarea></div>
+  </div><div class="form-actions"><button type="button" class="btn-secondary" (click)="creating=false">Cancelar</button><button type="submit" class="btn-primary" [disabled]="busy">Publicar comunicado</button></div>
+ </form>}
+ @if(error){<p class="eco-error">{{error}}</p>}
+ @if(items().length===0){<div class="eco-empty">Todavía no hay comunicados publicados.</div>}
+ <div class="announcement-list">@for(a of items();track a.id){<article class="eco-card announcement-item">
+  <div class="announcement-top"><span class="category-badge">{{a.category || 'GENERAL'}}</span><span class="eco-muted text-xs">{{a.scope==='GLOBAL'?'Toda la escuela':a.scope==='CLASSROOM'?'Sección: '+a.targetClassroom:'Comunicado privado'}}</span></div>
+  <h3>{{a.title}}</h3><p class="announcement-body">{{a.content}}</p>
+  <div class="announcement-bottom"><span class="eco-row"><span class="material-icons-outlined">account_circle</span> {{a.authorName || 'Institución'}} · {{a.createdAt ? (a.createdAt | date:'dd/MM/yyyy') : ''}}</span>
+   @if(canEdit){<button class="btn-icon" type="button" (click)="remove(a.id)" title="Eliminar comunicado"><span class="material-icons-outlined">delete</span></button>}
+  </div></article>}</div>
+</div>

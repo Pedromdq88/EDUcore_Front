@@ -1,0 +1,59 @@
+<div class="form-wrapper">
+  <div class="form-card">
+    <h2 class="form-title">Registrar Nuevo Miembro de Staff</h2>
+    
+    <div class="form-grid">
+      <div>
+        <label class="form-label">Nombre *</label>
+        <input type="text" [(ngModel)]="firstName" placeholder="Nombre" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Apellido *</label>
+        <input type="text" [(ngModel)]="lastName" placeholder="Apellido" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">DNI</label>
+        <input type="text" [(ngModel)]="documentNumber" placeholder="DNI" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Email Institucional *</label>
+        <input type="email" [(ngModel)]="email" placeholder="docente@institucion.com" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Contraseña Temporal</label>
+        <input type="password" [(ngModel)]="password" placeholder="••••••••" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Rol en el Sistema</label>
+        <select [(ngModel)]="role" class="form-input">
+          <option value="TEACHER">Docente / Profesor</option>
+          @if (isDirector) { <option value="ADMINISTRATIVE">Administrativo</option> }
+          <option value="PRECEPTOR">Preceptor</option>
+          @if (isDirector) { <option value="DIRECTOR">Director/a</option> }
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Teléfono</label>
+        <input type="text" [(ngModel)]="phone" placeholder="Teléfono" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Fecha de Alta</label>
+        <input type="date" [(ngModel)]="hireDate" class="form-input">
+      </div>
+      <div class="sm:col-span-2">
+        <label class="form-label">Sala / Aula a Cargo (Opcional)</label>
+        <select [(ngModel)]="classroom" class="form-input">
+          <option value="">Sin sala asignada</option>
+          @for (c of classrooms(); track c.id) {
+            <option [value]="c.name">{{ c.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button routerLink="/teachers" class="btn-secondary">Cancelar</button>
+      <button (click)="submitStaff()" class="btn-primary">Guardar Miembro</button>
+    </div>
+  </div>
+</div>

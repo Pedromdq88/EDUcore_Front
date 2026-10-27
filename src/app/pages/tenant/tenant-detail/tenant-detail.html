@@ -1,0 +1,40 @@
+@if (tenant(); as t) {
+  <div class="detail-wrapper">
+    <div class="action-bar">
+      <h2 class="view-title">Perfil Institucional</h2>
+      <a routerLink="/school-profile/edit" class="btn-primary">Editar Datos</a>
+    </div>
+
+    <div class="detail-card">
+      <div class="user-header">
+        <div class="avatar school">
+          <span class="material-icons-outlined">account_balance</span>
+        </div>
+        <div>
+          <h1 class="user-name">{{ t.name }}</h1>
+          <p class="text-xs text-slate-500">{{ t.legalName }}</p>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <h3 class="block-title">Datos Administrativos y Fiscales</h3>
+        <div class="info-grid">
+          <div class="info-box"><label>CUE</label><span>{{ t.cue || '-' }}</span></div>
+          <div class="info-box"><label>DIPREGEP</label><span>{{ t.dipregep || '-' }}</span></div>
+          <div class="info-box"><label>Distrito</label><span>{{ t.district || '-' }}</span></div>
+          <div class="info-box"><label>Ciclo Lectivo</label><span>{{ t.academicYear }}</span></div>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <h3 class="block-title">Contacto y Ubicación</h3>
+        <div class="info-grid">
+          <div class="info-box"><label>Teléfono</label><span>{{ t.phone || '-' }}</span></div>
+          <div class="info-box"><label>Email</label><span>{{ t.email || '-' }}</span></div>
+          <div class="info-box"><label>Dirección</label><span>{{ t.address || '-' }}</span></div>
+          <div class="info-box"><label>Ciudad</label><span>{{ t.city || '-' }}</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

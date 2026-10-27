@@ -1,0 +1,48 @@
+<div class="view-wrapper">
+  <div class="view-header">
+    <h2 class="view-title">Control de Aranceles y Cuotas</h2>
+  </div>
+
+  <div class="filter-card">
+    <div class="form-grid">
+      <div>
+        <label class="form-label">Seleccionar Alumno</label>
+        <select [(ngModel)]="selectedStudentId" (change)="onStudentChange()" class="form-input">
+          <option value="">Seleccione un alumno...</option>
+          @for (s of students(); track s.id) {
+            <option [value]="s.id">{{ s.lastName }}, {{ s.firstName }} ({{ s.classroom }})</option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+
+  @if (selectedStudentId) {
+    <div class="table-container mt-4">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Mes</th>
+            <th>Estado de Pago</th>
+            <th class="text-center">Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of fees(); track f.monthNumber) {
+            <tr>
+              <td class="font-bold">Mes N° {{ f.monthNumber }}</td>
+              <td>
+                <span class="badge-status" [class.paid]="f.status === 'PAID'">
+                  {{ f.status === 'PAID' ? 'PAGADO' : 'PENDIENTE' }}
+                </span>
+              </td>
+              <td class="text-center">
+                <button (click)="toggleFee(f.monthNumber)" class="btn-sm">Cambiar Estado</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

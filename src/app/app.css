@@ -1,0 +1,12 @@
+.app-layout{background:#f8fafc;min-height:100vh;}
+.main-content{min-height:100vh;padding:64px 0 0 256px;display:flex;flex-direction:column;transition:padding-left .2s ease;min-width:0;}
+.page-container{padding:30px 30px 54px;max-width:1280px;margin:0 auto;width:100%;flex:1;min-width:0;}
+.sidebar-collapsed .main-content{padding-left:72px;}
+.layout-login .main-content{padding:0;min-height:100vh;}
+.layout-login .page-container{padding:0;max-width:none;}
+.sidebar-overlay{display:none;}
+@media(max-width:900px){
+ .main-content,.sidebar-collapsed .main-content{padding-left:0;}
+ .page-container{padding:24px 16px 35px;}
+ .sidebar-overlay{display:block;position:fixed;inset:64px 0 0;background:rgba(15,23,42,.4);z-index:28;border:0;width:100%;}
+}

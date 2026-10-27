@@ -1,0 +1,14 @@
+.app-header {position:fixed;top:0;left:0;right:0;height:64px;z-index:40;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;padding:0 23px;gap:14px;box-shadow:0 1px 2px rgba(15,23,42,.025);}
+.header-left,.header-right{display:flex;align-items:center;gap:13px;min-width:0;}
+.btn-toggle-menu{display:flex;align-items:center;gap:10px;background:transparent;border:0;padding:4px;border-radius:9px;color:#1e293b;}
+.btn-toggle-menu:hover{background:#f1f5f9;}
+.logo-box{width:33px;height:33px;display:grid;place-items:center;background:#047857;color:#fff;border-radius:9px;box-shadow:0 3px 7px rgba(4,120,87,.16);}
+.logo-box .material-icons-outlined{font-size:19px;}
+.brand-text{font-size:19px;font-weight:800;letter-spacing:-.7px;color:#1e293b;}
+.divider{color:#cbd5e1;font-size:16px;}
+.school-badge{color:#475569;background:#f1f5f9;padding:6px 11px;font-size:11px;font-weight:700;border-radius:999px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.user-info{text-align:right;line-height:1.25;min-width:0;}.user-email{font-size:12px;color:#1e293b;font-weight:700;margin:0;max-width:280px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;}.user-role{font-size:10px;color:#059669;font-weight:900;letter-spacing:.055em;text-transform:uppercase;margin:3px 0 0;}
+.btn-logout{border:0;background:#fff;color:#94a3b8;padding:8px;display:grid;place-items:center;border-radius:100%;}.btn-logout:hover{background:#fef2f2;color:#e11d48;}
+@media(max-width:700px){.app-header{padding:0 10px;}.school-badge,.divider{display:none;}.brand-text{font-size:17px;}.user-email{max-width:125px;font-size:11px;}}
+
+.password-shade{position:fixed;inset:0;z-index:80;background:rgba(15,23,42,.5);display:flex;align-items:center;justify-content:center;padding:16px}.password-modal{width:min(100%,450px);background:white;border:1px solid #e2e8f0;border-radius:17px;padding:26px;box-shadow:0 18px 50px rgba(15,23,42,.2)}.password-modal h3{font-size:18px;color:#0f172a;margin:0 0 19px}.password-modal label{display:block;margin:15px 0;color:#475569;font-size:12px;font-weight:700}.password-modal input{display:block;margin-top:7px;width:100%;height:41px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;padding:10px;color:#1e293b}.password-modal input:focus{outline:2px solid #a7f3d0}.password-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:20px;flex-wrap:wrap}.password-error{color:#be123c;font-size:12px}

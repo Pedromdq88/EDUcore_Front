@@ -1,0 +1,35 @@
+export interface Student {
+  id?: string;
+  firstName: string;
+  lastName: string;
+  legajoNumber: string;
+  legajo?: string;
+  documentNumber: string;
+  birthDate: string;
+  academicYear: number;
+  classroom: string;
+  seccion?: string;
+  status: string;
+  cuil: string;
+  dniStatus: string;
+  genderIdentity: string;
+  birthCountry: string;
+  nationality: string;
+  birthProvince: string;
+  birthLocality: string;
+  street: string;
+  streetNumber: string;
+  floor: string;
+  tower: string;
+  apartment: string;
+  betweenStreets: string;
+  addressLocality: string;
+  hasSiblings: boolean;
+  siblingCount: number;
+  siblingsInThisSchool: number;
+  receivesAuh: boolean;
+  belongsToNativePeople: boolean;
+  transportationMethods: string;
+  tutorIds?: string[];
+  tutors?: any[];
+}

@@ -1,0 +1,43 @@
+<div class="view-wrapper">
+  <div class="view-header">
+    <h2 class="view-title">Gestión de Tutores y Responsables</h2>
+    <a routerLink="/tutors/new" class="btn-primary">+ Nuevo Tutor</a>
+  </div>
+
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Tutor / Responsable</th>
+          <th>DNI</th>
+          <th>Vínculo</th>
+          <th>Teléfono</th>
+          <th>Email</th>
+          <th class="text-center">Ficha</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (tutors().length === 0) {
+          <tr>
+            <td colspan="6" class="empty-row">No hay tutores registrados.</td>
+          </tr>
+        } @else {
+          @for (t of tutors(); track t.id) {
+            <tr>
+              <td class="font-bold">{{ t.lastName }}, {{ t.firstName }}</td>
+              <td>{{ t.documentNumber }}</td>
+              <td><span class="badge-relation">{{ t.relationship }}</span></td>
+              <td>{{ t.phone }}</td>
+              <td>{{ t.email }}</td>
+              <td class="text-center">
+                <a [routerLink]="['/tutors', t.id]" class="btn-icon" title="Ver Detalle">
+                  <span class="material-icons-outlined">visibility</span>
+                </a>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

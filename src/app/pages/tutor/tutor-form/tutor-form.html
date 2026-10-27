@@ -1,0 +1,57 @@
+<div class="form-wrapper">
+  <div class="form-card">
+    <h2 class="form-title">Registrar Nuevo Tutor o Responsable</h2>
+    
+    <div class="form-grid">
+      <div>
+        <label class="form-label">Nombre *</label>
+        <input type="text" [(ngModel)]="firstName" placeholder="Nombre" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Apellido *</label>
+        <input type="text" [(ngModel)]="lastName" placeholder="Apellido" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">DNI *</label>
+        <input type="text" [(ngModel)]="documentNumber" placeholder="DNI" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Vínculo con el Alumno</label>
+        <select [(ngModel)]="relationship" class="form-input">
+          <option value="MADRE">Madre</option>
+          <option value="PADRE">Padre</option>
+          <option value="TUTOR_LEGAL">Tutor Legal</option>
+          <option value="OTRO">Otro Familiar</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Teléfono de Contacto</label>
+        <input type="text" [(ngModel)]="phone" placeholder="Teléfono" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Email</label>
+        <input type="email" [(ngModel)]="email" placeholder="correo@ejemplo.com" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Profesión / Ocupación</label>
+        <input type="text" [(ngModel)]="profesion" placeholder="Profesión" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">¿Convive con el alumno?</label>
+        <select [(ngModel)]="convive" class="form-input">
+          <option value="SI">Sí</option>
+          <option value="NO">No</option>
+        </select>
+      </div>
+      <div class="sm:col-span-2">
+        <label class="form-label">Dirección Particular</label>
+        <input type="text" [(ngModel)]="direccion" placeholder="Calle y número" class="form-input">
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button routerLink="/tutors" class="btn-secondary">Cancelar</button>
+      <button (click)="submitTutor()" class="btn-primary">Guardar Tutor</button>
+    </div>
+  </div>
+</div>
