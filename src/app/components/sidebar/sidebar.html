@@ -1,0 +1,24 @@
+<aside class="sidebar" [class.collapsed]="collapsed" [class.mobile-open]="mobileOpen" id="appSidebar">
+  <nav class="sidebar-nav" aria-label="Navegación de EduCore">
+    @if(isTutor){<p class="nav-label">MI ESPACIO</p><a routerLink="/my-students" routerLinkActive="active-link" class="nav-item" (click)="navigate.emit()" title="Mis estudiantes"><span class="material-icons-outlined">family_restroom</span><span class="nav-text">Mis estudiantes</span></a>}
+    @if(!isTutor){<p class="nav-label">PRINCIPAL</p>
+    <a routerLink="/dashboard" routerLinkActive="active-link" class="nav-item" (click)="navigate.emit()" title="Inicio"><span class="material-icons-outlined">home</span><span class="nav-text">Inicio</span></a>
+    <a routerLink="/school-profile" routerLinkActive="active-link" class="nav-item" (click)="navigate.emit()" title="Perfil escuela"><span class="material-icons-outlined icon-emerald">account_balance</span><span class="nav-text">Perfil Escuela y Ciclo</span></a>
+    <a routerLink="/spreadsheet" routerLinkActive="active-link" class="nav-item" (click)="navigate.emit()" title="Planilla general"><span class="material-icons-outlined icon-emerald">table_view</span><span class="nav-text">Planilla Excel General</span></a>
+    <a routerLink="/announcements" routerLinkActive="active-link" class="nav-item" (click)="navigate.emit()" title="Comunicados"><span class="material-icons-outlined indigo">campaign</span><span class="nav-text">Tablón de Comunicados</span></a>
+    <p class="nav-label">GESTIÓN INSTITUCIONAL</p>
+    <a routerLink="/tutors" routerLinkActive="active-link" class="nav-item" (click)="navigate.emit()" title="Tutores"><span class="material-icons-outlined">family_restroom</span><span class="nav-text">Gestión de Padres</span></a>
+    <a routerLink="/students" routerLinkActive="active-link" class="nav-item" (click)="navigate.emit()" title="Alumnos"><span class="material-icons-outlined">groups</span><span class="nav-text">Gestión de Alumnos</span></a>
+    <a routerLink="/teachers" routerLinkActive="active-link" class="nav-item" (click)="navigate.emit()" title="Personal"><span class="material-icons-outlined icon-emerald">badge</span><span class="nav-text">Cuerpo Docente y Personal</span></a>
+    <a routerLink="/subjects" routerLinkActive="active-link" class="nav-item" (click)="navigate.emit()" title="Materias"><span class="material-icons-outlined cyan">menu_book</span><span class="nav-text">Gestión de Materias</span></a>
+    <a routerLink="/shifts" routerLinkActive="active-link" class="nav-item" (click)="navigate.emit()" title="Aulas y turnos"><span class="material-icons-outlined icon-emerald">class</span><span class="nav-text">Gestor de Aulas y Turnos</span></a>
+    <a routerLink="/fees" routerLinkActive="active-link" class="nav-item" (click)="navigate.emit()" title="Cuotas"><span class="material-icons-outlined">payments</span><span class="nav-text">Gestión de Cuotas</span></a>
+    <p class="nav-label">SEGUIMIENTO Y SEGURIDAD</p>
+    <a routerLink="/medical" routerLinkActive="active-link" class="nav-item" (click)="navigate.emit()" title="Ficha médica"><span class="material-icons-outlined cyan">medical_services</span><span class="nav-text">Ficha Médica Escolar</span></a>
+    <a routerLink="/pickups" routerLinkActive="active-link" class="nav-item" (click)="navigate.emit()" title="Retiros"><span class="material-icons-outlined">how_to_reg</span><span class="nav-text">Control de Retiros</span></a>
+    <a routerLink="/restrictions" routerLinkActive="active-link" class="nav-item" (click)="navigate.emit()" title="Restricciones"><span class="material-icons-outlined rose">gavel</span><span class="nav-text">Restricciones Judiciales</span></a>
+    <a routerLink="/calendar" routerLinkActive="active-link" class="nav-item" (click)="navigate.emit()" title="Calendarios"><span class="material-icons-outlined amber">event</span><span class="nav-text">Calendarios</span></a>
+    }
+  </nav>
+  <div class="sidebar-foot"><span class="status-dot"></span><span class="nav-text">EduCore SGE · Sistema escolar</span></div>
+</aside>

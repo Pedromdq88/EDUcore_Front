@@ -1,0 +1,78 @@
+@if (student(); as s) {
+  <div class="detail-wrapper">
+    <div class="action-bar">
+      <a routerLink="/students" class="btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span> Volver a la Lista
+      </a>
+      <div class="action-buttons">
+        <button (click)="bajaStudent()" class="btn-danger">Dar de Baja</button>
+      </div>
+    </div>
+
+    <div class="detail-card">
+      <div class="user-header">
+        <div class="avatar">{{ s.firstName[0] }}{{ s.lastName[0] }}</div>
+        <div>
+          <h1 class="user-name">{{ s.lastName }}, {{ s.firstName }}</h1>
+          <div class="meta-tags">
+            <span class="tag">Legajo: {{ s.legajoNumber || '-' }}</span>
+            <span class="tag">Sección: {{ s.classroom || '-' }}</span>
+            <span class="tag emerald">ACTIVO</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección Identidad -->
+      <div class="section-block">
+        <h3 class="block-title">Identidad y Documentación</h3>
+        <div class="info-grid">
+          <div class="info-box"><label>DNI</label><span>{{ s.documentNumber }}</span></div>
+          <div class="info-box"><label>CUIL</label><span>{{ s.cuil || '-' }}</span></div>
+          <div class="info-box"><label>Fecha Nacimiento</label><span>{{ s.birthDate }}</span></div>
+          <div class="info-box"><label>Nacionalidad</label><span>{{ s.nationality }}</span></div>
+        </div>
+      </div>
+
+      <!-- Ficha Médica -->
+      <div class="section-block">
+        <h3 class="block-title">Ficha Médica y Declaración Jurada</h3>
+        @if (medicalRecord(); as med) {
+          <div class="info-box bg-slate-50">
+            <p class="font-bold text-xs text-slate-800">Obra Social: {{ med.obraSocial }} (N° Afiliado: {{ med.nroAfiliado || 'N/D' }})</p>
+          </div>
+        } @else {
+          <p class="empty-text">No hay ficha médica registrada.</p>
+        }
+      </div>
+
+      <!-- Autorizados para Retiro -->
+      <div class="section-block">
+        <h3 class="block-title">Personas Autorizadas para Retiro</h3>
+        @if (pickups().length === 0) {
+          <p class="empty-text">No hay personas autorizadas registradas.</p>
+        } @else {
+          @for (p of pickups(); track p.id) {
+            <div class="sub-card">
+              <span class="font-bold text-xs">{{ p.fullName }}</span> — <span class="text-xs text-slate-500">DNI: {{ p.documentNumber }} ({{ p.relationship }})</span>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Restricciones Judiciales -->
+      <div class="section-block border-rose">
+        <h3 class="block-title text-rose">Restricciones Judiciales</h3>
+        @if (restrictions().length === 0) {
+          <p class="empty-text">No constan medidas judiciales certificadas.</p>
+        } @else {
+          @for (r of restrictions(); track r.id) {
+            <div class="sub-card rose">
+              <span class="font-bold text-xs text-rose-900">{{ r.lastName }}, {{ r.firstName }}</span> — <span class="text-xs text-rose-700">{{ r.description }}</span>
+            </div>
+          }
+        }
+      </div>
+
+    </div>
+  </div>
+}

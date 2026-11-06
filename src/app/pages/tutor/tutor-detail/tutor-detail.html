@@ -1,0 +1,29 @@
+@if (tutor(); as t) {
+  <div class="detail-wrapper">
+    <div class="action-bar">
+      <a routerLink="/tutors" class="btn-secondary">Volver a tutores</a>
+    </div>
+    <div class="detail-card">
+      <div class="user-header">
+        <div class="avatar">{{ t.firstName[0] }}{{ t.lastName[0] }}</div>
+        <div>
+          <h1 class="user-name">{{ t.lastName }}, {{ t.firstName }}</h1>
+          <span class="tag">{{ t.relationship }}</span>
+        </div>
+      </div>
+      <div class="section-block">
+        <h3 class="block-title">Datos del tutor</h3>
+        <div class="info-grid">
+          <div class="info-box"><label>DNI</label><span>{{ t.documentNumber }}</span></div>
+          <div class="info-box"><label>Email</label><span>{{ t.email || '-' }}</span></div>
+          <div class="info-box"><label>Teléfono</label><span>{{ t.phone || '-' }}</span></div>
+          <div class="info-box"><label>Vínculo</label><span>{{ t.relationship }}</span></div>
+          <div class="info-box"><label>Dirección</label><span>{{ t.direccion || '-' }}</span></div>
+          <div class="info-box"><label>Profesión</label><span>{{ t.profesion || '-' }}</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+} @else {
+  <p class="empty-text">No se encontró el tutor o todavía se está cargando.</p>
+}

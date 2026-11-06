@@ -1,0 +1,49 @@
+<div class="form-wrapper">
+  <div class="form-card">
+    <h2 class="form-title">Editar Perfil Institucional</h2>
+    
+    <div class="form-grid">
+      <div>
+        <label class="form-label">Nombre Comercial *</label>
+        <input type="text" [(ngModel)]="tenant.name" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Razón Social *</label>
+        <input type="text" [(ngModel)]="tenant.legalName" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">CUE</label>
+        <input type="text" [(ngModel)]="tenant.cue" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">DIPREGEP</label>
+        <input type="text" [(ngModel)]="tenant.dipregep" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Distrito</label>
+        <input type="text" [(ngModel)]="tenant.district" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Ciudad</label>
+        <input type="text" [(ngModel)]="tenant.city" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Teléfono</label>
+        <input type="text" [(ngModel)]="tenant.phone" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Email Institucional</label>
+        <input type="email" [(ngModel)]="tenant.email" class="form-input">
+      </div>
+      <div class="sm:col-span-2">
+        <label class="form-label">Dirección</label>
+        <input type="text" [(ngModel)]="tenant.address" class="form-input">
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a routerLink="/school-profile" class="btn-secondary">Cancelar</a>
+      <button (click)="saveTenant()" class="btn-primary">Guardar Cambios</button>
+    </div>
+  </div>
+</div>

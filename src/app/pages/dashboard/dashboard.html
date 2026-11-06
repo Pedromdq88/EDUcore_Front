@@ -1,0 +1,57 @@
+<div class="dashboard-wrapper">
+  <p class="eyebrow">PANEL INSTITUCIONAL</p>
+  <div class="welcome-banner">
+    <h2 class="banner-title">Consola Institucional</h2>
+    <p class="banner-subtitle">Control de matrículas, personal pedagógico, catálogo de asignaturas y avisos.</p>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <span class="material-icons-outlined metric-icon emerald">escalator_warning</span>
+      <h3 class="metric-title">Alumnos Totales</h3>
+      <div class="metric-value">{{ totalStudents() }}</div>
+    </div>
+    <div class="metric-card">
+      <span class="material-icons-outlined metric-icon emerald">family_restroom</span>
+      <h3 class="metric-title">Padres Totales</h3>
+      <div class="metric-value">{{ totalTutors() }}</div>
+    </div>
+    <div class="metric-card">
+      <span class="material-icons-outlined metric-icon emerald">badge</span>
+      <h3 class="metric-title">Personal y Docentes</h3>
+      <div class="metric-value">{{ totalStaff() }}</div>
+    </div>
+    <div class="metric-card">
+      <span class="material-icons-outlined metric-icon cyan">menu_book</span>
+      <h3 class="metric-title">Materias en Plan</h3>
+      <div class="metric-value">{{ totalSubjects() }}</div>
+    </div>
+  </div>
+
+  <section class="dashboard-quicklinks">
+  <a routerLink="/students" class="quicklink"><span class="material-icons-outlined">person_add_alt</span><span>Gestionar alumnos<small>Matrículas y legajos</small></span><span class="material-icons-outlined arrow">arrow_forward</span></a>
+  <a routerLink="/calendar" class="quicklink"><span class="material-icons-outlined">event</span><span>Calendarios<small>Escolar y aulas</small></span><span class="material-icons-outlined arrow">arrow_forward</span></a>
+  <a routerLink="/announcements" class="quicklink"><span class="material-icons-outlined">campaign</span><span>Comunicados<small>Novedades escolares</small></span><span class="material-icons-outlined arrow">arrow_forward</span></a>
+</section>
+<div class="muro-section">
+    <div class="section-header">
+      <h3 class="section-title">
+        <span class="material-icons-outlined text-indigo">campaign</span> Muro de Comunicados
+      </h3>
+      <a routerLink="/announcements" class="section-link">Ver todos</a>
+    </div>
+    
+    <div class="feed-container">
+      @if (announcements().length === 0) {
+        <div class="empty-feed">No hay comunicados recientes publicados.</div>
+      } @else {
+        @for (a of announcements(); track a.id) {
+          <div class="announcement-card">
+            <h4 class="card-title">{{ a.title }}</h4>
+            <p class="card-content">{{ a.content }}</p>
+          </div>
+        }
+      }
+    </div>
+  </div>
+</div>

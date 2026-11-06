@@ -1,0 +1,7 @@
+<div class="view-wrapper tutor-home"><div class="view-header"><div><p class="eyebrow">PORTAL DE FAMILIAS</p><h2 class="view-title">Mi espacio de tutor</h2><p class="view-subtitle">Estudiantes vinculados a tu cuenta institucional</p></div><span class="badge-classroom">TUTOR</span></div>
+ <div class="tutor-welcome"><span class="material-icons-outlined">family_restroom</span><div><h3>Bienvenido a EduCore</h3><p>Consultá la información de tus estudiantes en un entorno seguro.</p></div></div>
+ @if(loading){<div class="eco-empty">Cargando estudiantes…</div>}
+ @if(error){<div class="eco-error">{{error}}</div>}
+ <div class="tutor-grid">@for(s of students();track s.id){<div class="eco-card tutor-student"><div class="tutor-avatar"><span class="material-icons-outlined">school</span></div><div><strong>{{s.firstName}} {{s.lastName}}</strong><p>{{s.classroom || 'Sin aula asignada'}}</p></div></div>}</div>
+ @if(!loading && !error && students().length===0){<div class="eco-empty">No hay estudiantes vinculados a tu cuenta.</div>}
+</div>

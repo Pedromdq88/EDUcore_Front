@@ -1,0 +1,51 @@
+<div class="form-wrapper">
+  <div class="form-card">
+    <h2 class="form-title">Nueva Matrícula de Alumno</h2>
+    
+    <div class="form-grid">
+      <div>
+        <label class="form-label">Nombre *</label>
+        <input type="text" [(ngModel)]="firstName" placeholder="Nombre" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Apellido *</label>
+        <input type="text" [(ngModel)]="lastName" placeholder="Apellido" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">DNI *</label>
+        <input type="text" [(ngModel)]="documentNumber" placeholder="DNI" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">N° de Legajo</label>
+        <input type="text" [(ngModel)]="legajoNumber" placeholder="Legajo" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Fecha de Nacimiento *</label>
+        <input type="date" [(ngModel)]="birthDate" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Sección / Sala *</label>
+        <select [(ngModel)]="classroom" class="form-input">
+          <option value="">Seleccionar sala...</option>
+          @for (c of classrooms(); track c.id) {
+            <option [value]="c.name">{{ c.name }}</option>
+          }
+        </select>
+      </div>
+      <div class="sm:col-span-2">
+        <label class="form-label">Tutor Principal *</label>
+        <select [(ngModel)]="tutorId" class="form-input">
+          <option value="">Seleccionar tutor...</option>
+          @for (t of tutors(); track t.id) {
+            <option [value]="t.id">{{ t.lastName }}, {{ t.firstName }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button routerLink="/students" class="btn-secondary">Cancelar</button>
+      <button (click)="submitStudent()" class="btn-primary">Matricular Alumno</button>
+    </div>
+  </div>
+</div>

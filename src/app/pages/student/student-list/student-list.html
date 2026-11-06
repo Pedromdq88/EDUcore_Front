@@ -1,0 +1,39 @@
+<div class="view-wrapper">
+  <div class="view-header">
+    <h2 class="view-title">Gestión de Alumnos</h2>
+    <a routerLink="/students/new" class="btn-primary">+ Nueva Matrícula</a>
+  </div>
+
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Alumno</th>
+          <th>DNI</th>
+          <th>Sección</th>
+          <th class="text-center">Ficha Legajo</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (students().length === 0) {
+          <tr>
+            <td colspan="4" class="empty-row">No hay alumnos registrados.</td>
+          </tr>
+        } @else {
+          @for (s of students(); track s.id) {
+            <tr>
+              <td class="font-bold">{{ s.lastName }}, {{ s.firstName }}</td>
+              <td>{{ s.documentNumber }}</td>
+              <td><span class="badge-classroom">{{ s.classroom || 'Sin asignar' }}</span></td>
+              <td class="text-center">
+                <a [routerLink]="['/students', s.id]" class="btn-icon" title="Ver Ficha">
+                  <span class="material-icons-outlined">contact_page</span>
+                </a>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,55 @@
+<div class="view-wrapper">
+ <div class="view-header"><div><p class="eyebrow">ORGANIZACIÓN DEL CICLO LECTIVO</p><h2 class="view-title">Calendarios de EduCore</h2><p class="view-subtitle">Eventos escolares, aulas y horarios semanales</p></div><span class="badge-role">{{section==='school'?'Calendario escolar':'Calendario de aulas'}}</span></div>
+ <div class="calendar-tabs"><button type="button" (click)="section='school'" [class.active]="section==='school'"><span class="material-icons-outlined">event_note</span>Calendario escolar</button><button type="button" (click)="section='rooms'" [class.active]="section==='rooms'"><span class="material-icons-outlined">meeting_room</span>Calendario de aulas</button></div>
+ <div class="eco-card calendar-shell">
+ <div class="calendar-toolbar">
+  <div class="calendar-title"><h3>{{section==='school'?'Actividades institucionales':'Horarios de aulas'}}</h3><p>{{section==='school'?'Reuniones, eventos, jornadas y fechas importantes':'Cronograma recurrente de materias y docentes'}}</p></div>
+  <div class="calendar-controls">
+   @if(section==='rooms'){
+    <select class="eco-select" [(ngModel)]="roomFilter" aria-label="Filtrar por aula"><option value="">Todas las aulas</option>@for(room of rooms();track room.id){<option [value]="room.id">{{room.name}}</option>}</select>
+    <div class="toggle-buttons"><button type="button" (click)="roomView='week'" [class.active]="roomView==='week'">Semana</button><button type="button" (click)="roomView='month'" [class.active]="roomView==='month'">Mes</button></div>
+   }
+   @if(section==='school'||roomView==='month'){
+    <div class="month-nav"><button type="button" (click)="monthOffset=monthOffset-1" aria-label="Mes anterior"><span class="material-icons-outlined">chevron_left</span></button><strong>{{monthLabel}}</strong><button type="button" (click)="monthOffset=monthOffset+1" aria-label="Mes siguiente"><span class="material-icons-outlined">chevron_right</span></button></div>
+   }
+   @if(canEdit){<button type="button" class="btn-primary" (click)="section==='school' ? newEvent=true : openSchedule()"><span class="material-icons-outlined">add</span>{{section==='school'?'Nuevo evento':'Nuevo horario'}}</button>}
+  </div>
+ </div>
+ @if(error){<p class="eco-error">{{error}}</p>}
+ @if(section==='rooms'&&roomView==='week'){
+  <div class="week-scroll"><div class="week-grid">
+    @for(col of roomWeek;track col.day){<div class="weekday"><div class="weekday-title">{{col.day}}</div>
+     @for(item of col.entries;track item.id){<div class="event-card room-card"><strong>{{item.startTime.slice(0,5)}}–{{item.endTime.slice(0,5)}}</strong><span>{{item.subject}}</span><small>{{roomName(item.classroomId)}}</small><small>{{item.teacherName}}</small>
+     @if(canEdit){<div class="event-actions"><button type="button" (click)="openSchedule(item)" title="Editar horario"><span class="material-icons-outlined">edit</span></button><button type="button" (click)="removeSchedule(item.id)" title="Eliminar horario"><span class="material-icons-outlined">delete</span></button></div>}</div>}
+     @if(col.entries.length===0){<div class="day-blank">Sin clases</div>}
+    </div>}
+  </div></div>
+ } @else {
+  <div class="month-scroll"><div class="month-grid">
+   @for(day of days;track day){<div class="month-heading">{{day}}</div>}
+   @for(cell of monthCells;track cell.date){<div class="month-cell" [class.other-month]="!cell.inMonth"><div class="day-number">{{cell.day}}</div>
+    @if(section==='school'){
+      @for(event of cell.events;track event.id){<div class="event-card school-event"><span>{{event.title}}</span>@if(canEdit){<button (click)="removeEvent(event.id)" type="button" title="Eliminar evento"><span class="material-icons-outlined">close</span></button>}</div>}
+    } @else {
+      @for(item of cell.entries;track item.id){<div class="event-card room-event" [title]="item.teacherName+' · '+roomName(item.classroomId)"><strong>{{item.startTime.slice(0,5)}}</strong> {{item.subject}}</div>}
+    }
+   </div>}
+  </div></div>
+ }
+ </div>
+ @if(newEvent){<div class="eco-modal-shade" role="presentation"><form class="eco-card eco-modal" (ngSubmit)="saveEvent()"><div class="eco-toolbar"><h3 class="form-title">Nuevo evento escolar</h3><button class="btn-icon" type="button" (click)="newEvent=false" aria-label="Cerrar"><span class="material-icons-outlined">close</span></button></div>
+   <label class="form-label">Título del evento<input class="form-input" [(ngModel)]="eventTitle" name="title" required></label>
+   <label class="form-label">Fecha<input class="form-input" type="date" [(ngModel)]="eventDate" name="date" required></label>
+   <label class="form-label">Categoría<select class="form-input" [(ngModel)]="eventCategory" name="category"><option value="GENERAL">General</option><option value="REUNION">Reunión</option><option value="FERIADO">Feriado</option><option value="ACTIVIDAD">Actividad</option></select></label>
+   <label class="form-label">Sección<select class="form-input" [(ngModel)]="eventSection" name="section"><option value="GENERAL">Institucional</option><option value="DOCENTES">Docentes</option><option value="FAMILIAS">Familias</option></select></label>
+   <div class="form-actions"><button class="btn-secondary" type="button" (click)="newEvent=false">Cancelar</button><button class="btn-primary" type="submit" [disabled]="busy">Guardar evento</button></div>
+  </form></div>}
+ @if(newSchedule){<div class="eco-modal-shade" role="presentation"><form class="eco-card eco-modal" (ngSubmit)="saveSchedule()"><div class="eco-toolbar"><h3 class="form-title">{{editingScheduleId?'Editar horario':'Nuevo horario de aula'}}</h3><button class="btn-icon" type="button" (click)="newSchedule=false" aria-label="Cerrar"><span class="material-icons-outlined">close</span></button></div>
+  <label class="form-label">Aula<select class="form-input" name="room" [(ngModel)]="classroomId" required>@for(room of rooms();track room.id){<option [value]="room.id">{{room.name}}</option>}</select></label>
+  <label class="form-label">Materia / Actividad<input name="subject" class="form-input" [(ngModel)]="subject" required></label>
+  <label class="form-label">Docente<input name="teacher" class="form-input" [(ngModel)]="teacherName" required></label>
+  <label class="form-label">Día<select name="day" class="form-input" [(ngModel)]="dayOfWeek">@for(day of days;track day;let i=$index){<option [ngValue]="i+1">{{day}}</option>}</select></label>
+  <div class="form-grid"><label class="form-label">Desde<input name="start" type="time" class="form-input" [(ngModel)]="startTime" required></label><label class="form-label">Hasta<input name="end" type="time" class="form-input" [(ngModel)]="endTime" required></label></div>
+  <div class="form-actions"><button type="button" (click)="newSchedule=false" class="btn-secondary">Cancelar</button><button class="btn-primary" type="submit" [disabled]="busy">Guardar horario</button></div>
+ </form></div>}
+</div>

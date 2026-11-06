@@ -1,0 +1,13 @@
+.view-wrapper { max-width: 72rem; margin: 0 auto; }
+.view-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+.view-title { font-size: 1.5rem; font-weight: bold; color: #0f172a; margin: 0; }
+.btn-primary { background-color: #059669; color: #ffffff; padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 600; text-decoration: none; border: none; cursor: pointer; }
+.btn-primary:hover { background-color: #047857; }
+.table-container { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.75rem; overflow: hidden; }
+.data-table { width: 100%; text-align: left; border-collapse: collapse; }
+.data-table th { background: #f1f5f9; padding: 0.75rem 1rem; font-size: 0.6875rem; font-weight: bold; color: #64748b; text-transform: uppercase; }
+.data-table td { padding: 0.75rem 1rem; font-size: 0.875rem; border-top: 1px solid #f1f5f9; color: #334155; }
+.empty-row { padding: 1.5rem; text-align: center; color: #94a3b8; font-size: 0.75rem; }
+.badge-role { background: #f0fdf4; color: #047857; padding: 0.25rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: bold; border: 1px solid #a7f3d0; }
+.btn-icon { color: #94a3b8; padding: 0.25rem; border-radius: 9999px; }
+.btn-icon:hover { color: #059669; background: #f8fafc; }

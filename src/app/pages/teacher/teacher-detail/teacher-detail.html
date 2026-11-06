@@ -1,0 +1,54 @@
+@if (teacher(); as t) {
+  <div class="detail-wrapper">
+    <div class="action-bar">
+      <a routerLink="/teachers" class="btn-secondary">
+        <span class="material-icons-outlined">arrow_back</span> Volver al Listado
+      </a>
+      <button (click)="bajaTeacher()" class="btn-danger">Dar de Baja</button>
+    </div>
+
+    <div class="detail-card">
+      <div class="user-header">
+        <div class="avatar">{{ t.firstName[0] }}{{ t.lastName[0] }}</div>
+        <div>
+          <h1 class="user-name">{{ t.lastName }}, {{ t.firstName }}</h1>
+          <div class="meta-tags">
+            <span class="tag">Email: {{ t.email }}</span>
+            <span class="tag">Rol: {{ t.role }}</span>
+            <span class="tag emerald">{{ t.status }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Asignaciones Áulicas -->
+      <div class="section-block">
+        <h3 class="block-title">Asignaciones en Aulas</h3>
+        @if (!t.assignments || t.assignments.length === 0) {
+          <p class="empty-text">No tiene asignaciones de materias registradas.</p>
+        } @else {
+          @for (asg of t.assignments; track asg.id) {
+            <div class="sub-card">
+              <span class="font-bold text-xs">{{ asg.subject }}</span> — <span class="text-xs text-slate-500">Aula: {{ asg.classroom }}</span>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Portfolio Profesional -->
+      <div class="section-block">
+        <h3 class="block-title">Portfolio y Certificaciones</h3>
+        @if (portfolios().length === 0) {
+          <p class="empty-text">No hay registros en el portfolio profesional.</p>
+        } @else {
+          @for (p of portfolios(); track p.id) {
+            <div class="sub-card">
+              <span class="font-bold text-xs">{{ p.title }}</span> <span class="text-xs text-slate-400">({{ p.category }})</span>
+              <p class="text-xs text-slate-600 mt-1">{{ p.description }}</p>
+            </div>
+          }
+        }
+      </div>
+
+    </div>
+  </div>
+}

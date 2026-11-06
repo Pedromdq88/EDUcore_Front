@@ -1,0 +1,11 @@
+<div class="app-layout" [class.layout-login]="isLoginPage" [class.sidebar-collapsed]="sidebarCollapsed" [class.mobile-menu-open]="mobileMenuOpen">
+  @if (!isLoginPage) {
+    <app-header (menuToggle)="toggleSidebar()"></app-header>
+    <app-sidebar [collapsed]="sidebarCollapsed" [mobileOpen]="mobileMenuOpen" (navigate)="closeMobileMenu()"></app-sidebar>
+    @if (mobileMenuOpen) { <button class="sidebar-overlay" aria-label="Cerrar menú" (click)="closeMobileMenu()"></button> }
+  }
+  <main class="main-content" id="mainContentArea">
+    <div class="page-container"><router-outlet></router-outlet></div>
+    @if (!isLoginPage) { <app-footer></app-footer> }
+  </main>
+</div>
