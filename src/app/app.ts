@@ -15,7 +15,7 @@ export class App {
   sidebarCollapsed = false;
   mobileMenuOpen = false;
   constructor(public router: Router) {}
-  get isLoginPage(): boolean { return this.router.url.startsWith('/login'); }
+  get isLoginPage(): boolean { return this.router.url.startsWith('/login') || this.router.url.startsWith('/change-password'); }
   toggleSidebar(): void {
     if (window.innerWidth < 900) this.mobileMenuOpen = !this.mobileMenuOpen;
     else this.sidebarCollapsed = !this.sidebarCollapsed;

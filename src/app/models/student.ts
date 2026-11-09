@@ -7,6 +7,7 @@ export interface Student {
   documentNumber: string;
   birthDate: string;
   academicYear: number;
+  studentShift?: string;
   classroom: string;
   seccion?: string;
   status: string;

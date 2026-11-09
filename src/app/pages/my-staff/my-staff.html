@@ -1,0 +1,28 @@
+<div class="detail-wrapper"><div class="detail-card">
+@if(loading){<p>Cargando tu perfil…</p>}
+@if(error){<p class="eco-error" role="alert">{{error}}</p>}
+@if(profile();as p){
+<div class="user-header"><div class="avatar">{{p.firstName[0]}}{{p.lastName[0]}}</div><div><p class="eyebrow">MI LEGAJO</p><h1 class="user-name">{{p.firstName}} {{p.lastName}}</h1><span class="tag">{{p.role}}</span></div></div>
+<div class="section-block"><h3 class="block-title">Datos de contacto</h3><div class="info-grid"><div class="info-box"><label>Correo</label><span>{{p.email}}</span></div><div class="info-box"><label>Teléfono</label><span>{{p.phone || 'Sin registrar'}}</span></div></div></div>
+<div class="section-block"><h3 class="block-title">Mis asignaciones</h3>
+@if(p.assignments.length===0){<p class="empty-text">No tenés aulas asignadas.</p>}
+@for(a of p.assignments;track a.classroom+a.subject+a.shift){<div class="sub-card"><strong>{{a.classroom}}</strong><p>{{a.subject}} · {{a.shift}}</p></div>}
+</div>
+@if(isTeacher){<div class="section-block"><div class="eco-toolbar"><h3 class="block-title">Mis portfolios</h3>
+<button class="btn-primary" type="button" (click)="startPortfolio()">+ Nuevo portfolio</button></div>
+@if(portfolioError){<p class="eco-error">{{portfolioError}}</p>}
+@if(portfolios().length===0){<p class="empty-text">No tenés portfolios cargados.</p>}
+@for(item of portfolios();track item.id){<div class="sub-card"><strong>{{item.title}}</strong><p>{{item.description}}</p>
+<div class="eco-row"><button class="btn-sm" type="button" (click)="startPortfolio(item)">Editar</button>
+<button class="btn-danger" type="button" (click)="deletePortfolio(item.id)">Eliminar</button></div></div>}
+@if(showPortfolioForm){<div class="eco-modal-backdrop" role="presentation"><form class="eco-modal" (ngSubmit)="savePortfolio()" role="dialog" aria-modal="true"><h3>{{portfolioEditId?'Editar portfolio':'Nuevo portfolio'}}</h3>
+<label class="form-label">Título<input name="title" class="form-input" [(ngModel)]="portfolio.title" required></label>
+<label class="form-label">Categoría<select name="category" class="form-input" [(ngModel)]="portfolio.category"><option value="CURSO">Curso</option><option value="CAPACITACION">Capacitación</option><option value="PROYECTO">Proyecto</option></select></label>
+<label class="form-label">Descripción<textarea name="description" class="form-input" [(ngModel)]="portfolio.description" required></textarea></label>
+<label class="form-label">Fecha<input name="date" type="date" class="form-input" [(ngModel)]="portfolio.activityDate" required></label>
+<label class="form-label">Adjunto (URL)<input name="media" class="form-input" [(ngModel)]="portfolio.mediaUrl"></label>
+<div class="form-actions"><button class="btn-secondary" type="button" (click)="showPortfolioForm=false">Cancelar</button><button class="btn-primary" type="submit" [disabled]="portfolioBusy">Guardar</button></div>
+</form></div>}
+</div>}
+}
+</div></div>

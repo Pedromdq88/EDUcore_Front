@@ -1,57 +1,16 @@
-<div class="form-wrapper">
-  <div class="form-card">
-    <h2 class="form-title">Registrar Nuevo Tutor o Responsable</h2>
-    
-    <div class="form-grid">
-      <div>
-        <label class="form-label">Nombre *</label>
-        <input type="text" [(ngModel)]="firstName" placeholder="Nombre" class="form-input">
-      </div>
-      <div>
-        <label class="form-label">Apellido *</label>
-        <input type="text" [(ngModel)]="lastName" placeholder="Apellido" class="form-input">
-      </div>
-      <div>
-        <label class="form-label">DNI *</label>
-        <input type="text" [(ngModel)]="documentNumber" placeholder="DNI" class="form-input">
-      </div>
-      <div>
-        <label class="form-label">Vínculo con el Alumno</label>
-        <select [(ngModel)]="relationship" class="form-input">
-          <option value="MADRE">Madre</option>
-          <option value="PADRE">Padre</option>
-          <option value="TUTOR_LEGAL">Tutor Legal</option>
-          <option value="OTRO">Otro Familiar</option>
-        </select>
-      </div>
-      <div>
-        <label class="form-label">Teléfono de Contacto</label>
-        <input type="text" [(ngModel)]="phone" placeholder="Teléfono" class="form-input">
-      </div>
-      <div>
-        <label class="form-label">Email</label>
-        <input type="email" [(ngModel)]="email" placeholder="correo@ejemplo.com" class="form-input">
-      </div>
-      <div>
-        <label class="form-label">Profesión / Ocupación</label>
-        <input type="text" [(ngModel)]="profesion" placeholder="Profesión" class="form-input">
-      </div>
-      <div>
-        <label class="form-label">¿Convive con el alumno?</label>
-        <select [(ngModel)]="convive" class="form-input">
-          <option value="SI">Sí</option>
-          <option value="NO">No</option>
-        </select>
-      </div>
-      <div class="sm:col-span-2">
-        <label class="form-label">Dirección Particular</label>
-        <input type="text" [(ngModel)]="direccion" placeholder="Calle y número" class="form-input">
-      </div>
-    </div>
-
-    <div class="form-actions">
-      <button routerLink="/tutors" class="btn-secondary">Cancelar</button>
-      <button (click)="submitTutor()" class="btn-primary">Guardar Tutor</button>
-    </div>
-  </div>
-</div>
+<div class="form-wrapper"><div class="form-card"><h2 class="form-title">{{editingId?'Editar tutor':'Registrar tutor o responsable'}}</h2>
+@if(error){<p class="eco-error" role="alert">{{error}}</p>}
+@if(loading){<p role="status">Recuperando los datos guardados del tutor…</p>}
+@if(!loading&&!loadFailed){<form (ngSubmit)="submitTutor()"><div class="form-grid">
+<label class="form-label">Nombre *<input class="form-input" name="firstName" [(ngModel)]="form.firstName" required></label>
+<label class="form-label">Apellido *<input class="form-input" name="lastName" [(ngModel)]="form.lastName" required></label>
+<label class="form-label">DNI *<input class="form-input" name="documentNumber" [(ngModel)]="form.documentNumber" required></label>
+<label class="form-label">Vínculo<select class="form-input" name="relationship" [(ngModel)]="form.relationship"><option value="MADRE">Madre</option><option value="PADRE">Padre</option><option value="TUTOR_LEGAL">Tutor legal</option></select></label>
+<label class="form-label">Teléfono<input class="form-input" name="phone" [(ngModel)]="form.phone"></label>
+<label class="form-label">Email *<input type="email" class="form-input" name="email" [(ngModel)]="form.email" required></label>
+<label class="form-label">Nacionalidad<input class="form-input" name="nacionalidad" [(ngModel)]="form.nacionalidad"></label>
+<label class="form-label">Profesión<input class="form-input" name="profesion" [(ngModel)]="form.profesion"></label>
+<label class="form-label">Condición laboral<input class="form-input" name="condicionActividad" [(ngModel)]="form.condicionActividad"></label>
+<label class="form-label">¿Convive con el alumno?<select class="form-input" name="convive" [(ngModel)]="form.convive"><option value="SI">Sí</option><option value="NO">No</option></select></label>
+<label class="form-label">Dirección<input class="form-input" name="direccion" [(ngModel)]="form.direccion"></label>
+</div><p class="eco-success">Al crear un tutor nuevo se genera su cuenta. El acceso inicial es su correo y su DNI sin puntos; deberá cambiar la clave al entrar.</p><div class="form-actions"><a routerLink="/tutors" class="btn-secondary">Cancelar</a><button type="submit" [disabled]="busy" class="btn-primary">{{busy?'Guardando…':'Guardar tutor'}}</button></div></form>}</div></div>

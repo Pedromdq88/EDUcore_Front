@@ -78,3 +78,6 @@
   color: #059669;
   background: #f8fafc;
 }
+.eco-profile-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;text-decoration:none;white-space:nowrap;background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;border-radius:10px;padding:9px 13px;font-size:12px;font-weight:780;transition:.15s ease}
+.eco-profile-button:hover{background:#047857;color:white;box-shadow:0 5px 14px rgba(4,120,87,.19)}
+.eco-profile-button .material-icons-outlined{font-size:18px}

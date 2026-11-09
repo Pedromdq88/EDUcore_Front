@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, shareReplay, tap } from 'rxjs';
 import { getMultiTenantHeaders } from '../tenant/tenant';
 
 @Injectable({
@@ -8,25 +8,31 @@ import { getMultiTenantHeaders } from '../tenant/tenant';
 })
 export class ShiftService {
   private apiUrl = 'http://localhost:8080/api/v1';
+  private roomCache?:Observable<any[]>;private cacheTenant='';
+  invalidate():void {this.roomCache=undefined;}
 
   constructor(private http: HttpClient) {}
 
   // Configuración de Aulas y Edades (/classrooms-config)
   getClassroomsConfig(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/classrooms-config`, { headers: getMultiTenantHeaders() });
+    const tenant=sessionStorage.getItem('current_institution_id')||'';
+    if(!this.roomCache || this.cacheTenant!==tenant){this.cacheTenant=tenant;this.roomCache=this.http.get<any[]>(`${this.apiUrl}/classrooms-config`,{headers:getMultiTenantHeaders()}).pipe(shareReplay({bufferSize:1,refCount:false}));}
+    return this.roomCache;
   }
 
   createClassroomConfig(payload: any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/classrooms-config`, payload, { headers: getMultiTenantHeaders() });
+    return this.http.post<any>(`${this.apiUrl}/classrooms-config`, payload, { headers: getMultiTenantHeaders() }).pipe(tap(()=>this.invalidate()));
   }
 
   updateClassroomConfig(id: string, payload: any): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/classrooms-config/${id}`, payload, { headers: getMultiTenantHeaders() });
+    return this.http.put<any>(`${this.apiUrl}/classrooms-config/${id}`, payload, { headers: getMultiTenantHeaders() }).pipe(tap(()=>this.invalidate()));
   }
 
   deleteClassroomConfig(id: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/classrooms-config/${id}`, { headers: getMultiTenantHeaders() });
+    return this.http.delete(`${this.apiUrl}/classrooms-config/${id}`, { headers: getMultiTenantHeaders() }).pipe(tap(()=>this.invalidate()));
   }
+
+  createDefaultClassrooms():Observable<any[]> {return this.http.post<any[]>(`${this.apiUrl}/classrooms-config/defaults`,{},{headers:getMultiTenantHeaders()}).pipe(tap(()=>this.invalidate()));}
 
   // Horarios de Aulas / Clases (/class-schedules)
   getClassSchedules(): Observable<any[]> {

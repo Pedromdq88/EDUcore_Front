@@ -1,1 +1,42 @@
 .view-title{display:flex;align-items:center;gap:9px}.section-icon{color:#0891b2;font-size:25px}.records-filter{margin-bottom:20px;max-width:880px;padding:22px}.records-filter .form-input{max-width:550px}.records-filter .eco-row{flex-wrap:wrap;align-items:stretch}.records-content{max-width:980px}.records-content .block-title{margin-bottom:20px}.records-tile{display:flex;align-items:center;gap:14px;padding:14px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;margin-bottom:10px}.records-tile-icon{background:#ecfdf5;border-radius:9px;padding:10px;color:#047857}.records-tile strong{font-size:13px;color:#0f172a}.records-tile p{font-size:12px;color:#64748b;margin:4px 0 0}.records-tip{font-size:11px;color:#94a3b8;margin:20px 0 0}.eco-empty .material-icons-outlined{display:block;font-size:35px;color:#cbd5e1;margin:0 auto 12px}.eco-empty p{margin:0}.records-filter .btn-secondary{min-width:max-content}
+
+/* Master-detail replicando el selector y perfiles del Calendario Update. */
+.records-layout{display:grid;grid-template-columns:minmax(240px,300px) minmax(0,1fr);gap:17px;align-items:start}
+.student-selector{padding:0;position:sticky;top:80px;overflow:hidden}.records-list-head{display:flex;align-items:center;justify-content:space-between;background:#f1f5f9;padding:15px 17px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#334155;text-transform:uppercase}
+.student-selector .eco-searchbox{margin:13px}.student-selector .eco-search{max-width:unset;width:100%;background:#f8fafc;padding-left:39px}
+.records-student-list{max-height:550px;overflow:auto}.record-student{display:flex;width:100%;text-align:left;align-items:center;gap:9px;background:#fff;border:0;border-bottom:1px solid #f1f5f9;padding:13px;cursor:pointer;color:#475569}
+.record-student>span:nth-child(2){flex:1;min-width:0}.record-student strong{font-size:12px;display:block;color:#1e293b}.record-student small{display:block;color:#94a3b8;font-size:10px;margin-top:4px}.record-student>.material-icons-outlined{font-size:17px;color:#cbd5e1}
+.record-student:hover,.record-student.active{background:#ecfdf5}.record-student.active{border-left:3px solid #059669}.records-main{min-width:0}.records-content{max-width:none}.records-student-head{display:flex;align-items:center;gap:12px;padding-bottom:18px;margin-bottom:20px;border-bottom:1px solid #e2e8f0}.records-student-head .eco-initials{width:43px;height:43px}.records-student-head h3{margin:0;font-size:15px;color:#0f172a}.records-student-head p{font-size:11px;color:#94a3b8;margin:5px 0 0}
+.eco-trustee{padding:14px;background:#f0fdf4;border:1px solid #a7f3d0;border-radius:12px;margin-bottom:23px}.eco-trustee .block-title{margin-bottom:10px}.eco-trustee small{display:block;color:#047857;margin-top:6px;font-size:10px}.eco-trustee .records-tile{background:white}
+.records-edit-modal{padding:25px}.eco-age-preview{display:flex;gap:10px;align-items:start;padding:13px;margin-bottom:15px;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;border-radius:11px}.eco-age-preview p{font-size:11px;margin:5px 0 0}
+@media(max-width:870px){.records-layout{grid-template-columns:1fr}.student-selector{position:static}.records-student-list{max-height:210px}.records-content{max-width:100%}}
+
+/* Alta de ficha médica en modal, consulta elegante cuando ya existe */
+.medical-empty-state{text-align:center;max-width:570px;margin:35px auto 48px;padding:32px 20px;color:#475569}
+.medical-empty-icon{margin:0 auto 16px;width:70px;height:70px;border-radius:20px;background:#ecfeff;color:#0891b2;display:flex;align-items:center;justify-content:center}
+.medical-empty-icon .material-icons-outlined{font-size:35px}
+.medical-empty-state h3{font-size:19px;color:#0f172a;margin-bottom:9px}
+.medical-empty-state p{font-size:13px;line-height:1.65;margin-bottom:19px}
+.medical-create-btn{display:inline-flex;align-items:center;gap:8px}
+.medical-record-toolbar{gap:15px;flex-wrap:wrap;margin:20px 0}
+.medical-record-toolbar p{font-size:12px;margin-top:5px}
+.medical-review-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin-bottom:22px}
+.medical-review-item{padding:14px;border:1px solid #e2e8f0;border-radius:11px;background:#f8fafc;display:flex;flex-direction:column;gap:5px}
+.medical-review-item small{text-transform:uppercase;letter-spacing:.04em;color:#64748b;font-size:10px;font-weight:700}
+.medical-review-item strong{font-size:13px;color:#0f172a;overflow-wrap:anywhere}
+.medical-review-section{border-top:1px solid #e2e8f0;padding:20px 0}
+.medical-review-section h4{font-size:14px;color:#334155;margin:0 0 14px}
+.medical-review-options{display:flex;flex-wrap:wrap;gap:8px}
+.medical-review-chip{display:inline-flex;align-items:center;gap:5px;border-radius:30px;padding:7px 9px;background:#f1f5f9;color:#64748b;font-size:11px;font-weight:600;border:1px solid #e2e8f0}
+.medical-review-chip .material-icons-outlined{font-size:14px}
+.medical-review-chip.medical-yes{background:#ecfdf5;color:#047857;border-color:#a7f3d0}
+.medical-form-modal{max-width:950px!important;width:min(950px,96vw)!important;max-height:90vh!important;overflow:auto!important;padding:0!important}
+.medical-modal-head{position:sticky;top:0;background:#0f766e;color:white;padding:20px 25px;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;gap:15px}
+.medical-modal-head h3{font-size:20px;margin:4px 0 7px}.medical-modal-head p{font-size:12px;color:#ccfbf1}.medical-modal-head .eyebrow{color:#99f6e4}
+.medical-close{border:0;background:transparent;color:white;font-size:30px;cursor:pointer}
+.medical-form-modal form{padding:23px 26px}
+.medical-modal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.medical-check-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0 23px}
+.medical-check-grid label{padding:8px 11px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;font-size:12px}
+.medical-modal-actions{position:sticky;bottom:-23px;background:white;padding:14px 0;display:flex;justify-content:flex-end;gap:9px;border-top:1px solid #e2e8f0}
+@media(max-width:780px){.medical-modal-grid,.medical-review-grid,.medical-check-grid{grid-template-columns:1fr}}

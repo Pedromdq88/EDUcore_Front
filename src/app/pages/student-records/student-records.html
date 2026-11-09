@@ -1,22 +1,99 @@
 <div class="view-wrapper">
- <div class="view-header"><div><p class="eyebrow">SEGUIMIENTO DEL ALUMNO</p><h2 class="view-title"><span class="material-icons-outlined section-icon">{{icon}}</span>{{title}}</h2><p class="view-subtitle">{{description}}</p></div><a routerLink="/students" class="btn-secondary"><span class="material-icons-outlined">groups</span>Ver alumnos</a></div>
- <div class="eco-card records-filter"><label class="form-label" for="recordsStudent">Seleccionar alumno</label><div class="eco-row"><select class="form-input" id="recordsStudent" [(ngModel)]="selectedId" (change)="load()"><option value="">Elegí un alumno para consultar su legajo…</option>@for(s of students();track s.id){<option [value]="s.id">{{s.lastName}}, {{s.firstName}} · {{s.documentNumber}}</option>}</select>
- @if(selectedId){<a [routerLink]="['/students',selectedId]" class="btn-secondary">Ver ficha completa</a>}</div></div>
- @if(error){<p class="eco-error">{{error}}</p>}
- @if(!selectedId){<div class="eco-empty"><span class="material-icons-outlined">{{icon}}</span><p>Seleccioná un alumno para consultar la información correspondiente.</p></div>}
- @if(selectedId){<div class="eco-card records-content">
-   <h3 class="block-title">{{title}}</h3>
-   @if(loading){<p class="eco-muted">Cargando datos…</p>}
-   @else if(mode==='medical'){
-     @if(medical();as m){<div class="info-grid"><div class="info-box"><label>Obra social</label><span>{{m.obraSocial || 'No declarada'}}</span></div><div class="info-box"><label>Número de afiliado</label><span>{{m.nroAfiliado || '—'}}</span></div><div class="info-box"><label>Medicación habitual</label><span>{{m.medicacionHabitual?'Sí':'No declarada'}}</span></div><div class="info-box"><label>Observaciones</label><span>{{m.cualMedicacion || '—'}}</span></div></div>}
-     @else{<p class="eco-empty">El alumno todavía no tiene una ficha médica registrada.</p>}
-   } @else if(records().length===0){<p class="eco-empty">No hay registros para este alumno.</p>}
-   @else{
-    @for(item of records();track item.id){<div class="records-tile"><div class="records-tile-icon"><span class="material-icons-outlined">{{icon}}</span></div><div>
-     <strong>{{mode==='pickups'?item.fullName:((item.lastName||'')+', '+(item.firstName||''))}}</strong>
-     <p>DNI: {{item.documentNumber || '—'}} · {{mode==='pickups'?(item.relationship || 'Autorizado'):(item.description || 'Restricción registrada')}}</p>
-    </div></div>}
+ <div class="view-header"><div><p class="eyebrow">LEGAJOS INSTITUCIONALES</p><h2 class="view-title">{{title}}</h2><p class="view-subtitle">Consulta y administración de datos registrados en el backend.</p></div><a routerLink="/students" class="btn-secondary">Ver alumnos</a></div>
+ <div class="records-layout"><aside class="eco-card student-selector" aria-label="Alumnos">
+  <div class="records-list-head"><strong>Seleccionar alumno</strong><span class="eco-counter">{{filteredStudents.length}}</span></div>
+  <label class="eco-searchbox"><span class="material-icons-outlined">search</span><input class="eco-search" [(ngModel)]="studentQuery" placeholder="Buscar nombre o DNI" aria-label="Buscar alumno"></label>
+  <div class="records-student-list">@for(s of filteredStudents;track s.id){<button type="button" class="record-student" [class.active]="selectedId===s.id" (click)="selectStudent(s.id||'')">
+   <span class="eco-initials">{{s.firstName[0]}}{{s.lastName[0]}}</span><span><strong>{{s.lastName}}, {{s.firstName}}</strong><small>DNI {{s.documentNumber}} · {{s.classroom||'Sin sala'}}</small></span><span class="material-icons-outlined">chevron_right</span>
+  </button>}</div></aside><div class="records-main">
+ @if(!selectedId){<div class="eco-empty"><span class="material-icons-outlined">touch_app</span>Seleccioná un alumno para consultar {{title.toLowerCase()}}.</div>}
+ @if(error){<p class="eco-error" role="alert">{{error}}</p>}@if(message){<p class="eco-success">{{message}}</p>}
+ @if(loading){<div class="eco-empty">Cargando datos…</div>}
+ @if(selectedId && !loading){<div class="eco-card records-content">
+  <div class="records-student-head"><span class="eco-initials">{{selectedStudent?.firstName?.[0]}}{{selectedStudent?.lastName?.[0]}}</span><div><h3>{{selectedStudent?.firstName}} {{selectedStudent?.lastName}}</h3><p>{{selectedStudent?.classroom}} · DNI {{selectedStudent?.documentNumber}}</p></div></div>
+ @if(mode==='medical'){
+   @if(!medicalExists()){
+    <div class="medical-empty-state">
+      <div class="medical-empty-icon"><span class="material-icons-outlined">medical_services</span></div>
+      <h3>Este alumno todavía no tiene ficha médica</h3>
+      <p>Podés registrar el cuestionario completo sin salir de la pantalla. Se guarda en el legajo del alumno.</p>
+      @if(canEdit){<button type="button" class="btn-primary medical-create-btn" (click)="openMedical()"><span class="material-icons-outlined">add_circle_outline</span> Crear ficha médica</button>}
+    </div>
+   } @else {
+    <div class="eco-toolbar medical-record-toolbar"><div><h3 class="block-title">Ficha médica registrada</h3><p class="eco-muted">Podés consultar la declaración y editarla en una ventana independiente.</p></div>
+      @if(canEdit){<button type="button" class="btn-primary" (click)="openMedical()"><span class="material-icons-outlined">edit_note</span> Editar ficha</button>}
+    </div>
+    <div class="medical-review-grid">
+      @for(field of medicalTextFields;track field.key){<div class="medical-review-item"><small>{{field.label}}</small><strong>{{medical[field.key]||'Sin especificar'}}</strong></div>}
+    </div>
+    @for(group of medicalGroups;track group.label){
+      <div class="medical-review-section"><h4>{{group.label}}</h4><div class="medical-review-options">
+      @for(field of group.fields;track field[0]){<span class="medical-review-chip" [class.medical-yes]="!!medical[field[0]]"><span class="material-icons-outlined">{{medical[field[0]]?'check_circle':'remove_circle_outline'}}</span>{{field[1]}}</span>}
+      </div></div>
+    }
    }
-   <p class="records-tip">Para editar o registrar datos completos, accedé a la ficha individual del alumno.</p>
+   @if(medicalModal && canEdit){
+    <div class="eco-modal-backdrop" role="presentation" (click)="medicalModal=false">
+      <section class="eco-modal medical-form-modal" role="dialog" aria-modal="true" aria-labelledby="medical-dialog-title" (click)="$event.stopPropagation()">
+       <div class="medical-modal-head"><div><p class="eyebrow">FICHA MÉDICA ESCOLAR</p><h3 id="medical-dialog-title">{{medicalExists()?'Editar':'Crear'}} ficha de {{selectedStudent?.firstName}} {{selectedStudent?.lastName}}</h3><p>Declaración completa de salud · DNI {{selectedStudent?.documentNumber}}</p></div><button type="button" class="medical-close" (click)="medicalModal=false" aria-label="Cerrar">×</button></div>
+       @if(error){<p class="eco-error" role="alert">{{error}}</p>}
+       <form (ngSubmit)="saveMedical()">
+        <div class="form-grid medical-modal-grid">@for(field of medicalTextFields;track field.key){<label class="form-label">{{field.label}}<input class="form-input" [name]="field.key" [(ngModel)]="medicalDraft[field.key]"></label>}</div>
+        @for(group of medicalGroups;track group.label){<h4 class="block-title eco-subheading">{{group.label}}</h4><div class="eco-check-grid medical-check-grid">@for(field of group.fields;track field[0]){<label class="eco-check"><input type="checkbox" [name]="field[0]" [(ngModel)]="medicalDraft[field[0]]"> {{field[1]}}</label>}</div>}
+        <div class="medical-modal-actions"><button class="btn-secondary" type="button" [disabled]="busy" (click)="medicalModal=false">Cancelar</button><button type="submit" class="btn-primary" [disabled]="busy">{{busy?'Guardando…':'Guardar ficha médica'}}</button></div>
+       </form>
+      </section>
+    </div>
+   }
+ } @else {
+ @if(mode==='pickups'){
+  <div class="eco-trustee"><div class="eco-toolbar"><h3 class="block-title">Responsables vinculados al alumno</h3><span class="badge-classroom">{{linkedTutors().length}} tutores</span></div>
+   @if(linkedTutors().length===0){<p class="eco-muted">No hay tutores vinculados desde matrícula. Podés vincularlos editando al alumno.</p>}
+   @for(t of linkedTutors();track t.id){<div class="records-tile"><span class="records-tile-icon material-icons-outlined">family_restroom</span><div><strong>{{t.firstName}} {{t.lastName}}</strong><p>{{t.relationship}} · DNI {{t.documentNumber}} · {{t.phone||'Sin teléfono'}}</p><small>Responsable vinculado · Verificá restricciones vigentes antes de entregar al menor.</small></div>@if(canEdit){<button class="btn-sm" type="button" (click)="authorizeTutor(t)" title="Registrar autorización de retiro"><span class="material-icons-outlined">how_to_reg</span> Autorizar retiro</button>}</div>}
+  </div>
+ }
+ <div class="eco-toolbar"><h3 class="block-title">{{mode==='pickups'?'Otros autorizados registrados':title}}</h3>@if(canEdit){<button class="btn-primary" type="button" (click)="mode==='pickups'?openPickup():showForm=!showForm">+ Agregar registro</button>}</div>
+ @if(records().length===0){<p class="eco-empty">No hay registros adicionales de este tipo para el alumno.</p>}
+ @for(item of records();track item.id){<div class="records-tile"><div><strong>{{mode==='pickups'?item.fullName:(item.lastName+', '+item.firstName)}}</strong>
+ <p>DNI: {{item.documentNumber||'—'}} · {{mode==='pickups'?(item.relationship||'Persona autorizada'):(item.description||'Restricción vigente')}}</p>
+ @if(mode==='pickups'){<p>Edad: {{item.age}} · Teléfono: {{item.phone||'—'}}</p>}
+ @else{<p>Legajo judicial: {{item.legajoNumber||'—'}} · Matrícula: {{item.matrixNumber||'—'}} · Folio: {{item.folioNumber||'—'}}</p>}
+ </div>@if(canEdit){<div class="eco-row">@if(mode==='pickups'){<button type="button" class="btn-sm" (click)="openPickup(item)">Editar</button><button type="button" class="btn-danger" (click)="removePickup(item.id)">Eliminar</button>}@else{<button type="button" class="btn-danger" (click)="removeRestriction(item.id)">Eliminar</button>}</div>}</div>}
+ @if(showForm&&canEdit){<div class="eco-modal-backdrop" role="presentation" (click)="showForm=false"><form class="eco-modal records-edit-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" (ngSubmit)="mode==='pickups'?savePickup():saveRestriction()">
+ <h4>{{mode==='pickups'?(editPickupId?'Editar persona autorizada':'Nueva persona autorizada'):'Registrar restricción judicial'}}</h4>
+ @if(mode==='pickups'){<div class="form-grid">
+ <label class="form-label">Nombre y apellido *<input class="form-input" name="pickupName" [(ngModel)]="pickup.fullName" required></label>
+ <label class="form-label">DNI *<input class="form-input" name="pickupDni" [(ngModel)]="pickup.documentNumber" required></label>
+ <label class="form-label">Fecha de nacimiento *<input type="date" class="form-input" name="pickupBirth" [(ngModel)]="pickup.birthDate" required min="1900-01-01" max="2100-12-31"></label>
+ <div class="eco-age-preview">
+   <span class="material-icons-outlined">calculate</span>
+   <div>
+    <strong>Calculadora de mayoría de edad</strong>
+    <p>
+     @if (pickupAge === null) {
+      Indicá la fecha de nacimiento.
+     } @else {
+      Edad actual: {{ pickupAge }} años.
+      {{ pickupAge >= 18 ? 'Puede registrarse como autorizado.' : 'Debe tener al menos 18 años.' }}
+     }
+    </p>
+   </div>
+  </div>
+ <label class="form-label">Vínculo<input class="form-input" name="pickupRelationship" [(ngModel)]="pickup.relationship"></label>
+ <label class="form-label">Teléfono<input class="form-input" name="pickupPhone" [(ngModel)]="pickup.phone"></label></div>}
+ @else{<div class="form-grid">
+ <label class="form-label">Nombre *<input class="form-input" name="resFirst" [(ngModel)]="restriction.firstName" required></label>
+ <label class="form-label">Apellido *<input class="form-input" name="resLast" [(ngModel)]="restriction.lastName" required></label>
+ <label class="form-label">Tipo documento<input class="form-input" name="resType" [(ngModel)]="restriction.documentType"></label>
+ <label class="form-label">Número documento<input class="form-input" name="resDni" [(ngModel)]="restriction.documentNumber"></label>
+ <label class="form-label">Descripción / medida *<textarea class="form-input" name="resDescription" [(ngModel)]="restriction.description" required></textarea></label>
+ <label class="form-label">N° Legajo judicial<input class="form-input" name="resLegajo" [(ngModel)]="restriction.legajoNumber"></label>
+ <label class="form-label">Matrícula<input class="form-input" name="resMatrix" [(ngModel)]="restriction.matrixNumber"></label>
+ <label class="form-label">Folio<input class="form-input" name="resFolio" [(ngModel)]="restriction.folioNumber"></label>
+ <label class="form-label">Fecha inscripción<input type="date" class="form-input" name="resDate" [(ngModel)]="restriction.inscriptionDate"></label></div>}
+ <div class="form-actions"><button type="button" (click)="showForm=false" class="btn-secondary">Cancelar</button><button type="submit" [disabled]="busy" class="btn-primary">Guardar registro</button></div>
+ </form></div>}
+ }
  </div>}
+ </div></div>
 </div>

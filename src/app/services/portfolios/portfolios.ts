@@ -19,6 +19,8 @@ export class PortfolioService {
     return this.http.post<any>(this.apiUrl, payload, { headers: getMultiTenantHeaders() });
   }
 
+  updatePortfolio(id:string,payload:any):Observable<any>{return this.http.put<any>(`${this.apiUrl}/${id}`,payload,{headers:getMultiTenantHeaders()});}
+
   deletePortfolio(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`, { headers: getMultiTenantHeaders() });
   }

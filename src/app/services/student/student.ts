@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, shareReplay, tap } from 'rxjs';
 import { getMultiTenantHeaders } from '../tenant/tenant';
 import { Student } from '../../models/student';
 
@@ -10,11 +10,19 @@ import { Student } from '../../models/student';
 })
 export class StudentService {
   private apiUrl = 'http://localhost:8080/api/v1/students';
+  private cache?: Observable<Student[]>;
+  private cacheTenant='';
+  invalidate():void {this.cache=undefined;}
 
   constructor(private http: HttpClient) {}
 
   getStudents(): Observable<Student[]> {
-    return this.http.get<Student[]>(this.apiUrl, { headers: getMultiTenantHeaders() });
+    const tenant=sessionStorage.getItem('current_institution_id')||'';
+    if(!this.cache || this.cacheTenant!==tenant){
+      this.cacheTenant=tenant;
+      this.cache=this.http.get<Student[]>(this.apiUrl,{headers:getMultiTenantHeaders()}).pipe(shareReplay({bufferSize:1,refCount:false}));
+    }
+    return this.cache;
   }
 
   getStudentById(id: string): Observable<Student> {
@@ -22,15 +30,29 @@ export class StudentService {
   }
 
   createStudent(student: Student): Observable<Student> {
-    return this.http.post<Student>(this.apiUrl, student, { headers: getMultiTenantHeaders() });
+    return this.http.post<Student>(this.apiUrl, student, { headers: getMultiTenantHeaders() }).pipe(tap(()=>this.invalidate()));
   }
 
   updateStudent(id: string, student: Student): Observable<Student> {
-    return this.http.put<Student>(`${this.apiUrl}/${id}`, student, { headers: getMultiTenantHeaders() });
+    return this.http.put<Student>(`${this.apiUrl}/${id}`, student, { headers: getMultiTenantHeaders() }).pipe(tap(()=>this.invalidate()));
   }
 
   bajaStudent(id: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/${id}/baja`, {}, { headers: getMultiTenantHeaders() });
+    return this.http.post(`${this.apiUrl}/${id}/baja`, {}, { headers: getMultiTenantHeaders() }).pipe(tap(()=>this.invalidate()));
+  }
+
+  getClassroomOptions(birthDate:string, academicYear:number, shift:string): Observable<{ageAtCutoff:number;cutoffDate:string;options:Array<{id:string;name:string;minimumAge:number;shift:string}>;message:string}> {
+    const params = new URLSearchParams({birthDate, academicYear:String(academicYear),shift});
+    return this.http.get<any>(`${this.apiUrl}/classroom-options?${params.toString()}`, {headers:getMultiTenantHeaders()});
+  }
+
+  // El backend recibe el vínculo como un subrecurso después del alta del alumno.
+  linkTutors(studentId: string, assignments: Array<{tutorId:string;relationshipType:string;isPrimary:boolean}>): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/${studentId}/tutors`, assignments, { headers: getMultiTenantHeaders() }).pipe(tap(()=>this.invalidate()));
+  }
+
+  updateAuthorizedPickup(studentId: string, pickupId: string, payload: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/${studentId}/authorized-pickups/${pickupId}`, payload, {headers:getMultiTenantHeaders()});
   }
 
   // Subrecurso: Cuotas / Aranceles

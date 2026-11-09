@@ -1,8 +1,9 @@
 @if (tutor(); as t) {
   <div class="detail-wrapper">
     <div class="action-bar">
-      <a routerLink="/tutors" class="btn-secondary">Volver a tutores</a>
+      <a routerLink="/tutors" class="btn-secondary">Volver a tutores</a><button type="button" (click)="editOpen=true" class="btn-primary"><span class="material-icons-outlined">edit</span> Editar tutor</button><button (click)="bajaTutor()" class="btn-danger">Dar de baja</button>
     </div>
+    @if(error){<p class="eco-error" role="alert">{{error}}</p>}@if(message){<p class="eco-success">{{message}}</p>}
     <div class="detail-card">
       <div class="user-header">
         <div class="avatar">{{ t.firstName[0] }}{{ t.lastName[0] }}</div>
@@ -20,10 +21,19 @@
           <div class="info-box"><label>Vínculo</label><span>{{ t.relationship }}</span></div>
           <div class="info-box"><label>Dirección</label><span>{{ t.direccion || '-' }}</span></div>
           <div class="info-box"><label>Profesión</label><span>{{ t.profesion || '-' }}</span></div>
+          <div class="info-box"><label>Nacionalidad</label><span>{{ t.nacionalidad || '-' }}</span></div>
+          <div class="info-box"><label>Condición de actividad</label><span>{{ t.condicionActividad || '-' }}</span></div>
+          <div class="info-box"><label>Convive con el alumno</label><span>{{ t.convive || '-' }}</span></div>
         </div>
+      </div>
+      <div class="section-block"><h3 class="block-title">Alumnos vinculados</h3>
+        @if(linkedStudents().length===0){<p class="eco-muted">No hay alumnos vinculados a este tutor.</p>}
+        @for(s of linkedStudents();track s.id){<div class="sub-card linked-person-card"><span class="linked-person-avatar">{{s.firstName?.[0]}}{{s.lastName?.[0]}}</span><div class="linked-person-data"><strong>{{s.lastName}}, {{s.firstName}}</strong><small>DNI {{s.documentNumber}} · {{s.classroom||'Sin sala'}}</small></div><a class="linked-person-link" [routerLink]="['/students',s.id]"><span class="material-icons-outlined">open_in_new</span> Ver alumno</a></div>}
       </div>
     </div>
   </div>
 } @else {
   <p class="empty-text">No se encontró el tutor o todavía se está cargando.</p>
 }
+
+@if(editOpen && tutor(); as current){<app-tutor-modal [existing]="current" (saved)="afterEdit($event)" (dismissed)="editOpen=false"></app-tutor-modal>}

@@ -15,57 +15,69 @@ import { FeeList } from './pages/fee/fee-list/fee-list';
 import { FeeDetail } from './pages/fee/fee-detail/fee-detail';
 import { ShiftList } from './pages/shift/shift-list/shift-list';
 import { authGuard } from './guards/auth-guard';
+import { CAPABILITY_ROLES } from './guards/roles';
 import { Login } from './pages/login/login';
+import { PasswordRecovery } from './pages/password-recovery/password-recovery';
 import { Subjects } from './pages/subjects/subjects';
 import { Announcements } from './pages/announcements/announcements';
 import { Spreadsheet } from './pages/spreadsheet/spreadsheet';
 import { Calendar } from './pages/calendar/calendar';
 import { StudentRecords } from './pages/student-records/student-records';
 import { TutorHome } from './pages/tutor-home/tutor-home';
+import { TutorStudentDetail } from './pages/tutor-home/tutor-student-detail';
+import { ForcedPassword } from './pages/forced-password/forced-password';
+import { MyStaff } from './pages/my-staff/my-staff';
 
 
 
 export const routes: Routes = [
   { path: 'login', component: Login },
+  { path: 'forgot-password', component: PasswordRecovery },
+  { path: 'change-password', component: ForcedPassword, canActivate: [authGuard] },
   { path: '', redirectTo: 'dashboard', pathMatch: 'full'  },
-  { path: 'dashboard', component: Dashboard ,canActivate: [authGuard]},
+  { path: 'dashboard', component: Dashboard ,canActivate: [authGuard], data: { roles: CAPABILITY_ROLES['dashboard'] }},
 
   // Alumnos
-  { path: 'students', component: StudentList ,canActivate: [authGuard]},
-  { path: 'students/new', component: StudentForm ,canActivate: [authGuard]},
-  { path: 'students/:id', component: StudentDetail ,canActivate: [authGuard]},
+  { path: 'students', component: StudentList ,canActivate: [authGuard], data: { roles: CAPABILITY_ROLES['students'] }},
+  { path: 'students/new', component: StudentForm ,canActivate: [authGuard], data: { roles: CAPABILITY_ROLES['students-edit'] }},
+  { path: 'students/:id/edit', component: StudentForm ,canActivate: [authGuard], data: { roles: CAPABILITY_ROLES['students-edit'] }},
+  { path: 'students/:id', component: StudentDetail ,canActivate: [authGuard], data: { roles: CAPABILITY_ROLES['students'] }},
 
   // Docentes y Staff
-  { path: 'teachers', component: TeacherList ,canActivate: [authGuard]},
-  { path: 'teachers/new', component: TeacherForm ,canActivate: [authGuard]},
-  { path: 'teachers/:id', component: TeacherDetail ,canActivate: [authGuard]},
+  { path: 'teachers', component: TeacherList ,canActivate: [authGuard], data: { roles: CAPABILITY_ROLES['staff'] }},
+  { path: 'teachers/new', component: TeacherForm ,canActivate: [authGuard], data: { roles: CAPABILITY_ROLES['staff-edit'] }},
+  { path: 'teachers/:id/edit', component: TeacherForm ,canActivate: [authGuard], data: { roles: CAPABILITY_ROLES['staff-edit'] }},
+  { path: 'teachers/:id', component: TeacherDetail ,canActivate: [authGuard], data: { roles: CAPABILITY_ROLES['staff'] }},
 
   // Tutores
-  { path: 'tutors', component: TutorList ,canActivate: [authGuard]},
-  { path: 'tutors/new', component: TutorForm ,canActivate: [authGuard]},
-  { path: 'tutors/:id', component: TutorDetail ,canActivate: [authGuard]},
+  { path: 'tutors', component: TutorList ,canActivate: [authGuard], data: { roles: CAPABILITY_ROLES['tutors'] }},
+  { path: 'tutors/new', component: TutorForm ,canActivate: [authGuard], data: { roles: CAPABILITY_ROLES['tutors-edit'] }},
+  { path: 'tutors/:id/edit', component: TutorForm ,canActivate: [authGuard], data: { roles: CAPABILITY_ROLES['tutors-edit'] }},
+  { path: 'tutors/:id', component: TutorDetail ,canActivate: [authGuard], data: { roles: CAPABILITY_ROLES['tutors'] }},
 
   // Institución
-  { path: 'school-profile', component: TenantDetail ,canActivate: [authGuard]},
-  { path: 'school-profile/edit', component: TenantForm ,canActivate: [authGuard]},
+  { path: 'school-profile', component: TenantDetail ,canActivate: [authGuard], data: { roles: CAPABILITY_ROLES['school'] }},
+  { path: 'school-profile/edit', component: TenantForm ,canActivate: [authGuard], data: { roles: CAPABILITY_ROLES['school-edit'] }},
 
   // Cuotas
-  { path: 'fees', component: FeeList ,canActivate: [authGuard]},
-  { path: 'fees/:id', component: FeeDetail ,canActivate: [authGuard]},
+  { path: 'fees', component: FeeList ,canActivate: [authGuard], data: { roles: CAPABILITY_ROLES['fees'] }},
+  { path: 'fees/:id', component: FeeDetail ,canActivate: [authGuard], data: { roles: ['DIRECTOR','ADMINISTRATIVE'] }},
 
   // Aulas y Horarios
-  { path: 'shifts', component: ShiftList,canActivate: [authGuard]
+  { path: 'shifts', component: ShiftList,canActivate: [authGuard], data: { roles: CAPABILITY_ROLES['rooms'] }
    },
 
-  { path:'my-students',component:TutorHome,canActivate:[authGuard] },
+  { path:'my-profile',component:MyStaff,canActivate:[authGuard],data:{roles:CAPABILITY_ROLES['my-profile']} },
+  { path:'my-students',data:{roles:CAPABILITY_ROLES['my-students']},component:TutorHome,canActivate:[authGuard] },
+  { path:'my-students/:id',data:{roles:CAPABILITY_ROLES['my-students']},component:TutorStudentDetail,canActivate:[authGuard] },
   // Módulos recuperados del frontend tradicional
-  { path:'subjects',component:Subjects,canActivate:[authGuard] },
-  { path:'announcements',component:Announcements,canActivate:[authGuard] },
-  { path:'spreadsheet',component:Spreadsheet,canActivate:[authGuard] },
-  { path:'calendar',component:Calendar,canActivate:[authGuard] },
-  { path:'medical',component:StudentRecords,data:{mode:'medical'},canActivate:[authGuard] },
-  { path:'pickups',component:StudentRecords,data:{mode:'pickups'},canActivate:[authGuard] },
-  { path:'restrictions',component:StudentRecords,data:{mode:'restrictions'},canActivate:[authGuard] },
+  { path:'subjects',data:{roles:CAPABILITY_ROLES['subjects']},component:Subjects,canActivate:[authGuard] },
+  { path:'announcements',data:{roles:CAPABILITY_ROLES['announcements']},component:Announcements,canActivate:[authGuard] },
+  { path:'spreadsheet',data:{roles:CAPABILITY_ROLES['spreadsheet']},component:Spreadsheet,canActivate:[authGuard] },
+  { path:'calendar',data:{roles:CAPABILITY_ROLES['calendar']},component:Calendar,canActivate:[authGuard] },
+  { path:'medical',component:StudentRecords,data:{mode:'medical',roles:CAPABILITY_ROLES['medical']},canActivate:[authGuard] },
+  { path:'pickups',component:StudentRecords,data:{mode:'pickups',roles:CAPABILITY_ROLES['pickups']},canActivate:[authGuard] },
+  { path:'restrictions',component:StudentRecords,data:{mode:'restrictions',roles:CAPABILITY_ROLES['restrictions']},canActivate:[authGuard] },
 
   // Ruta comodín para redirigir URLs no encontradas
   { path: '**', redirectTo: 'dashboard' }

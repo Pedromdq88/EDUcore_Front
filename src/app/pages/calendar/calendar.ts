@@ -9,7 +9,7 @@ interface SchoolEvent {id:string;date:string;title:string;category:string;sectio
 @Component({selector:'app-calendar',standalone:true,imports:[FormsModule],templateUrl:'./calendar.html',styleUrl:'./calendar.css'})
 export class Calendar implements OnInit {
   section:'school'|'rooms'='school';roomView:'week'|'month'='week';monthOffset=0;
-  roomFilter='';newEvent=false;newSchedule=false;editingScheduleId='';error='';busy=false;
+  roomFilter='';newEvent=false;selectedEvent:SchoolEvent|null=null;newSchedule=false;editingScheduleId='';error='';busy=false;
   rooms=signal<any[]>([]);schedules=signal<RoomSchedule[]>([]);events=signal<SchoolEvent[]>([]);
   days=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
   eventTitle='';eventDate='';eventCategory='GENERAL';eventSection='GENERAL';
@@ -17,6 +17,7 @@ export class Calendar implements OnInit {
   constructor(private calendar:CalendarService,private shifts:ShiftService){}
   ngOnInit():void {this.loadAll();}
   get canEdit():boolean{return ['DIRECTOR','ADMINISTRATIVE'].includes(sessionStorage.getItem('current_user_role')||'');}
+  get isTutor():boolean{return sessionStorage.getItem('current_user_role')==='TUTOR';}
   get monthDate():Date {const now=new Date();return new Date(now.getFullYear(),now.getMonth()+this.monthOffset,1);}
   get monthLabel():string{return this.monthDate.toLocaleDateString('es-AR',{month:'long',year:'numeric'});}
   get filteredSchedules():RoomSchedule[]{return this.schedules().filter(x=>!this.roomFilter || x.classroomId===this.roomFilter).sort((a,b)=>a.startTime.localeCompare(b.startTime));}
@@ -38,8 +39,10 @@ export class Calendar implements OnInit {
   loadAll():void {
     this.error='';
     this.calendar.getEvents().subscribe({next:a=>this.events.set(a),error:()=>this.error='No se pudo cargar el calendario escolar.'});
-    this.shifts.getClassroomsConfig().subscribe({next:a=>this.rooms.set(a),error:()=>this.error='No se pudo cargar el catálogo de aulas.'});
-    this.shifts.getClassSchedules().subscribe({next:a=>this.schedules.set(a),error:()=>this.error='No se pudieron cargar los horarios.'});
+    if(!this.isTutor){
+      this.shifts.getClassroomsConfig().subscribe({next:a=>this.rooms.set(a),error:()=>this.error='No se pudo cargar el catálogo de aulas.'});
+      this.shifts.getClassSchedules().subscribe({next:a=>this.schedules.set(a),error:()=>this.error='No se pudieron cargar los horarios.'});
+    }
   }
   saveEvent():void {
     if(!this.canEdit || !this.eventTitle.trim() || !this.eventDate)return;
@@ -48,6 +51,8 @@ export class Calendar implements OnInit {
       error:()=>{this.busy=false;this.error='No se pudo registrar el evento.';}
     });
   }
+  openEventOn(date:string):void{if(!this.canEdit)return;this.eventDate=date;this.eventTitle='';this.eventCategory='GENERAL';this.eventSection='GENERAL';this.newEvent=true;}
+  viewEvent(event:SchoolEvent):void{this.selectedEvent=event;}
   removeEvent(id:string):void{
     if(!this.canEdit || !confirm('¿Eliminar este evento?'))return;
     this.calendar.deleteEvent(id).subscribe({next:()=>this.loadAll(),error:()=>this.error='No se pudo eliminar el evento.'});

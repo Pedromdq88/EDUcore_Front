@@ -17,12 +17,18 @@ export class TeacherService {
     return this.http.get<Teacher[]>(this.apiUrl, { headers: getMultiTenantHeaders() });
   }
 
+  getStaffById(id:string):Observable<Teacher>{return this.http.get<Teacher>(`${this.apiUrl}/${id}`,{headers:getMultiTenantHeaders()});}
+
   createStaff(teacher: Teacher): Observable<Teacher> {
     return this.http.post<Teacher>(this.apiUrl, teacher, { headers: getMultiTenantHeaders() });
   }
 
   updateStaff(id: string, teacher: Teacher): Observable<Teacher> {
     return this.http.put<Teacher>(`${this.apiUrl}/${id}`, teacher, { headers: getMultiTenantHeaders() });
+  }
+
+  activateStaffAccount(id:string):Observable<{status:string;email:string}>{
+    return this.http.post<{status:string;email:string}>(`${this.apiUrl}/${id}/activate-account`,{},{headers:getMultiTenantHeaders()});
   }
 
   bajaStaff(id: string): Observable<any> {

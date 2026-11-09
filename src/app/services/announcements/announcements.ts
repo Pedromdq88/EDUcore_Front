@@ -19,6 +19,8 @@ export class AnnouncementService {
     return this.http.post<any>(this.apiUrl, payload, { headers: getMultiTenantHeaders() });
   }
 
+  updateAnnouncement(id:string,payload:any):Observable<any>{return this.http.put<any>(`${this.apiUrl}/${id}`,payload,{headers:getMultiTenantHeaders()});}
+
   deleteAnnouncement(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`, { headers: getMultiTenantHeaders() });
   }

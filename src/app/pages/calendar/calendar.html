@@ -1,6 +1,6 @@
 <div class="view-wrapper">
  <div class="view-header"><div><p class="eyebrow">ORGANIZACIÓN DEL CICLO LECTIVO</p><h2 class="view-title">Calendarios de EduCore</h2><p class="view-subtitle">Eventos escolares, aulas y horarios semanales</p></div><span class="badge-role">{{section==='school'?'Calendario escolar':'Calendario de aulas'}}</span></div>
- <div class="calendar-tabs"><button type="button" (click)="section='school'" [class.active]="section==='school'"><span class="material-icons-outlined">event_note</span>Calendario escolar</button><button type="button" (click)="section='rooms'" [class.active]="section==='rooms'"><span class="material-icons-outlined">meeting_room</span>Calendario de aulas</button></div>
+ <div class="calendar-tabs"><button type="button" (click)="section='school'" [class.active]="section==='school'"><span class="material-icons-outlined">event_note</span>Calendario escolar</button>@if(!isTutor){<button type="button" (click)="section='rooms'" [class.active]="section==='rooms'"><span class="material-icons-outlined">meeting_room</span>Calendario de aulas</button>}</div>
  <div class="eco-card calendar-shell">
  <div class="calendar-toolbar">
   <div class="calendar-title"><h3>{{section==='school'?'Actividades institucionales':'Horarios de aulas'}}</h3><p>{{section==='school'?'Reuniones, eventos, jornadas y fechas importantes':'Cronograma recurrente de materias y docentes'}}</p></div>
@@ -27,9 +27,9 @@
  } @else {
   <div class="month-scroll"><div class="month-grid">
    @for(day of days;track day){<div class="month-heading">{{day}}</div>}
-   @for(cell of monthCells;track cell.date){<div class="month-cell" [class.other-month]="!cell.inMonth"><div class="day-number">{{cell.day}}</div>
+   @for(cell of monthCells;track cell.date){<div class="month-cell" [class.other-month]="!cell.inMonth"><div class="day-number">{{cell.day}} @if(section==='school'&&canEdit){<button type="button" class="btn-icon" [attr.aria-label]="'Nuevo evento el '+cell.date" (click)="openEventOn(cell.date)">+</button>}</div>
     @if(section==='school'){
-      @for(event of cell.events;track event.id){<div class="event-card school-event"><span>{{event.title}}</span>@if(canEdit){<button (click)="removeEvent(event.id)" type="button" title="Eliminar evento"><span class="material-icons-outlined">close</span></button>}</div>}
+      @for(event of cell.events;track event.id){<div class="event-card school-event"><button class="eco-event-link" type="button" (click)="viewEvent(event)">{{event.title}}</button>@if(canEdit){<button (click)="removeEvent(event.id)" type="button" title="Eliminar evento"><span class="material-icons-outlined">close</span></button>}</div>}
     } @else {
       @for(item of cell.entries;track item.id){<div class="event-card room-event" [title]="item.teacherName+' · '+roomName(item.classroomId)"><strong>{{item.startTime.slice(0,5)}}</strong> {{item.subject}}</div>}
     }
@@ -37,6 +37,9 @@
   </div></div>
  }
  </div>
+ @if(selectedEvent){<div class="eco-modal-shade" role="presentation"><div class="eco-card eco-modal"><div class="eco-toolbar"><h3 class="form-title">Detalle del evento</h3><button class="btn-icon" type="button" (click)="selectedEvent=null">✕</button></div>
+ <p><strong>{{selectedEvent.title}}</strong></p><p>Fecha: {{selectedEvent.date}}</p><p>Categoría: {{selectedEvent.category}}</p><p>Destinatarios: {{selectedEvent.section}}</p>
+ <div class="form-actions"><button type="button" class="btn-secondary" (click)="selectedEvent=null">Cerrar</button>@if(canEdit){<button type="button" class="btn-danger" (click)="removeEvent(selectedEvent.id);selectedEvent=null">Eliminar evento</button>}</div></div></div>}
  @if(newEvent){<div class="eco-modal-shade" role="presentation"><form class="eco-card eco-modal" (ngSubmit)="saveEvent()"><div class="eco-toolbar"><h3 class="form-title">Nuevo evento escolar</h3><button class="btn-icon" type="button" (click)="newEvent=false" aria-label="Cerrar"><span class="material-icons-outlined">close</span></button></div>
    <label class="form-label">Título del evento<input class="form-input" [(ngModel)]="eventTitle" name="title" required></label>
    <label class="form-label">Fecha<input class="form-input" type="date" [(ngModel)]="eventDate" name="date" required></label>

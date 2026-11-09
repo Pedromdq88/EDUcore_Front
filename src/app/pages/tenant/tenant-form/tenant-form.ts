@@ -13,6 +13,8 @@ import { Tenant } from '../../../models/tenant';
   styleUrl: './tenant-form.css'
 })
 export class TenantForm implements OnInit {
+  error='';busy=false;reason='';
+  get isDirector():boolean{return ['DIRECTOR','ADMINISTRATIVE'].includes(sessionStorage.getItem('current_user_role')||'');}
   tenant: Tenant = {
     name: '',
     legalName: '',
@@ -48,12 +50,15 @@ export class TenantForm implements OnInit {
       return;
     }
 
-    this.tenantService.updateProfile(this.tenant).subscribe({
+    if(!this.isDirector && !this.reason.trim()){this.error='Ingresá el motivo de la solicitud.';return;}
+    this.busy=true;this.error='';
+    const req=this.isDirector?this.tenantService.updateProfile(this.tenant):this.tenantService.createTicket(this.reason.trim(),this.tenant);
+    req.subscribe({
       next: () => {
-        alert("¡Datos institucionales actualizados con éxito!");
+        this.busy=false;alert(this.isDirector?'Datos actualizados.':'Solicitud enviada a Dirección para su aprobación.');
         this.router.navigate(['/school-profile']);
       },
-      error: err => alert("Error al actualizar la institución: " + err.message)
+      error: err => {this.busy=false;this.error="No se pudo guardar la solicitud (HTTP "+(err.status||"sin conexión")+").";}
     });
   }
 }

@@ -4,9 +4,9 @@
       <a routerLink="/students" class="btn-secondary">
         <span class="material-icons-outlined">arrow_back</span> Volver a la Lista
       </a>
-      <div class="action-buttons">
-        <button (click)="bajaStudent()" class="btn-danger">Dar de Baja</button>
-      </div>
+      @if(canEditStudent){<div class="action-buttons">
+        <button class="btn-primary" type="button" (click)="editOpen=true"><span class="material-icons-outlined">edit</span> Editar alumno</button><button (click)="bajaStudent()" class="btn-danger">Dar de Baja</button>
+      </div>}
     </div>
 
     <div class="detail-card">
@@ -22,8 +22,16 @@
         </div>
       </div>
 
+      @if(isTeacher){<div class="section-block">
+        <h3 class="block-title">Enviar observación a la familia</h3>
+        <p class="eco-muted">Este mensaje se enviará únicamente a los tutores vinculados a este alumno y a Dirección/Administración.</p>
+        <label class="form-label">Observación<textarea class="form-input" [(ngModel)]="observation" rows="4" placeholder="Describí la situación o el seguimiento del estudiante."></textarea></label>
+        @if(observationError){<p class="eco-error">{{observationError}}</p>}
+        @if(observationMessage){<p class="eco-success">{{observationMessage}}</p>}
+        <button class="btn-primary" type="button" (click)="sendObservation()" [disabled]="observationBusy">{{observationBusy?'Enviando…':'Enviar observación'}}</button>
+      </div>}
       <!-- Sección Identidad -->
-      <div class="section-block">
+      @if(canViewFamily){<div class="section-block">
         <h3 class="block-title">Identidad y Documentación</h3>
         <div class="info-grid">
           <div class="info-box"><label>DNI</label><span>{{ s.documentNumber }}</span></div>
@@ -33,9 +41,15 @@
         </div>
       </div>
 
+      }
+      @if(canViewFamily){<div class="section-block"><h3 class="block-title">Tutores responsables vinculados</h3>
+        @if(!s.tutors?.length){<p class="empty-text">No hay tutores asociados a este alumno.</p>}
+        @for(t of s.tutors||[];track t.id){<div class="sub-card linked-person-card"><span class="linked-person-avatar">{{t.firstName?.[0]}}{{t.lastName?.[0]}}</span><div class="linked-person-data"><strong>{{t.lastName}}, {{t.firstName}}</strong><small>{{t.relationship}} · DNI {{t.documentNumber}} · {{t.phone||'Sin teléfono'}}</small></div>@if(canEditStudent){<a class="linked-person-link" [routerLink]="['/tutors',t.id]"><span class="material-icons-outlined">open_in_new</span> Ver tutor</a>}</div>}
+      </div>
+      }
       <!-- Ficha Médica -->
-      <div class="section-block">
-        <h3 class="block-title">Ficha Médica y Declaración Jurada</h3>
+      @if(canViewMedical){<div class="section-block">
+        <div class="eco-toolbar"><h3 class="block-title">Ficha Médica y Declaración Jurada</h3><a class="btn-secondary" [routerLink]="['/medical']" [queryParams]="{studentId:s.id}">Abrir / editar</a></div>
         @if (medicalRecord(); as med) {
           <div class="info-box bg-slate-50">
             <p class="font-bold text-xs text-slate-800">Obra Social: {{ med.obraSocial }} (N° Afiliado: {{ med.nroAfiliado || 'N/D' }})</p>
@@ -45,9 +59,10 @@
         }
       </div>
 
+      }
       <!-- Autorizados para Retiro -->
-      <div class="section-block">
-        <h3 class="block-title">Personas Autorizadas para Retiro</h3>
+      @if(canViewPickups){<div class="section-block">
+        <div class="eco-toolbar"><h3 class="block-title">Personas Autorizadas para Retiro</h3><a class="btn-secondary" [routerLink]="['/pickups']" [queryParams]="{studentId:s.id}">Gestionar</a></div>
         @if (pickups().length === 0) {
           <p class="empty-text">No hay personas autorizadas registradas.</p>
         } @else {
@@ -59,9 +74,10 @@
         }
       </div>
 
+      }
       <!-- Restricciones Judiciales -->
-      <div class="section-block border-rose">
-        <h3 class="block-title text-rose">Restricciones Judiciales</h3>
+      @if(canViewRestrictions){<div class="section-block border-rose">
+        <div class="eco-toolbar"><h3 class="block-title text-rose">Restricciones Judiciales</h3><a class="btn-secondary" [routerLink]="['/restrictions']" [queryParams]="{studentId:s.id}">Gestionar</a></div>
         @if (restrictions().length === 0) {
           <p class="empty-text">No constan medidas judiciales certificadas.</p>
         } @else {
@@ -73,6 +89,8 @@
         }
       </div>
 
+    }
     </div>
   </div>
 }
+@if(canEditStudent && editOpen && student(); as current){<div class="eco-modal-backdrop" role="presentation" (click)="editOpen=false"><div class="eco-modal eco-student-modal" role="dialog" aria-modal="true" aria-label="Editar ficha del alumno" (click)="$event.stopPropagation()"><app-student-form [embedded]="true" [studentId]="current.id||''" (saved)="afterEdit($event)" (dismissed)="editOpen=false"></app-student-form></div></div>}

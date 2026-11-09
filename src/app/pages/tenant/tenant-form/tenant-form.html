@@ -1,6 +1,7 @@
 <div class="form-wrapper">
   <div class="form-card">
-    <h2 class="form-title">Editar Perfil Institucional</h2>
+    <h2 class="form-title">{{isDirector?'Editar perfil institucional':'Editar perfil institucional'}}</h2>
+    @if(error){<p class="eco-error">{{error}}</p>}
     
     <div class="form-grid">
       <div>
@@ -35,15 +36,21 @@
         <label class="form-label">Email Institucional</label>
         <input type="email" [(ngModel)]="tenant.email" class="form-input">
       </div>
+      <div>
+        <label class="form-label">Ciclo lectivo activo *</label>
+        <input type="number" min="2000" max="2100" [(ngModel)]="tenant.academicYear" class="form-input" [disabled]="!isDirector">
+        <small class="eco-muted">Único ciclo utilizado en la calculadora y cuotas.</small>
+      </div>
       <div class="sm:col-span-2">
         <label class="form-label">Dirección</label>
         <input type="text" [(ngModel)]="tenant.address" class="form-input">
       </div>
     </div>
 
+    @if(!isDirector){<div class="eco-card eco-inline-form"><label class="form-label">Motivo del cambio *<textarea class="form-input" [(ngModel)]="reason" rows="3" placeholder="Describí por qué se solicitan estos cambios"></textarea></label><p class="eco-muted">Los cambios se aplicarán una vez aprobados por Dirección.</p></div>}
     <div class="form-actions">
       <a routerLink="/school-profile" class="btn-secondary">Cancelar</a>
-      <button (click)="saveTenant()" class="btn-primary">Guardar Cambios</button>
+      <button (click)="saveTenant()" [disabled]="busy" class="btn-primary">{{isDirector?"Guardar cambios":"Enviar solicitud"}}</button>
     </div>
   </div>
 </div>

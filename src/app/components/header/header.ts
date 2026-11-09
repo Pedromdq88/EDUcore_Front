@@ -40,6 +40,7 @@ export class Header {
     sessionStorage.removeItem('current_user_role');
     sessionStorage.removeItem('current_institution_id');
     sessionStorage.removeItem('current_institution_name');
+    sessionStorage.removeItem('educore_requires_password_change');
     this.router.navigate(['/login']);
   }
 }
