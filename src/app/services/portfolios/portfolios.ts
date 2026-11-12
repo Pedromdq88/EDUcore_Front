@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class PortfolioService {
-  private apiUrl = 'http://localhost:8080/api/v1/portfolios';
+  private apiUrl = '/api/v1/portfolios';
 
   constructor(private http: HttpClient) {}
 
@@ -18,6 +18,8 @@ export class PortfolioService {
   createPortfolio(payload: any): Observable<any> {
     return this.http.post<any>(this.apiUrl, payload, { headers: getMultiTenantHeaders() });
   }
+
+  updatePortfolio(id:string,payload:any):Observable<any>{return this.http.put<any>(`${this.apiUrl}/${id}`,payload,{headers:getMultiTenantHeaders()});}
 
   deletePortfolio(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`, { headers: getMultiTenantHeaders() });

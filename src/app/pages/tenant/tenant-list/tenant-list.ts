@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-tenant-list',
   imports: [],
   templateUrl: './tenant-list.html',

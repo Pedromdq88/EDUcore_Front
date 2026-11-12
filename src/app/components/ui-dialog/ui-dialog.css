@@ -1,0 +1,13 @@
+.ui-dialog-backdrop{position:fixed;inset:0;z-index:20000;background:rgba(15,23,42,.56);display:grid;place-items:center;padding:18px;backdrop-filter:blur(3px)}
+.ui-dialog-card{width:min(100%,460px);background:#fff;border:1px solid #e2e8f0;border-radius:19px;padding:28px;box-shadow:0 25px 80px rgba(15,23,42,.22)}
+.ui-dialog-symbol{display:grid;place-items:center;width:48px;height:48px;border-radius:14px;background:#d1fae5;color:#047857;margin-bottom:13px}
+.ui-dialog-symbol.danger{background:#fff1f2;color:#be123c}
+.ui-dialog-symbol .material-icons-outlined{font-size:26px}
+.ui-dialog-card h2{font-size:21px;margin:0 0 9px;color:#0f172a;font-weight:800}
+.ui-dialog-card p{font-size:14px;color:#475569;line-height:1.65;white-space:pre-line;margin:0 0 22px}
+.ui-dialog-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.ui-dialog-actions button{cursor:pointer;padding:10px 19px;border-radius:10px;font-size:13px;font-weight:750}
+.ui-dialog-cancel{border:1px solid #cbd5e1;background:#fff;color:#334155}
+.ui-dialog-accept{border:1px solid #059669;background:#059669;color:#fff}
+.ui-dialog-accept.danger{border-color:#b91c1c;background:#b91c1c}
+.ui-dialog-actions button:focus-visible{outline:3px solid #93c5fd;outline-offset:3px}

@@ -1,6 +1,8 @@
 <div class="form-wrapper">
   <div class="form-card">
-    <h2 class="form-title">Editar Perfil Institucional</h2>
+    <h2 class="form-title">{{isDirector?'Editar perfil institucional':'Editar perfil institucional'}}</h2>
+    @if(error()){<p class="eco-error" role="alert">{{error()}}</p>}
+    @if(loading()){<p class="eco-muted" role="status">Cargando el perfil institucional…</p>}
     
     <div class="form-grid">
       <div>
@@ -29,11 +31,22 @@
       </div>
       <div>
         <label class="form-label">Teléfono</label>
-        <input type="text" [(ngModel)]="tenant.phone" class="form-input">
+        <input [(ngModel)]="tenant.phone" class="form-input" type="text" inputmode="numeric" pattern="[0-9]{6,20}" maxlength="20">
       </div>
       <div>
         <label class="form-label">Email Institucional</label>
-        <input type="email" [(ngModel)]="tenant.email" class="form-input">
+        <input type="email" [(ngModel)]="tenant.email" maxlength="150" class="form-input">
+      </div>
+      <div>
+        <label class="form-label">Ciclo lectivo activo *</label>
+        <input type="number" [min]="currentYear ?? 2000" [max]="(currentYear ?? 2099) + 1" [(ngModel)]="tenant.academicYear" class="form-input" [disabled]="!isDirector || !yearChangeEnabled">
+        <small class="eco-muted">Único ciclo utilizado en la calculadora y cuotas.</small>
+        @if(isDirector && currentYear !== null && !yearChangeEnabled){
+          <p class="year-change-locked" role="status">El siguiente ciclo se habilitará el {{unlockDate}}.</p>
+        }
+        @if(isDirector && currentYear !== null && yearChangeEnabled){
+          <small class="eco-muted">Podés avanzar únicamente al ciclo {{currentYear + 1}}.</small>
+        }
       </div>
       <div class="sm:col-span-2">
         <label class="form-label">Dirección</label>
@@ -41,9 +54,18 @@
       </div>
     </div>
 
+    @if(isDirector && yearChangeRequested){
+      <section class="year-change-danger" role="alert">
+        <h3><span class="material-icons-outlined" aria-hidden="true">warning_amber</span> Cambio de ciclo lectivo definitivo</h3>
+        <p>Los alumnos activos quedarán <strong>Sin asignar</strong>. Sus aulas actuales se desvincularán y no se recuperarán automáticamente.</p>
+        <p><strong>Una vez aplicado el cambio, no podrás volver al ciclo anterior desde EDUcore.</strong></p>
+        <label class="year-change-ack"><input type="checkbox" [(ngModel)]="acknowledgedYearChange"> Entiendo que el cambio no se puede deshacer y que tendré que reasignar las aulas.</label>
+      </section>
+    }
+    @if(!isDirector){<div class="eco-card eco-inline-form"><label class="form-label">Motivo del cambio *<textarea class="form-input" [(ngModel)]="reason" rows="3" placeholder="Describí por qué se solicitan estos cambios"></textarea></label><p class="eco-muted">Los cambios se aplicarán una vez aprobados por Dirección.</p></div>}
     <div class="form-actions">
       <a routerLink="/school-profile" class="btn-secondary">Cancelar</a>
-      <button (click)="saveTenant()" class="btn-primary">Guardar Cambios</button>
+      <button (click)="saveTenant()" [disabled]="busy() || loading()" class="btn-primary">{{isDirector?"Guardar cambios":"Enviar solicitud"}}</button>
     </div>
   </div>
 </div>

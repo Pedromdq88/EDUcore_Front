@@ -1,0 +1,27 @@
+.family-detail{max-width:1180px;margin:0 auto;padding-bottom:44px}.family-back{display:inline-flex;align-items:center;gap:9px;color:#0f766e;text-decoration:none;font-weight:700;margin-bottom:19px;font-size:14px}.family-back:hover{text-decoration:underline}
+.family-hero{padding:28px;display:flex;align-items:center;gap:20px;border-radius:20px;background:linear-gradient(115deg,#075985,#0f766e);color:#fff;box-shadow:0 15px 30px #0d766e18}.family-icon{width:70px;height:70px;border-radius:18px;display:grid;place-items:center;background:#ffffff30;flex:none}.family-icon .material-icons-outlined{font-size:38px}.family-hero-text{flex:1}.family-hero h2{margin:4px 0 6px;font-size:28px;color:#fff}.family-hero p{margin:0;color:#e0f2fe;font-size:14px}.family-eyebrow{font-size:11px!important;letter-spacing:1.4px;font-weight:700}.family-status{padding:7px 12px;border-radius:20px;background:#ffffff2a;font-size:12px;white-space:nowrap}
+.family-shortcuts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0 22px}.family-shortcuts a{display:flex;align-items:center;gap:11px;padding:16px;border:1px solid #e2e8f0;border-radius:13px;background:#fff;color:#0f172a;font-weight:700;text-decoration:none;font-size:14px}.family-shortcuts a:hover{border-color:#0f766e;background:#f0fdfa}.family-shortcuts a .material-icons-outlined:first-child{color:#0f766e}.family-shortcuts a .material-icons-outlined:last-child{margin-left:auto;font-size:18px}
+.family-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}.family-panel{background:#fff;border:1px solid #e2e8f0;border-radius:17px;padding:22px;box-shadow:0 3px 16px #0f172a08}.family-panel h3{font-size:16px;margin:0 0 19px;display:flex;align-items:center;gap:10px;color:#0f172a}.family-panel h3 .material-icons-outlined{font-size:22px;color:#0f766e}.family-wide{grid-column:1/-1}.family-info{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.family-info>div{background:#f8fafc;padding:12px;border-radius:9px;min-width:0}.family-info small{display:block;font-size:11px;color:#64748b;margin-bottom:6px}.family-info strong{display:block;color:#0f172a;font-size:13px;overflow-wrap:anywhere}.family-person{display:flex;align-items:center;gap:12px;border:1px solid #e2e8f0;padding:11px 12px;border-radius:11px;margin-bottom:9px}.family-person-avatar{background:#dbeafe;color:#075985;display:grid;place-items:center;width:39px;height:39px;flex:none;border-radius:12px;font-weight:800;font-size:12px}.family-person strong,.family-person small{display:block}.family-person strong{font-size:13px}.family-person small{color:#64748b;font-size:11px;margin-top:4px}.family-muted{color:#64748b;font-size:12px;margin:-7px 0 14px}.family-empty{padding:15px;background:#f8fafc;border-radius:9px;color:#64748b;font-size:13px}.family-months{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px}.family-month{border:1px solid #e2e8f0;background:#f8fafc;padding:14px 5px;text-align:center;border-radius:10px;color:#64748b}.family-month strong,.family-month small{display:block}.family-month strong{font-size:12px;color:#334155}.family-month small{font-size:11px;margin-top:8px}.family-month.paid{background:#ecfdf5;border-color:#86efac}.family-month.paid small{color:#166534}.family-month.pending{background:#fff1f2;border-color:#fda4af}.family-month.pending small{color:#be123c}.family-loading{padding:26px;color:#64748b}
+@media(max-width:780px){.family-columns{grid-template-columns:1fr}.family-shortcuts{grid-template-columns:1fr}.family-months{grid-template-columns:repeat(3,minmax(0,1fr))}.family-hero{flex-wrap:wrap}.family-status{margin-left:0}}@media(max-width:430px){.family-info{grid-template-columns:1fr}.family-hero{padding:19px}.family-hero h2{font-size:23px}}
+
+.family-notice{border:1px solid #e2e8f0;background:#f8fafc;border-radius:11px;padding:15px;margin-top:10px}.family-notice strong,.family-notice small{display:block}.family-notice strong{color:#0f172a;font-size:14px}.family-notice small{color:#64748b;font-size:11px;margin-top:5px}.family-notice p{white-space:pre-wrap;color:#334155;font-size:13px;line-height:1.6;margin:12px 0 0}
+
+.family-notice.private-student-notice {
+  background: #f5f3ff;
+  border: 1px solid #c4b5fd;
+  border-left: 5px solid #7c3aed;
+}
+.family-notice .private-notice-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  padding: 5px 10px;
+  margin-bottom: 10px;
+  border-radius: 999px;
+  background: #ede9fe;
+  color: #5b21b6;
+  font-size: 11px;
+  font-weight: 800;
+}
+.family-notice .private-notice-label .material-icons-outlined { font-size: 15px; }

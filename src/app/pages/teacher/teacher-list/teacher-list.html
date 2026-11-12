@@ -1,41 +1,9 @@
-<div class="view-wrapper">
-  <div class="view-header">
-    <h2 class="view-title">Personal Docente y Administrativo</h2>
-    <a routerLink="/teachers/new" class="btn-primary">+ Nuevo Registro de Staff</a>
-  </div>
-
-  <div class="table-container">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Nombre y Apellido</th>
-          <th>Email</th>
-          <th>Rol</th>
-          <th>Sala / Cargo</th>
-          <th class="text-center">Legajo</th>
-        </tr>
-      </thead>
-      <tbody>
-        @if (staffList().length === 0) {
-          <tr>
-            <td colspan="5" class="empty-row">No hay personal registrado en la institución.</td>
-          </tr>
-        } @else {
-          @for (t of staffList(); track t.id) {
-            <tr>
-              <td class="font-bold">{{ t.lastName }}, {{ t.firstName }}</td>
-              <td>{{ t.email }}</td>
-              <td><span class="badge-role">{{ t.role }}</span></td>
-              <td>{{ t.classroom || 'Personal General' }}</td>
-              <td class="text-center">
-                <a [routerLink]="['/teachers', t.id]" class="btn-icon" title="Ver Legajo">
-                  <span class="material-icons-outlined">badge</span>
-                </a>
-              </td>
-            </tr>
-          }
-        }
-      </tbody>
-    </table>
-  </div>
+<div class="view-wrapper"><div class="view-header"><div><p class="eyebrow">LEGADOS DE PERSONAL</p><h2 class="view-title">Personal docente y administrativo</h2><p class="view-subtitle">Perfiles, cargos, aulas y asignaciones por institución.</p></div>@if(canEdit){<button type="button" class="btn-primary" (click)="openModal()"><span class="material-icons-outlined">person_add</span> Nuevo personal</button>}</div>
+@if(error){<p class="eco-error">{{error}}</p>}@if(message){<p class="eco-success">{{message}}</p>}
+<div class="eco-filterbar"><label class="eco-searchbox"><span class="material-icons-outlined">search</span><input class="eco-search" [(ngModel)]="query" placeholder="Buscar nombre, correo o aula" aria-label="Buscar personal"></label><label class="eco-filterlabel">Rol<select class="eco-select" [(ngModel)]="role"><option value="ALL">Todos los roles</option>@for(r of roles;track r){<option [value]="r">{{r}}</option>}</select></label><span class="eco-counter">{{filteredStaff.length}} registros</span></div>
+<div class="table-container"><table class="data-table"><thead><tr><th>Nombre y apellido</th><th>Correo</th><th>Rol</th><th>Aula / cargo</th><th>Perfil</th></tr></thead><tbody>
+@if(filteredStaff.length===0){<tr><td colspan="5" class="empty-row">No hay personal para esta búsqueda.</td></tr>}
+@for(t of filteredStaff;track t.id){<tr><td><div class="eco-person"><span class="eco-initials">{{t.firstName[0]}}{{t.lastName[0]}}</span><strong>{{t.lastName}}, {{t.firstName}}</strong></div></td><td>{{t.email||'—'}}</td><td><span class="badge-role">{{t.role}}</span></td><td>{{t.classroom||'Personal general'}}</td><td><div class="eco-row actions-cell"><a [routerLink]="['/teachers',t.id]" class="eco-profile-button"><span class="material-icons-outlined">badge</span> Ver perfil</a>@if(canEdit){<button class="btn-sm" (click)="openModal(t.id||'')" type="button"><span class="material-icons-outlined">edit</span></button>}</div></td></tr>}
+</tbody></table></div>
+@if(modalOpen){<div class="eco-modal-backdrop" role="presentation"><div class="eco-modal eco-student-modal" role="dialog" aria-modal="true" aria-label="Ficha del personal" (click)="$event.stopPropagation()"><app-teacher-form [embedded]="true" [staffId]="modalStaffId" (saved)="onSaved()" (dismissed)="modalOpen=false"></app-teacher-form></div></div>}
 </div>

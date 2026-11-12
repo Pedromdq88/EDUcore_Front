@@ -1,48 +1,66 @@
-<div class="view-wrapper">
-  <div class="view-header">
-    <h2 class="view-title">Control de Aranceles y Cuotas</h2>
-  </div>
-
-  <div class="filter-card">
-    <div class="form-grid">
-      <div>
-        <label class="form-label">Seleccionar Alumno</label>
-        <select [(ngModel)]="selectedStudentId" (change)="onStudentChange()" class="form-input">
-          <option value="">Seleccione un alumno...</option>
-          @for (s of students(); track s.id) {
-            <option [value]="s.id">{{ s.lastName }}, {{ s.firstName }} ({{ s.classroom }})</option>
-          }
-        </select>
-      </div>
-    </div>
-  </div>
-
-  @if (selectedStudentId) {
-    <div class="table-container mt-4">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Mes</th>
-            <th>Estado de Pago</th>
-            <th class="text-center">Acción</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (f of fees(); track f.monthNumber) {
-            <tr>
-              <td class="font-bold">Mes N° {{ f.monthNumber }}</td>
-              <td>
-                <span class="badge-status" [class.paid]="f.status === 'PAID'">
-                  {{ f.status === 'PAID' ? 'PAGADO' : 'PENDIENTE' }}
-                </span>
-              </td>
-              <td class="text-center">
-                <button (click)="toggleFee(f.monthNumber)" class="btn-sm">Cambiar Estado</button>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+<div class="fee-page">
+  @if(error){<div class="eco-error" role="alert">{{error}}</div>}
+  @if(message){<div class="eco-success" role="status">{{message}}</div>}
+  @if(!selectedStudentId){
+    <header class="fee-header"><div><p class="eyebrow">CONSULTA DE CUOTAS</p><h2>{{isTutor ? 'Cuotas de mis estudiantes' : 'Estado de Cuenta y Cuotas'}}</h2><p>{{isTutor ? 'Consulta de pagos del ciclo lectivo:' : 'Control de aranceles y seguimiento del único ciclo lectivo activo:'}} <strong>{{academicYear||'Cargando…'}}</strong></p></div></header>
+    <div class="fee-search-row"><label class="fee-search"><span class="material-icons-outlined">search</span><input [(ngModel)]="query" placeholder="Buscar alumno por nombre, apellido o DNI" aria-label="Buscar alumno"></label>
+      <select class="fee-select" [(ngModel)]="classroom" aria-label="Filtrar por sección"><option value="ALL">Todas las secciones</option>@for(room of rooms;track room){<option [value]="room">{{room}}</option>}</select>
+      <span class="fee-count">{{filteredStudents.length}} estudiantes</span></div>
+    <div class="fee-table-wrap"><table class="fee-table"><thead><tr><th>Estudiante</th><th>DNI</th><th>Sección</th><th>Acción</th></tr></thead><tbody>
+    @if(loading){<tr><td colspan="4">Cargando información de la escuela…</td></tr>}
+    @if(!loading&&filteredStudents.length===0){<tr><td colspan="4" class="fee-empty">No hay alumnos para este ciclo y los filtros elegidos.</td></tr>}
+    @for(s of filteredStudents;track s.id){<tr><td><span class="fee-avatar">{{s.firstName?.[0]}}{{s.lastName?.[0]}}</span><strong>{{s.lastName}}, {{s.firstName}}</strong></td><td>{{s.documentNumber}}</td><td><span class="fee-room">{{s.classroom||'Sin aula'}}</span></td><td><button class="fee-action" type="button" (click)="openStudent(s.id)">Ver cuotas <span class="material-icons-outlined">chevron_right</span></button></td></tr>}
+    </tbody></table></div>
+  } @else {
+    <div class="fee-detail-nav"><button class="fee-back" (click)="closeStudent()"><span class="material-icons-outlined">arrow_back</span> Volver a la lista</button>
+      <div class="fee-actions">@if(canEdit){
+        @if(!editMode){<button class="fee-primary" type="button" (click)="editMode=true">Editar pagos</button>}
+        @else {<span class="fee-edit-indicator">{{pendingCount}} cambios sin guardar</span><button class="fee-primary" type="button" [disabled]="busy" (click)="savePayments()">{{busy?'Guardando…':'Guardar cambios'}}</button><button class="fee-back" type="button" [disabled]="busy" (click)="cancelEdit()">Cancelar</button>}
+      }</div></div>
+    <section class="fee-panel"><div class="fee-student-summary"><div><small>Estudiante</small><strong>{{selectedStudent?.lastName}}, {{selectedStudent?.firstName}}</strong></div><div><small>DNI</small><strong>{{selectedStudent?.documentNumber}}</strong></div><div><small>Sección</small><strong>{{selectedStudent?.classroom||'Sin aula'}}</strong></div><div><small>Ciclo lectivo</small><strong class="fee-academic">{{academicYear}}</strong></div></div>
+      <div class="fee-section-title"><h3>Cronograma de aranceles</h3>@if(editMode){<span class="fee-edit-indicator">Modo edición activo: pulsá los meses para cambiar su estado</span>}</div>
+      @if(feesLoading){
+        <p class="fee-loading-label" role="status">Consultando los pagos del alumno…</p>
+        <div class="fee-months fee-loading-months" aria-hidden="true">@for(m of months;track m.number){<div class="fee-month fee-month-placeholder"><strong>{{m.name}}</strong><span class="material-icons-outlined">hourglass_empty</span><small>Cargando</small></div>}</div>
+      }
+      @else {<div class="fee-months">@for(m of months;track m.number){<button type="button" class="fee-month" [class.inactive]="statusFor(m.number)==='INACTIVE'" [class.paid]="statusFor(m.number)==='PAID'" [class.overdue]="statusFor(m.number)==='OVERDUE' || statusFor(m.number)==='PENDING'" [class.changed]="statusFor(m.number)!==feeFor(m.number)?.status" [disabled]="!editMode||busy" (click)="togglePreview(m.number)"><strong>{{m.name}}</strong><span class="material-icons-outlined">{{statusFor(m.number)==='PAID'?'check_circle':statusFor(m.number)==='INACTIVE'?'remove_circle_outline':'error_outline'}}</span><small>{{statusFor(m.number)==='PAID'?'Abonado':statusFor(m.number)==='OVERDUE'?'Vencido':statusFor(m.number)==='PENDING'?'Pendiente':'Inactivo'}}</small></button>}</div>}
+      <div class="fee-lower"><div><h3>Canales oficiales</h3><div class="fee-contact"><div><small>Correo recepción de comprobantes</small><strong>{{emails.receiptEmail||'Sin configurar'}}</strong></div>@if(canEdit){<button (click)="openEmailModal()">Modificar</button>}</div><div class="fee-contact"><div><small>Correo consultas de aranceles</small><strong>{{emails.feeQueryEmail||'Sin configurar'}}</strong></div>@if(canEdit){<button (click)="openEmailModal()">Modificar</button>}</div></div><div class="fee-legend"><h3>Referencia</h3><p><span class="legend-square green"></span> Abonado</p><p><span class="legend-square red"></span> Pendiente / vencido</p><p><span class="legend-square grey"></span> Inactivo</p></div></div>
+    </section>
   }
+  @if(showEmailModal){<div class="eco-modal-backdrop" role="presentation"><form appValidateSubmit novalidate class="eco-modal fee-email-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()" #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (saveEmails())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
+@if(error){<p class="eco-error" role="alert">{{error}}</p>}
+<h3>Correos institucionales</h3>
+<p class="eco-muted">Los correos nuevos deben confirmarse con un código recibido en esa dirección. Los correos sin cambios no requieren verificación.</p>
+<label class="form-label">Recepción de comprobantes
+  <input class="form-input" name="receiptEmail" type="email" email [(ngModel)]="emails.receiptEmail" (ngModelChange)="onEmailEdited('receiptEmail')" required maxlength="150" autocomplete="email">
+</label>
+@if(needsEmailVerification('receiptEmail')) {
+  <div class="fee-verify">
+    @if(isEmailVerified('receiptEmail')) {<p class="eco-success">Correo de comprobantes verificado.</p>}
+    @else {
+      <button type="button" class="fee-back" [disabled]="emailVerificationBusy" (click)="requestEmailVerification('receiptEmail')">Enviar código</button>
+      <label class="form-label">Código de 6 dígitos
+        <input class="form-input" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" name="receiptVerificationCode" [(ngModel)]="emailCode.receiptEmail" placeholder="000000">
+      </label>
+      <button type="button" class="fee-primary" [disabled]="emailVerificationBusy" (click)="confirmEmailVerification('receiptEmail')">Verificar código</button>
+    }
+  </div>
+}
+<label class="form-label">Consultas de cuotas
+  <input class="form-input" name="feeQueryEmail" type="email" email [(ngModel)]="emails.feeQueryEmail" (ngModelChange)="onEmailEdited('feeQueryEmail')" required maxlength="150" autocomplete="email">
+</label>
+@if(needsEmailVerification('feeQueryEmail')) {
+  <div class="fee-verify">
+    @if(isEmailVerified('feeQueryEmail')) {<p class="eco-success">Correo de consultas verificado.</p>}
+    @else {
+      <button type="button" class="fee-back" [disabled]="emailVerificationBusy" (click)="requestEmailVerification('feeQueryEmail')">Enviar código</button>
+      <label class="form-label">Código de 6 dígitos
+        <input class="form-input" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" name="queryVerificationCode" [(ngModel)]="emailCode.feeQueryEmail" placeholder="000000">
+      </label>
+      <button type="button" class="fee-primary" [disabled]="emailVerificationBusy" (click)="confirmEmailVerification('feeQueryEmail')">Verificar código</button>
+    }
+  </div>
+}
+@if(emailVerificationMessage){<p class="eco-success" role="status">{{emailVerificationMessage}}</p>}
+<div class="fee-actions"><button type="button" class="fee-back" (click)="closeEmailModal(ecoForm1)">Cancelar</button><button type="submit" class="fee-primary" [disabled]="emailBusy || emailVerificationBusy">Guardar correos</button></div></form></div>}
 </div>

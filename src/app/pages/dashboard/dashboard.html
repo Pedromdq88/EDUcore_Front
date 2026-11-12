@@ -1,8 +1,8 @@
 <div class="dashboard-wrapper">
   <p class="eyebrow">PANEL INSTITUCIONAL</p>
   <div class="welcome-banner">
-    <h2 class="banner-title">Consola Institucional</h2>
-    <p class="banner-subtitle">Control de matrículas, personal pedagógico, catálogo de asignaturas y avisos.</p>
+    <h2 class="banner-title">{{isPreceptor ? 'Seguimiento escolar' : 'Consola institucional'}}</h2>
+    <p class="banner-subtitle">{{isPreceptor ? 'Consulta de alumnos, retiros y avisos de la escuela.' : 'Control de matrículas, personal pedagógico, catálogo de asignaturas y avisos.'}}</p>
   </div>
 
   <div class="metrics-grid">
@@ -11,7 +11,7 @@
       <h3 class="metric-title">Alumnos Totales</h3>
       <div class="metric-value">{{ totalStudents() }}</div>
     </div>
-    <div class="metric-card">
+    @if(!isPreceptor){<div class="metric-card">
       <span class="material-icons-outlined metric-icon emerald">family_restroom</span>
       <h3 class="metric-title">Padres Totales</h3>
       <div class="metric-value">{{ totalTutors() }}</div>
@@ -20,7 +20,7 @@
       <span class="material-icons-outlined metric-icon emerald">badge</span>
       <h3 class="metric-title">Personal y Docentes</h3>
       <div class="metric-value">{{ totalStaff() }}</div>
-    </div>
+    </div>}
     <div class="metric-card">
       <span class="material-icons-outlined metric-icon cyan">menu_book</span>
       <h3 class="metric-title">Materias en Plan</h3>
@@ -29,7 +29,7 @@
   </div>
 
   <section class="dashboard-quicklinks">
-  <a routerLink="/students" class="quicklink"><span class="material-icons-outlined">person_add_alt</span><span>Gestionar alumnos<small>Matrículas y legajos</small></span><span class="material-icons-outlined arrow">arrow_forward</span></a>
+  <a routerLink="/students" class="quicklink"><span class="material-icons-outlined">person_add_alt</span><span>{{isPreceptor ? 'Consultar alumnos' : 'Gestionar alumnos'}}<small>Legajos y secciones</small></span><span class="material-icons-outlined arrow">arrow_forward</span></a>
   <a routerLink="/calendar" class="quicklink"><span class="material-icons-outlined">event</span><span>Calendarios<small>Escolar y aulas</small></span><span class="material-icons-outlined arrow">arrow_forward</span></a>
   <a routerLink="/announcements" class="quicklink"><span class="material-icons-outlined">campaign</span><span>Comunicados<small>Novedades escolares</small></span><span class="material-icons-outlined arrow">arrow_forward</span></a>
 </section>

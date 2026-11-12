@@ -1,0 +1,7 @@
+.eco-modal.classroom-assignment{width:min(94vw,860px);max-width:860px;max-height:90vh;overflow-y:auto;padding:28px 32px;box-sizing:border-box}
+@media(max-width:640px){.eco-modal.classroom-assignment{width:100%;padding:20px}}
+.assignment-header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.assignment-header h2{margin:0}
+.assignment-age{background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:12px;margin:12px 0}
+.assignment-form{display:grid;gap:15px}
+.assignment-form .form-label{display:grid;gap:6px}

@@ -7,7 +7,7 @@ import { getMultiTenantHeaders } from '../tenant/tenant';
   providedIn: 'root'
 })
 export class AnnouncementService {
-  private apiUrl = 'http://localhost:8080/api/v1/announcements';
+  private apiUrl = '/api/v1/announcements';
 
   constructor(private http: HttpClient) {}
 
@@ -18,6 +18,28 @@ export class AnnouncementService {
   createAnnouncement(payload: any): Observable<any> {
     return this.http.post<any>(this.apiUrl, payload, { headers: getMultiTenantHeaders() });
   }
+
+  createPrivateStudentAnnouncement(studentId: string, payload: {title: string; content: string; category: string}): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/students/${encodeURIComponent(studentId)}/private`, payload, {headers: getMultiTenantHeaders()});
+  }
+
+  getPrivateStudentAnnouncements(studentId: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/students/${encodeURIComponent(studentId)}/private`, {headers: getMultiTenantHeaders()});
+  }
+
+  updatePrivateStudentAnnouncement(studentId: string, noticeId: string, payload: {title: string; content: string; category: string}): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/students/${encodeURIComponent(studentId)}/private/${encodeURIComponent(noticeId)}`, payload, {headers: getMultiTenantHeaders()});
+  }
+
+  createTeacherObservation(studentId: string, content: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/students/${encodeURIComponent(studentId)}/observations`, {content}, {headers: getMultiTenantHeaders()});
+  }
+
+  deletePrivateStudentAnnouncement(studentId:string, noticeId:string):Observable<void>{
+    return this.http.delete<void>(`${this.apiUrl}/students/${encodeURIComponent(studentId)}/private/${encodeURIComponent(noticeId)}`, {headers:getMultiTenantHeaders()});
+  }
+
+  updateAnnouncement(id:string,payload:any):Observable<any>{return this.http.put<any>(`${this.apiUrl}/${id}`,payload,{headers:getMultiTenantHeaders()});}
 
   deleteAnnouncement(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`, { headers: getMultiTenantHeaders() });

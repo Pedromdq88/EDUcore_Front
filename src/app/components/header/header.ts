@@ -1,10 +1,22 @@
+import { ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { inject } from '@angular/core';
+import { UiDialogService } from '../../services/ui-dialog/ui-dialog';
+import { canDiscardForm } from '../../utils/forms/form-ux';
+import { ValidateSubmitDirective } from '../../utils/forms/validate-submit.directive'
+import { FieldValidationDirective } from '../../utils/forms/field-validation.directive';
 import { Component, EventEmitter, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 
-@Component({ selector:'app-header', standalone:true, imports:[FormsModule], templateUrl:'./header.html', styleUrl:'./header.css' })
+@Component({
+  changeDetection: ChangeDetectionStrategy.Eager, selector:'app-header', standalone:true, imports: [FieldValidationDirective, ValidateSubmitDirective, FormsModule], templateUrl:'./header.html', styleUrl:'./header.css' })
 export class Header {
+  private readonly formCdr = inject(ChangeDetectorRef);
+
+  private readonly dialogs=inject(UiDialogService);
+
+  readonly canDiscardForm = canDiscardForm;
   changingPassword=false; oldPassword=''; newPassword=''; repeatPassword=''; changeError=''; saving=false;
   @Output() menuToggle = new EventEmitter<void>();
   constructor(private router: Router, private http: HttpClient) {}
@@ -22,7 +34,7 @@ export class Header {
     const token=sessionStorage.getItem('educore_access_token')||'';
     const tenant=sessionStorage.getItem('current_institution_id')||'';
     this.saving=true;
-    this.http.post('http://localhost:8080/api/v1/auth/change-password',{
+    this.http.post('/api/v1/auth/change-password',{
       currentPassword:this.oldPassword,newPassword:this.newPassword
     },{headers:{Authorization:`Bearer ${token}`,'X-Institution-Id':tenant}}).subscribe({
       next:()=>{this.saving=false;this.changingPassword=false;this.oldPassword='';this.newPassword='';this.repeatPassword='';this.logout();},
@@ -32,7 +44,7 @@ export class Header {
   logout(): void {
     const token = sessionStorage.getItem('educore_access_token');
     const tenant = sessionStorage.getItem('current_institution_id') || '';
-    if (token) this.http.post('http://localhost:8080/api/v1/auth/logout', {}, {
+    if (token) this.http.post('/api/v1/auth/logout', {}, {
       headers:{Authorization:`Bearer ${token}`, 'X-Institution-Id':tenant}
     }).subscribe({error:()=>{}});
     sessionStorage.removeItem('educore_access_token');
@@ -40,6 +52,19 @@ export class Header {
     sessionStorage.removeItem('current_user_role');
     sessionStorage.removeItem('current_institution_id');
     sessionStorage.removeItem('current_institution_name');
+    sessionStorage.removeItem('educore_requires_password_change');
     this.router.navigate(['/login']);
+  }
+
+  /** Conservar los campos hasta que la persona acepte descartar los cambios. */
+  async confirmDiscard(form: { dirty?: boolean | null } | null | undefined, target: string): Promise<void> {
+    if (form?.dirty && !(await this.dialogs.confirm('Tenés cambios sin guardar. ¿Querés descartarlos?', 'Descartar cambios'))) return;
+    this.formCdr.markForCheck();
+    if (target === 'dismissed') {
+      (this as any).dismissed?.emit();
+    } else {
+      (this as any)[target] = false;
+      this.formCdr.markForCheck();
+    }
   }
 }

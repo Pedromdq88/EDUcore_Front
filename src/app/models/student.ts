@@ -7,6 +7,7 @@ export interface Student {
   documentNumber: string;
   birthDate: string;
   academicYear: number;
+  studentShift?: string;
   classroom: string;
   seccion?: string;
   status: string;
@@ -19,6 +20,9 @@ export interface Student {
   birthLocality: string;
   street: string;
   streetNumber: string;
+  studentLandlinePhone?: string;
+  studentCellphone?: string;
+  contactPhone?: string;
   floor: string;
   tower: string;
   apartment: string;
@@ -32,4 +36,6 @@ export interface Student {
   transportationMethods: string;
   tutorIds?: string[];
   tutors?: any[];
+  /** Tutor legal principal, almacenado en student_tutors.is_primary. */
+  primaryTutorId?: string;
 }

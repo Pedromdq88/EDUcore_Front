@@ -1,9 +1,20 @@
 <div class="view-wrapper">
   <div class="view-header">
-    <div><p class="eyebrow">AULAS Y TURNOS</p><h2 class="view-title">Configuración de Aulas y Horarios</h2><p class="view-subtitle">Salas, grados, turnos y cronogramas de clases</p></div>
+    <div><p class="eyebrow">AULAS Y TURNOS</p><h2 class="view-title">Gestión de aulas</h2><p class="view-subtitle">Salas, secciones y turnos independientes</p></div>
   </div>
 
-  <div class="eco-toolbar shift-summary"><div class="eco-row"><span class="badge-classroom">{{classrooms().length}} aulas</span><span class="badge-role">{{schedules().length}} horarios</span></div><a routerLink="/calendar" class="btn-primary"><span class="material-icons-outlined">event</span>Ver calendario de aulas</a></div>
+  @if(error){<p class="eco-error">{{error}}</p>}
+  @if(canEdit){<div class="eco-toolbar"><button class="btn-primary" type="button" (click)="openRoom()">+ Configurar aula</button>
+  @if(classrooms().length===0){<button type="button" class="btn-secondary" [disabled]="busy" (click)="createDefaults()">Cargar Maternal, 1ª, 2ª y 3ª sección</button>}</div>}
+  @if(showForm){<form appValidateSubmit novalidate class="eco-card eco-inline-form" #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (saveRoom())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
+
+    <h3 class="block-title">{{editingId?'Modificar aula':'Crear aula'}}</h3>
+    <div class="form-grid"><label class="form-label">Nombre de la sala *<input class="form-input" name="name" [(ngModel)]="room.name" required></label>
+    <label class="form-label">Edad mínima al 30/06<input class="form-input" type="number" min="0" max="25" name="age" [(ngModel)]="room.minimumAge" required></label>
+    <label class="form-label">Turno<select class="form-input" name="shift" [(ngModel)]="room.shift"><option value="MANANA">Mañana</option><option value="TARDE">Tarde</option>@if(!editingId){<option value="AMBOS">Ambos turnos (crea mañana y tarde)</option>}</select></label></div>
+    <div class="form-actions"><button class="btn-secondary" type="button" (click)="confirmDiscard(ecoForm1, 'showForm')">Cancelar</button><button type="submit" [disabled]="busy" class="btn-primary">Guardar aula</button></div>
+  </form>}
+  <div class="eco-toolbar shift-summary"><div class="eco-row"><span class="badge-classroom">{{classrooms().length}} aulas</span></div><a routerLink="/calendar" class="btn-primary"><span class="material-icons-outlined">event</span>Ver calendario de aulas</a></div>
   <div class="section-block">
     <h3 class="block-title">Aulas y Secciones Habilitadas</h3>
     <div class="table-container">
@@ -12,20 +23,20 @@
           <tr>
             <th>Nombre de Sala / Aula</th>
             <th>Nivel</th>
-            <th>Turno</th>
+            <th>Turno</th>@if(canEdit){<th>Acciones</th>}
           </tr>
         </thead>
         <tbody>
           @if (classrooms().length === 0) {
             <tr>
-              <td colspan="3" class="empty-row">No hay aulas configuradas.</td>
+              <td [attr.colspan]="canEdit?4:3" class="empty-row">No hay aulas configuradas.</td>
             </tr>
           } @else {
             @for (c of classrooms(); track c.id) {
               <tr>
                 <td class="font-bold">{{ c.name }}</td>
-                <td>{{ c.level || '-' }}</td>
-                <td>{{ c.shift || '-' }}</td>
+                <td>{{c.minimumAge===1 && c.name.toLowerCase().includes("maternal")?"1 a 2":c.minimumAge}} años</td>
+                <td>{{ c.shift || '-' }}</td>@if(canEdit){<td class="eco-row"><button type="button" class="btn-sm" (click)="openRoom(c)">Editar</button><button type="button" class="btn-danger" (click)="removeRoom(c.id)">Eliminar</button></td>}
               </tr>
             }
           }
@@ -34,35 +45,5 @@
     </div>
   </div>
 
-  <div class="section-block mt-6">
-    <h3 class="block-title">Horarios de Clases Recurrentes</h3>
-    <div class="table-container">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Materia</th>
-            <th>Aula</th>
-            <th>Docente</th>
-            <th>Día y Horario</th>
-          </tr>
-        </thead>
-        <tbody>
-          @if (schedules().length === 0) {
-            <tr>
-              <td colspan="4" class="empty-row">No hay horarios de clases registrados.</td>
-            </tr>
-          } @else {
-            @for (s of schedules(); track s.id) {
-              <tr>
-                <td class="font-bold">{{ s.subject }}</td>
-                <td>{{ s.classroomId }}</td>
-                <td>{{ s.teacherName }}</td>
-                <td>{{ days[s.dayOfWeek - 1] || s.dayOfWeek }} · {{ s.startTime }} a {{ s.endTime }}</td>
-              </tr>
-            }
-          }
-        </tbody>
-      </table>
-    </div>
-  </div>
+  <!-- Los horarios se gestionan exclusivamente desde Calendario. -->
 </div>

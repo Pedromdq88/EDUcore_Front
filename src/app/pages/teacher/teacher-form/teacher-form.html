@@ -1,59 +1,24 @@
-<div class="form-wrapper">
-  <div class="form-card">
-    <h2 class="form-title">Registrar Nuevo Miembro de Staff</h2>
-    
-    <div class="form-grid">
-      <div>
-        <label class="form-label">Nombre *</label>
-        <input type="text" [(ngModel)]="firstName" placeholder="Nombre" class="form-input">
-      </div>
-      <div>
-        <label class="form-label">Apellido *</label>
-        <input type="text" [(ngModel)]="lastName" placeholder="Apellido" class="form-input">
-      </div>
-      <div>
-        <label class="form-label">DNI</label>
-        <input type="text" [(ngModel)]="documentNumber" placeholder="DNI" class="form-input">
-      </div>
-      <div>
-        <label class="form-label">Email Institucional *</label>
-        <input type="email" [(ngModel)]="email" placeholder="docente@institucion.com" class="form-input">
-      </div>
-      <div>
-        <label class="form-label">Contraseña Temporal</label>
-        <input type="password" [(ngModel)]="password" placeholder="••••••••" class="form-input">
-      </div>
-      <div>
-        <label class="form-label">Rol en el Sistema</label>
-        <select [(ngModel)]="role" class="form-input">
-          <option value="TEACHER">Docente / Profesor</option>
-          @if (isDirector) { <option value="ADMINISTRATIVE">Administrativo</option> }
-          <option value="PRECEPTOR">Preceptor</option>
-          @if (isDirector) { <option value="DIRECTOR">Director/a</option> }
-        </select>
-      </div>
-      <div>
-        <label class="form-label">Teléfono</label>
-        <input type="text" [(ngModel)]="phone" placeholder="Teléfono" class="form-input">
-      </div>
-      <div>
-        <label class="form-label">Fecha de Alta</label>
-        <input type="date" [(ngModel)]="hireDate" class="form-input">
-      </div>
-      <div class="sm:col-span-2">
-        <label class="form-label">Sala / Aula a Cargo (Opcional)</label>
-        <select [(ngModel)]="classroom" class="form-input">
-          <option value="">Sin sala asignada</option>
-          @for (c of classrooms(); track c.id) {
-            <option [value]="c.name">{{ c.name }}</option>
-          }
-        </select>
-      </div>
-    </div>
-
-    <div class="form-actions">
-      <button routerLink="/teachers" class="btn-secondary">Cancelar</button>
-      <button (click)="submitStaff()" class="btn-primary">Guardar Miembro</button>
-    </div>
-  </div>
+<div class="form-wrapper"><div class="form-card"><div class="eco-toolbar"><h2 class="form-title">{{editingId?'Editar personal y asignaciones':'Registrar personal docente / administrativo'}}</h2>@if(embedded){<button type="button" class="btn-secondary" (click)="closeEditor()"><span class="material-icons-outlined">close</span></button>}</div>
+@if(error){<p class="eco-error" role="alert">{{error}}</p>}
+@if(loading){<p role="status">Recuperando los datos guardados del personal…</p>}
+@if(!loading&&!loadFailed){<form appValidateSubmit novalidate #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (submitStaff())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
+<h3 class="block-title">Datos del personal</h3><div class="form-grid">
+<label class="form-label">Nombre *<input class="form-input" name="firstName" [(ngModel)]="form.firstName" required></label>
+<label class="form-label">Apellido *<input class="form-input" name="lastName" [(ngModel)]="form.lastName" required></label>
+<label class="form-label">DNI *<input class="form-input" name="documentNumber" [(ngModel)]="form.documentNumber" type="text" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12" required></label>
+<label class="form-label">Email institucional *<input type="email" class="form-input" name="email" [(ngModel)]="form.email" required maxlength="150"></label>
+<label class="form-label">Rol administrativo<select class="form-input" name="role" [(ngModel)]="form.role"><option value="TEACHER">Docente</option><option value="PRECEPTOR">Preceptor</option>@if(isDirector){<option value="ADMINISTRATIVE">Administrativo</option><option value="DIRECTOR">Director/a</option>}</select></label>
+<label class="form-label">Teléfono<input class="form-input" name="phone" [(ngModel)]="form.phone" type="text" inputmode="numeric" pattern="[0-9]{6,20}" maxlength="20"></label>
+<label class="form-label">Fecha de alta<input type="date" class="form-input" name="hireDate" [(ngModel)]="form.hireDate"></label>
+<label class="form-label">Aula principal<select class="form-input" name="classroom" [(ngModel)]="form.classroom"><option [ngValue]="null">Sin aula</option>@for(r of classrooms();track r.id){<option [value]="r.name">{{r.name}}</option>}</select></label>
 </div>
+<h3 class="block-title eco-subheading">Asignaciones de materias y aulas</h3>
+@for(a of form.assignments;track $index;let i=$index){<div class="eco-card eco-inline-form"><div class="form-grid">
+<label class="form-label">Materia / actividad *<select class="form-input" [name]="'subject'+i" [(ngModel)]="a.subject" required><option value="">Seleccionar materia de la institución</option>@for(m of subjects();track m.id){<option [value]="m.name">{{m.name}}</option>}</select></label>
+<label class="form-label">Aula *<select class="form-input" [name]="'room'+i" [(ngModel)]="a.classroom" required><option value="">Elegir aula</option>@for(r of classrooms();track r.id){<option [value]="r.name">{{r.name}}</option>}</select></label>
+<label class="form-label">Turno<select class="form-input" [name]="'shift'+i" [(ngModel)]="a.shift"><option value="MANANA">Mañana</option><option value="TARDE">Tarde</option></select></label>
+<label class="eco-check"><input type="checkbox" [name]="'lead'+i" [(ngModel)]="a.isClassroomTeacher"> Docente titular del aula</label></div>
+<button type="button" class="btn-danger" (click)="removeAssignment(i)">Quitar asignación</button></div>}
+<button type="button" class="btn-secondary" (click)="addAssignment()">+ Agregar asignación</button>
+<p class="eco-muted">El registro del personal guarda su legajo y sus asignaciones. Al crear personal se habilita su cuenta con el correo institucional y el DNI sin puntos como contraseña temporal cifrada. Deberá cambiarla al entrar.</p>
+<div class="form-actions">@if(embedded){<button type="button" (click)="confirmDiscard(ecoForm1, 'dismissed')" class="btn-secondary">Cancelar</button>}@else{<a routerLink="/teachers" class="btn-secondary">Cancelar</a>}<button [disabled]="busy" type="submit" class="btn-primary">{{busy?'Guardando…':'Guardar personal'}}</button></div></form>}</div></div>

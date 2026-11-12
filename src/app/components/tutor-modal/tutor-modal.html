@@ -1,0 +1,26 @@
+<div class="eco-modal-backdrop" role="presentation">
+ <section class="eco-modal tutor-modal" role="dialog" aria-modal="true" aria-labelledby="tutor-modal-title" (click)="$event.stopPropagation()">
+  <div class="eco-modal-header"><div><p class="eyebrow">GESTIÓN DE RESPONSABLES</p><h3 id="tutor-modal-title">{{existing?'Editar tutor':'Agregar nuevo tutor'}}</h3><p class="eco-muted">Completá el perfil de la persona responsable.</p></div>
+   <button type="button" class="eco-modal-close" (click)="closeEditor()" aria-label="Cerrar">×</button></div>
+  @if(error){<p class="eco-error" role="alert">{{error}}</p>}
+  @if(duplicate){<button class="btn-primary" type="button" (click)="useExisting()">Usar {{duplicate.lastName}}, {{duplicate.firstName}} · DNI {{duplicate.documentNumber}}</button>}
+  <form appValidateSubmit novalidate #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (submit())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
+
+   <div class="form-grid">
+    <label class="form-label">Nombre *<input class="form-input" name="firstName" [(ngModel)]="form.firstName" required></label>
+    <label class="form-label">Apellido *<input class="form-input" name="lastName" [(ngModel)]="form.lastName" required></label>
+    <label class="form-label">DNI *<input class="form-input" name="documentNumber" [(ngModel)]="form.documentNumber" required type="text" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12"></label>
+    <label class="form-label">Vínculo<select class="form-input" name="relationship" [(ngModel)]="form.relationship"><option value="MADRE">Madre</option><option value="PADRE">Padre</option><option value="TUTOR_LEGAL">Tutor legal</option></select></label>
+    <label class="form-label">Correo *<input class="form-input" type="email" name="email" [(ngModel)]="form.email" required maxlength="150"></label>
+    <label class="form-label">Teléfono<input class="form-input" name="phone" [(ngModel)]="form.phone" type="text" inputmode="numeric" pattern="[0-9]{6,20}" maxlength="20"></label>
+    <label class="form-label">Nacionalidad<input class="form-input" name="nacionalidad" [(ngModel)]="form.nacionalidad"></label>
+    <label class="form-label">Profesión<input class="form-input" name="profesion" [(ngModel)]="form.profesion"></label>
+    <label class="form-label">Condición de actividad<select class="form-input" name="condicionActividad" [(ngModel)]="form.condicionActividad"><option value="EMPLEADO">Empleado</option><option value="INDEPENDIENTE">Independiente</option><option value="DESEMPLEADO">Desempleado</option><option value="OTRA">Otra</option></select></label>
+    <label class="form-label">¿Convive con el alumno?<select class="form-input" name="convive" [(ngModel)]="form.convive"><option value="SI">Sí</option><option value="NO">No</option></select></label>
+    <label class="form-label full">Domicilio<input class="form-input" name="direccion" [(ngModel)]="form.direccion"></label>
+   </div>
+   @if(!existing){<div class="provision-note"><span class="material-icons-outlined">verified_user</span><div><strong>Cuenta de tutor automática</strong><p>Se creará con su correo y el DNI sin puntos como clave inicial (cifrada con BCrypt). La primera vez deberá elegir una contraseña nueva.</p></div></div>}
+   <div class="form-actions"><button class="btn-secondary" type="button" (click)="closeEditor()" [disabled]="busy">Cancelar</button><button class="btn-primary" type="submit" [disabled]="busy">{{busy?'Guardando…':existing?'Guardar cambios':'Crear tutor y cuenta'}}</button></div>
+  </form>
+ </section>
+</div>
