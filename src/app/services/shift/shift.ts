@@ -7,7 +7,7 @@ import { getMultiTenantHeaders } from '../tenant/tenant';
   providedIn: 'root'
 })
 export class ShiftService {
-  private apiUrl = 'http://localhost:8080/api/v1';
+  private apiUrl = '/api/v1';
   private roomCache?:Observable<any[]>;private cacheTenant='';
   invalidate():void {this.roomCache=undefined;}
 

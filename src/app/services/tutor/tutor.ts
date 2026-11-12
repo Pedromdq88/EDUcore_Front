@@ -9,7 +9,7 @@ import { getMultiTenantHeaders } from '../tenant/tenant';
   providedIn: 'root'
 })
 export class TutorService {
-  private apiUrl = 'http://localhost:8080/api/v1/tutors';
+  private apiUrl = '/api/v1/tutors';
   private cache?:Observable<Tutor[]>; private cacheTenant='';
   invalidate():void{this.cache=undefined;}
 
@@ -38,6 +38,18 @@ export class TutorService {
 
   activateTutorAccount(id:string):Observable<{status:string;email:string}> {
     return this.http.post<{status:string;email:string}>(`${this.apiUrl}/${id}/activate-account`,{},{headers:getMultiTenantHeaders()});
+  }
+
+  getBajaPreview(id: string): Observable<{
+    alumnosQueSeDaranDeBaja: number;
+    alumnosQueConservanTutor: number;
+    nombresAlumnosQueSeDaranDeBaja: string[];
+  }> {
+    return this.http.get<{
+      alumnosQueSeDaranDeBaja:number;
+      alumnosQueConservanTutor:number;
+      nombresAlumnosQueSeDaranDeBaja:string[];
+    }>(`${this.apiUrl}/${id}/baja-preview`, {headers:getMultiTenantHeaders()});
   }
 
   bajaTutor(id: string): Observable<any> {

@@ -16,6 +16,7 @@
       <a routerLink="/calendar"><span class="material-icons-outlined">event</span><span>Calendario</span><span class="material-icons-outlined">arrow_forward</span></a>
     </div>
     <div class="family-columns">
+      <div class="family-column">
       <section class="family-panel"><h3><span class="material-icons-outlined">badge</span> Datos del alumno</h3>
         <div class="family-info">
           <div><small>DNI</small><strong>{{s.documentNumber || 'No registrado'}}</strong></div>
@@ -34,23 +35,40 @@
           <div><small>Teléfono de contacto</small><strong>{{s.contactPhone || 'No informado'}}</strong></div>
         </div>
       </section>
-      <section class="family-panel"><h3><span class="material-icons-outlined">family_restroom</span> Responsables vinculados</h3>
-        @if (!s.tutors?.length) { <p class="family-muted">No hay responsables vinculados.</p> }
-        @for (t of s.tutors; track t.id) {
-          <div class="family-person"><span class="family-person-avatar">{{t.firstName[0]}}{{t.lastName[0]}}</span>
-            <div><strong>{{t.firstName}} {{t.lastName}}</strong><small>{{t.relationship || 'Tutor'}} · {{t.phone || 'Sin teléfono'}}</small></div></div>
-        }
-      </section>
-      <section class="family-panel"><h3><span class="material-icons-outlined">medical_services</span> Ficha médica</h3>
-        <p class="family-muted">Información registrada por la institución. No se puede modificar desde esta cuenta.</p>
+      <section class="family-panel">
+        <h3><span class="material-icons-outlined">medical_services</span> Ficha médica</h3>
+        <p class="family-muted">Resumen de los antecedentes y datos de salud informados. Solo lectura.</p>
         @if (medicalLoading) { <p role="status">Cargando ficha médica…</p> }
         @if (medicalError) { <p class="eco-error">{{medicalError}}</p> }
         @if (!medicalLoading && !medicalError) {
-          @if (hasMedical()) { <div class="family-info">
-            @for (field of medicalFields; track field.key) {
-              <div><small>{{field.label}}</small><strong>{{field.value}}</strong></div>
+          @if (hasMedical()) {
+            @if (medicalPreview.length) {
+              <div class="family-info">
+                @for (field of medicalPreview; track field.key) {
+                  <div><small>{{field.label}}</small><strong>{{field.value}}</strong></div>
+                }
+              </div>
+              @if (medicalHighlights.length > medicalPreview.length) {
+                <p class="family-medical-more">Y {{medicalHighlights.length - medicalPreview.length}} datos más en la ficha completa.</p>
+              }
+            } @else {
+              <p class="family-empty">No hay antecedentes positivos ni datos médicos adicionales informados.</p>
             }
-          </div> } @else { <p class="family-empty">Todavía no hay una ficha médica cargada.</p> }
+            <a class="family-medical-link" [routerLink]="['/my-students', s.id, 'medical']">
+              <span class="material-icons-outlined">description</span>
+              Ver ficha médica completa
+              <span class="material-icons-outlined">arrow_forward</span>
+            </a>
+          } @else { <p class="family-empty">Todavía no hay una ficha médica cargada.</p> }
+        }
+      </section>
+      </div>
+      <div class="family-column">
+      <section class="family-panel"><h3><span class="material-icons-outlined">family_restroom</span> Responsables vinculados</h3>
+        @if (!s.tutors.length) { <p class="family-muted">No hay responsables vinculados.</p> }
+        @for (t of s.tutors; track t.id) {
+          <div class="family-person"><span class="family-person-avatar">{{t.firstName[0]}}{{t.lastName[0]}}</span>
+            <div><strong>{{t.firstName}} {{t.lastName}}</strong><small>{{t.relationship || 'Tutor'}} · {{t.phone || 'Sin teléfono'}}</small></div></div>
         }
       </section>
       <section class="family-panel"><h3><span class="material-icons-outlined">verified_user</span> Personas autorizadas para retiro</h3>
@@ -63,12 +81,33 @@
           } @empty { <p class="family-empty">No hay personas autorizadas adicionales registradas.</p> }
         }
       </section>
+      <section class="family-panel family-restricted">
+        <h3><span class="material-icons-outlined">person_off</span> Personas con restricción para retirar</h3>
+        <p class="family-muted">Restricciones registradas por la institución. Solo lectura.</p>
+        @if (restrictionsLoading) { <p role="status">Cargando restricciones…</p> }
+        @if (restrictionError) { <p class="eco-error">{{restrictionError}}</p> }
+        @if (!restrictionsLoading && !restrictionError) {
+          @for (r of restrictions(); track r.id) {
+            <div class="family-person family-person-restricted">
+              <span class="family-person-avatar"><span class="material-icons-outlined">person_off</span></span>
+              <div><strong>{{r.firstName}} {{r.lastName}}</strong><small>{{r.documentType}} {{r.documentNumberMasked}}</small></div>
+            </div>
+          } @empty { <p class="family-empty">No hay restricciones registradas para este alumno.</p> }
+        }
+      </section>
+      </div>
       <section class="family-panel family-wide"><h3><span class="material-icons-outlined">campaign</span> Avisos y observaciones para este alumno</h3>
         @if (noticeLoading) { <p role="status">Cargando avisos…</p> }
         @if (noticeError) { <p class="eco-error">{{noticeError}}</p> }
         @if (!noticeLoading && !noticeError) {
           @for (n of notices(); track n.id) {
-            <article class="family-notice"><div><strong>{{n.title}}</strong><small>{{n.category || 'Aviso'}} · {{n.createdAt | date:'dd/MM/yyyy'}}</small></div><p>{{n.content}}</p></article>
+            <article class="family-notice" [class.private-student-notice]="n.scope==='PRIVATE_STUDENT'">
+              @if(n.scope==='PRIVATE_STUDENT'){
+                <span class="private-notice-label"><span class="material-icons-outlined" aria-hidden="true">lock</span> Aviso privado · Dirigido a {{s.firstName}} {{s.lastName}}</span>
+              }
+              <div><strong>{{n.title}}</strong><small>{{n.category || 'Aviso'}} · {{n.createdAt | date:'dd/MM/yyyy'}}</small></div>
+              <p>{{n.content}}</p>
+            </article>
           } @empty { <p class="family-empty">No hay avisos para este alumno o su sección.</p> }
         }
       </section>

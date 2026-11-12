@@ -1,24 +1,27 @@
 <div class="form-wrapper"><div class="form-card">
  <div class="eco-row" style="justify-content:space-between"><h2 class="form-title">{{isEdit?'Editar ficha de alumno':'Nueva matrícula escolar'}}</h2>
- @if(embedded){<button type="button" class="btn-secondary" (click)="dismissed.emit()" aria-label="Cerrar matrícula"><span class="material-icons-outlined">close</span></button>}
+ @if(embedded){<button type="button" class="btn-secondary" (click)="closeEditor()" aria-label="Cerrar matrícula"><span class="material-icons-outlined">close</span></button>}
  @else{<a routerLink="/students" class="btn-secondary">Volver</a>}</div>
  @if(error){<p class="eco-error" role="alert">{{error}}</p>}
  @if(loadingStudent){<p class="eco-muted" role="status">Cargando los datos actuales del alumno…</p>}
  @if(studentLoadFailed){<p class="eco-error">No se puede editar sin recuperar primero la ficha de la base de datos. Volvé al listado e intentá de nuevo.</p>}
  @if(!loadingStudent && !studentLoadFailed){
- <form (ngSubmit)="submitStudent()">
- <h3 class="block-title ">Tutores responsables</h3><p class="eco-muted">Seleccioná uno o dos tutores; se vinculan con el alumno mediante la API de matrícula.</p>
+ <form appValidateSubmit novalidate #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (submitStudent())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
+
+ <h3 class="block-title ">Tutores responsables</h3>
+ @if(primarySelectionRequired){<p class="eco-error" role="status">Esta matrícula anterior no tiene tutor principal identificado en la base de datos. Elegí cuál será el principal en el selector «Primer responsable» antes de guardar.</p>}
+ <p class="eco-muted">Seleccioná uno o dos tutores; se vinculan con el alumno mediante la API de matrícula.</p>
  <div class="form-grid">
- <div class="tutor-picker-field"><span class="form-label">Primer responsable *</span>
+ <div class="tutor-picker-field"><span class="form-label">Tutor principal *</span>
   <button type="button" class="tutor-picker-trigger" [attr.aria-expanded]="tutorDropdown===1" aria-haspopup="listbox" (click)="toggleTutorPicker(1)"><span class="material-icons-outlined">family_restroom</span><span>{{selectedTutorOne ? (selectedTutorOne.lastName+', '+selectedTutorOne.firstName+' · DNI '+selectedTutorOne.documentNumber) : 'Seleccionar tutor'}}</span><span class="material-icons-outlined">expand_more</span></button>
-  @if(tutorDropdown===1){<div class="tutor-picker-popover"><label class="tutor-picker-search"><span class="material-icons-outlined">search</span><input aria-label="Buscar primer tutor" type="search" name="tutorSearchOne" [(ngModel)]="tutorSearch" placeholder="Buscar nombre, apellido o DNI" (keydown.escape)="tutorDropdown=0" autofocus></label><div role="listbox" aria-label="Primer responsable" class="tutor-picker-results">
+  @if(tutorDropdown===1){<div class="tutor-picker-popover"><label class="tutor-picker-search"><span class="material-icons-outlined">search</span><input aria-label="Buscar primer tutor" type="search" name="tutorSearchOne" [(ngModel)]="tutorSearch" placeholder="Buscar nombre, apellido o DNI" (keydown.escape)="tutorDropdown=0"></label><div role="listbox" aria-label="Primer responsable" class="tutor-picker-results">
     @for(t of matchingTutors;track t.id){<button type="button" role="option" [attr.aria-selected]="t.id===tutorOne" (click)="chooseTutor(1,t.id)"><span class="eco-initials">{{t.firstName?.[0]}}{{t.lastName?.[0]}}</span><span><strong>{{t.lastName}}, {{t.firstName}}</strong><small>DNI {{t.documentNumber}}</small></span></button>}
     @if(matchingTutors.length===0){<p class="tutor-picker-empty">No hay coincidencias. Podés agregar un tutor nuevo.</p>}
   </div></div>}
  </div>
- <div class="tutor-picker-field"><span class="form-label">Segundo responsable (opcional)</span>
+ <div class="tutor-picker-field"><span class="form-label">Tutor secundario (opcional)</span>
   <button type="button" class="tutor-picker-trigger" [attr.aria-expanded]="tutorDropdown===2" aria-haspopup="listbox" (click)="toggleTutorPicker(2)"><span class="material-icons-outlined">people</span><span>{{selectedTutorTwo ? (selectedTutorTwo.lastName+', '+selectedTutorTwo.firstName+' · DNI '+selectedTutorTwo.documentNumber) : 'Sin segundo tutor'}}</span><span class="material-icons-outlined">expand_more</span></button>
-  @if(tutorDropdown===2){<div class="tutor-picker-popover"><label class="tutor-picker-search"><span class="material-icons-outlined">search</span><input type="search" name="tutorSearchTwo" aria-label="Buscar segundo tutor" [(ngModel)]="tutorSearch" placeholder="Buscar nombre, apellido o DNI" (keydown.escape)="tutorDropdown=0" autofocus></label><div role="listbox" aria-label="Segundo responsable" class="tutor-picker-results"><button type="button" role="option" (click)="clearTutor(2)"><span class="material-icons-outlined">person_off</span>Sin segundo tutor</button>
+  @if(tutorDropdown===2){<div class="tutor-picker-popover"><label class="tutor-picker-search"><span class="material-icons-outlined">search</span><input type="search" name="tutorSearchTwo" aria-label="Buscar segundo tutor" [(ngModel)]="tutorSearch" placeholder="Buscar nombre, apellido o DNI" (keydown.escape)="tutorDropdown=0"></label><div role="listbox" aria-label="Segundo responsable" class="tutor-picker-results"><button type="button" role="option" (click)="clearTutor(2)"><span class="material-icons-outlined">person_off</span>Sin segundo tutor</button>
    @for(t of matchingTutors;track t.id){<button type="button" role="option" [attr.aria-selected]="t.id===tutorTwo" (click)="chooseTutor(2,t.id)"><span class="eco-initials">{{t.firstName?.[0]}}{{t.lastName?.[0]}}</span><span><strong>{{t.lastName}}, {{t.firstName}}</strong><small>DNI {{t.documentNumber}}</small></span></button>}
    @if(matchingTutors.length===0){<p class="tutor-picker-empty">No hay coincidencias.</p>}
   </div></div>}
@@ -27,7 +30,7 @@
  <h3 class="block-title">Identidad y documentación</h3><div class="form-grid">
  <label class="form-label">Nombre *<input class="form-input" name="firstName" [(ngModel)]="form.firstName" required></label>
  <label class="form-label">Apellido *<input class="form-input" name="lastName" [(ngModel)]="form.lastName" required></label>
- <label class="form-label">DNI *<input class="form-input" name="documentNumber" [(ngModel)]="form.documentNumber" required></label>
+ <label class="form-label">DNI *<input class="form-input" name="documentNumber" [(ngModel)]="form.documentNumber" [required]="form.dniStatus === 'FISICO'" autocomplete="off" type="text" inputmode="numeric" [pattern]="form.dniStatus === 'FISICO' ? '[0-9]{6,12}' : ''" minlength="6" maxlength="12"></label>
  <label class="form-label">Legajo<input class="form-input" name="legajoNumber" [(ngModel)]="form.legajoNumber"></label>
  <label class="form-label">CUIL<input class="form-input" name="cuil" [(ngModel)]="form.cuil"></label>
  <label class="form-label">Estado del DNI<select class="form-input" name="dniStatus" [(ngModel)]="form.dniStatus"><option value="FISICO">Físico</option><option value="EN_TRAMITE">En trámite</option><option value="NO_POSEE">No posee</option></select></label>
@@ -35,8 +38,8 @@
  <label class="eco-check"><input type="checkbox" name="hasForeignDocument" [(ngModel)]="form.hasForeignDocument"> Posee documento extranjero</label>
  @if(form.hasForeignDocument){<label class="form-label">Tipo de documento extranjero<input class="form-input" name="foreignDocumentType" [(ngModel)]="form.foreignDocumentType"></label>
  <label class="form-label">Número de documento extranjero<input class="form-input" name="foreignDocumentNumber" [(ngModel)]="form.foreignDocumentNumber"></label>}
- <label class="form-label">Fecha de nacimiento *<input class="form-input" type="date" name="birthDate" [(ngModel)]="form.birthDate" (ngModelChange)="refreshClassrooms()" min="1900-01-01" max="2100-12-31" required>
- @if(birthDateError){<small class="eco-error-text" role="alert">{{birthDateError}}</small>}</label>
+ <label class="form-label">Fecha de nacimiento *<input class="form-input" type="date" name="birthDate" #birthDateModel="ngModel" [(ngModel)]="form.birthDate" (ngModelChange)="refreshClassrooms()" min="1900-01-01" max="2100-12-31" required>
+ @if(birthDateError && (birthDateModel.touched || ecoForm1.submitted)){<small class="eco-error-text" role="alert">{{birthDateError}}</small>}</label>
   <div class="room-calculator" aria-live="polite">
   <div class="eco-row"><span class="material-icons-outlined">calculate</span><strong>Calculadora de sala por edad</strong></div>
   <p>Edad oficial al <strong>30 de junio</strong> del ciclo lectivo. Las opciones vienen de las aulas guardadas en MySQL.</p>
@@ -45,15 +48,17 @@
   @if(roomLoading){<p role="status">Consultando salas de la base de datos…</p>}
   @else if(eligibility()){
     <p>@if(eligibility()?.ageAtCutoff!==null){<strong>Edad al corte: {{eligibility()?.ageAtCutoff}} años.</strong>} {{eligibility()?.message}}</p>
-    @if(rooms.length===0){<p class="room-warning">No se puede matricular sin un aula apta. <a routerLink="/shifts">Administrar aulas y horarios</a></p>}
+    @if(!isEdit && rooms.length===0){<p class="room-warning">No se puede matricular sin un aula apta. <a routerLink="/shifts">Administrar aulas y horarios</a></p>}
   } @else {<p>Ingresá nacimiento, ciclo y turno para calcular las salas disponibles.</p>}
-  <label class="form-label" for="eligible-classroom">Sala / curso habilitado (seleccioná entre las opciones disponibles)
-   <select id="eligible-classroom" class="form-input" name="classroom" [(ngModel)]="form.classroom" [disabled]="roomLoading || rooms.length===0 || !!birthDateError" required>
-    <option value="">Seleccioná una sala de las disponibles</option>
-    @for(c of rooms;track c.id){<option [value]="c.name">{{c.name}} — {{c.shift==='MANANA'?'Mañana':c.shift==='TARDE'?'Tarde':'Ambos turnos'}} ({{c.minimumAge}} años)</option>}
+   @if(isEdit){<p class="eco-muted">En edición, la calculadora recomienda aulas por edad. Podés elegir cualquier aula registrada del turno, incluso por una excepción.</p>}
+   <label class="form-label" for="eligible-classroom">{{isEdit?'Aula de destino':'Sala habilitada para matrícula'}}
+   <select id="eligible-classroom" class="form-input" name="classroom" [(ngModel)]="form.classroom" [disabled]="roomLoading || selectableClassrooms.length===0 || !!birthDateError" required>
+    <option value="">Seleccioná una sala</option>
+    @for(c of selectableClassrooms;track c.id){<option [value]="c.name">{{c.name}} — {{c.shift==='MANANA'?'Mañana':c.shift==='TARDE'?'Tarde':'Ambos turnos'}}{{isEdit?(isRecommendedClassroom(c.name)?' · Recomendada':' · Excepción'):' ('+c.minimumAge+' años)'}}</option>}
    </select>
   </label>
-  @if(rooms.length>1){<small>Hay {{rooms.length}} opciones para esta edad. Podés desplegar la lista y elegir otra.</small>}
+  @if(isEdit && selectableClassrooms.length===0){<small class="eco-error-text">No hay aulas registradas para el turno elegido.</small>}
+  @if(!isEdit && rooms.length>1){<small>Hay {{rooms.length}} opciones compatibles con la edad.</small>}
  </div>
 
  <label class="form-label">Identidad de género<select class="form-input" name="genderIdentity" [(ngModel)]="form.genderIdentity"><option value="MUJER">Mujer</option><option value="VARON">Varón</option><option value="MUJER_TRANS">Mujer trans</option><option value="VARON_TRANS">Varón trans</option><option value="NO_BINARIO">No binario</option><option value="OTRA">Otra</option><option value="NO_RESPONDE">Prefiere no responder</option></select></label>
@@ -72,10 +77,10 @@
  <label class="form-label">Entre calles<input class="form-input" name="betweenStreets" [(ngModel)]="form.betweenStreets"></label>
  <label class="form-label">Distrito de domicilio<input class="form-input" name="addressDistrict" [(ngModel)]="form.addressDistrict"></label>
  <label class="form-label">Detalles adicionales<input class="form-input" name="otherAddressDetails" [(ngModel)]="form.otherAddressDetails"></label>
- <label class="form-label">Teléfono fijo<input class="form-input" name="studentLandlinePhone" [(ngModel)]="form.studentLandlinePhone"></label>
- <label class="form-label">Celular<input class="form-input" name="studentCellphone" [(ngModel)]="form.studentCellphone"></label>
+ <label class="form-label">Teléfono fijo<input class="form-input" name="studentLandlinePhone" [(ngModel)]="form.studentLandlinePhone" type="text" inputmode="numeric" pattern="[0-9]{6,20}" maxlength="20"></label>
+ <label class="form-label">Celular<input class="form-input" name="studentCellphone" [(ngModel)]="form.studentCellphone" type="text" inputmode="numeric" pattern="[0-9]{6,20}" maxlength="20"></label>
  <label class="form-label">Localidad<input class="form-input" name="addressLocality" [(ngModel)]="form.addressLocality"></label>
- <label class="form-label">Teléfono de contacto<input class="form-input" name="contactPhone" [(ngModel)]="form.contactPhone"></label>
+ <label class="form-label">Teléfono de contacto<input class="form-input" name="contactPhone" [(ngModel)]="form.contactPhone" type="text" inputmode="numeric" pattern="[0-9]{6,20}" maxlength="20"></label>
  </div>
  <h3 class="block-title eco-subheading">Escolaridad y contexto familiar</h3><div class="form-grid">
  <div class="eco-schoolyear"><strong>Ciclo lectivo activo: {{form.academicYear}}</strong><small>Administrado desde Datos de la escuela; es el único ciclo válido.</small></div>
@@ -94,7 +99,7 @@
  <label class="form-label">Grupo sanguíneo<input class="form-input" name="bloodType" [(ngModel)]="form.bloodType"></label>
  <label class="form-label">Cobertura médica<input class="form-input" name="healthInsurance" [(ngModel)]="form.healthInsurance"></label>
  <label class="form-label">Alergias (resumen)<input class="form-input" name="allergies" [(ngModel)]="form.allergies"></label></div>
- <div class="form-actions">@if(embedded){<button type="button" (click)="dismissed.emit()" class="btn-secondary">Cancelar</button>}@else{<a class="btn-secondary" routerLink="/students">Cancelar</a>}<button class="btn-primary" type="submit" [disabled]="!canSubmit">{{busy?'Guardando…':isEdit?'Guardar cambios':'Matricular alumno'}}</button></div>
+ <div class="form-actions">@if(embedded){<button type="button" (click)="closeEditor()" class="btn-secondary">Cancelar</button>}@else{<a class="btn-secondary" routerLink="/students">Cancelar</a>}<button class="btn-primary" type="submit" [disabled]="busy || loadingStudent || studentLoadFailed || activeYearLoading">{{busy?'Guardando…':isEdit?'Guardar cambios':'Matricular alumno'}}</button></div>
  </form>}
  @if(newTutorOpen){<app-tutor-modal [existingTutors]="tutors()" (selectedExisting)="chooseExistingTutor($event)" (saved)="tutorCreated($event)" (dismissed)="newTutorOpen=false"></app-tutor-modal>}
  </div></div>

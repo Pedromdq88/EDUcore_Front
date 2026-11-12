@@ -9,8 +9,19 @@
  <a class="btn-secondary" routerLink="/fees">Consultar mis cuotas</a>
  <a class="btn-secondary" routerLink="/calendar">Calendario escolar</a>
  </div>
- <div class="tutor-grid">@for(s of students();track s.id){<div class="eco-card tutor-student"><div class="tutor-avatar"><span class="material-icons-outlined">school</span></div><div><strong>{{s.firstName}} {{s.lastName}}</strong><p>{{s.classroom || 'Sin aula asignada'}}</p><a class="btn-primary tutor-medical-button" [routerLink]="['/my-students',s.id]">Ver perfil completo <span class="material-icons-outlined">arrow_forward</span></a></div></div>}</div>
- @if(medicalStudent();as alumno){<div class="eco-modal-backdrop" (click)="closeMedical()"><section class="eco-modal tutor-medical-modal" role="dialog" aria-modal="true" aria-label="Ficha médica en consulta" (click)="$event.stopPropagation()"><div class="eco-toolbar"><h3>Ficha médica de {{alumno.firstName}} {{alumno.lastName}}</h3><button class="btn-secondary" (click)="closeMedical()" type="button">Cerrar</button></div><p class="eco-muted">Consulta de solo lectura. Para modificar datos, comunicate con la institución.</p>
+ <section class="tutor-linked-section" aria-label="Mis estudiantes vinculados">
+  <div class="tutor-section-heading"><div><p class="eyebrow">MIS VÍNCULOS</p><h3>Mis estudiantes <span class="tutor-student-count">{{students().length}}</span></h3><p>Accedé a cada ficha escolar en modo consulta.</p></div></div>
+  <div class="tutor-grid">@for(s of students();track s.id){
+    <article class="eco-card tutor-student">
+      <div class="tutor-student-top"><span class="tutor-avatar"><span class="material-icons-outlined">school</span></span>
+        <div class="tutor-student-meta"><strong>{{s.firstName}} {{s.lastName}}</strong><span class="tutor-student-year">Ciclo {{s.academicYear}}</span></div>
+      </div>
+      <div class="tutor-room-tag"><span class="material-icons-outlined">meeting_room</span>{{s.classroom || 'Sin asignar'}}</div>
+      <a class="btn-primary tutor-medical-button" [routerLink]="['/my-students',s.id]">Ver ficha escolar <span class="material-icons-outlined">arrow_forward</span></a>
+    </article>}
+  </div>
+</section>
+ @if(medicalStudent();as alumno){<div class="eco-modal-backdrop"><section class="eco-modal tutor-medical-modal" role="dialog" aria-modal="true" aria-label="Ficha médica en consulta" (click)="$event.stopPropagation()"><div class="eco-toolbar"><h3>Ficha médica de {{alumno.firstName}} {{alumno.lastName}}</h3><button class="btn-secondary" (click)="closeMedical()" type="button">Cerrar</button></div><p class="eco-muted">Consulta de solo lectura. Para modificar datos, comunicate con la institución.</p>
  @if(medicalLoading){<p>Cargando ficha médica…</p>}
  @if(medicalError){<p class="eco-error">{{medicalError}}</p>}
  @if(!medicalLoading&&!medicalError){@if(hasMedicalRecord){<div class="tutor-medical-fields">@for(item of medicalDetails;track item.key){<div class="info-box"><small>{{item.label}}</small><strong>{{item.value}}</strong></div>}</div>}@else{<p class="eco-empty">Todavía no hay una ficha médica registrada.</p>}}

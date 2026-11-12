@@ -33,14 +33,15 @@
     }
    }
    @if(medicalModal && canEdit){
-    <div class="eco-modal-backdrop" role="presentation" (click)="medicalModal=false">
+    <div class="eco-modal-backdrop" role="presentation">
       <section class="eco-modal medical-form-modal" role="dialog" aria-modal="true" aria-labelledby="medical-dialog-title" (click)="$event.stopPropagation()">
-       <div class="medical-modal-head"><div><p class="eyebrow">FICHA MÉDICA ESCOLAR</p><h3 id="medical-dialog-title">{{medicalExists()?'Editar':'Crear'}} ficha de {{selectedStudent?.firstName}} {{selectedStudent?.lastName}}</h3><p>Declaración completa de salud · DNI {{selectedStudent?.documentNumber}}</p></div><button type="button" class="medical-close" (click)="medicalModal=false" aria-label="Cerrar">×</button></div>
+       <div class="medical-modal-head"><div><p class="eyebrow">FICHA MÉDICA ESCOLAR</p><h3 id="medical-dialog-title">{{medicalExists()?'Editar':'Crear'}} ficha de {{selectedStudent?.firstName}} {{selectedStudent?.lastName}}</h3><p>Declaración completa de salud · DNI {{selectedStudent?.documentNumber}}</p></div><button type="button" class="medical-close" (click)="closeMedicalEditor()" aria-label="Cerrar">×</button></div>
        @if(error){<p class="eco-error" role="alert">{{error}}</p>}
-       <form (ngSubmit)="saveMedical()">
+       <form appValidateSubmit novalidate #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (saveMedical())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
+
         <div class="form-grid medical-modal-grid">@for(field of medicalTextFields;track field.key){<label class="form-label">{{field.label}}<input class="form-input" [name]="field.key" [(ngModel)]="medicalDraft[field.key]"></label>}</div>
         @for(group of medicalGroups;track group.label){<h4 class="block-title eco-subheading">{{group.label}}</h4><div class="eco-check-grid medical-check-grid">@for(field of group.fields;track field[0]){<label class="eco-check"><input type="checkbox" [name]="field[0]" [(ngModel)]="medicalDraft[field[0]]"> {{field[1]}}</label>}</div>}
-        <div class="medical-modal-actions"><button class="btn-secondary" type="button" [disabled]="busy" (click)="medicalModal=false">Cancelar</button><button type="submit" class="btn-primary" [disabled]="busy">{{busy?'Guardando…':'Guardar ficha médica'}}</button></div>
+        <div class="medical-modal-actions"><button class="btn-secondary" type="button" [disabled]="busy" (click)="confirmDiscard(ecoForm1, 'medicalModal')">Cancelar</button><button type="submit" class="btn-primary" [disabled]="busy">{{busy?'Guardando…':'Guardar ficha médica'}}</button></div>
        </form>
       </section>
     </div>
@@ -59,11 +60,13 @@
  @if(mode==='pickups'){<p>Edad: {{item.age}} · Teléfono: {{item.phone||'—'}}</p>}
  @else{<p>Legajo judicial: {{item.legajoNumber||'—'}} · Matrícula: {{item.matrixNumber||'—'}} · Folio: {{item.folioNumber||'—'}}</p>}
  </div>@if(canEdit){<div class="eco-row">@if(mode==='pickups'){<button type="button" class="btn-sm" (click)="openPickup(item)">Editar</button><button type="button" class="btn-danger" (click)="removePickup(item.id)">Eliminar</button>}@else{<button type="button" class="btn-danger" (click)="removeRestriction(item.id)">Eliminar</button>}</div>}</div>}
- @if(showForm&&canEdit){<div class="eco-modal-backdrop" role="presentation" (click)="showForm=false"><form class="eco-modal records-edit-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" (ngSubmit)="mode==='pickups'?savePickup():saveRestriction()">
+ @if(showForm&&canEdit){<div class="eco-modal-backdrop" role="presentation"><form appValidateSubmit novalidate class="eco-modal records-edit-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" #ecoForm2="ngForm" (ngSubmit)="ecoForm2.valid && (mode==='pickups'?savePickup():saveRestriction())">@if (ecoForm2.invalid && ecoForm2.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
+ @if(error){<p class="eco-error" role="alert">{{error}}</p>}
+
  <h4>{{mode==='pickups'?(editPickupId?'Editar persona autorizada':'Nueva persona autorizada'):'Registrar restricción judicial'}}</h4>
  @if(mode==='pickups'){<div class="form-grid">
  <label class="form-label">Nombre y apellido *<input class="form-input" name="pickupName" [(ngModel)]="pickup.fullName" required></label>
- <label class="form-label">DNI *<input class="form-input" name="pickupDni" [(ngModel)]="pickup.documentNumber" required></label>
+ <label class="form-label">DNI *<input class="form-input" name="pickupDni" [(ngModel)]="pickup.documentNumber" required type="text" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12"></label>
  <label class="form-label">Fecha de nacimiento *<input type="date" class="form-input" name="pickupBirth" [(ngModel)]="pickup.birthDate" required min="1900-01-01" max="2100-12-31"></label>
  <div class="eco-age-preview">
    <span class="material-icons-outlined">calculate</span>
@@ -79,19 +82,19 @@
     </p>
    </div>
   </div>
- <label class="form-label">Vínculo<input class="form-input" name="pickupRelationship" [(ngModel)]="pickup.relationship"></label>
- <label class="form-label">Teléfono<input class="form-input" name="pickupPhone" [(ngModel)]="pickup.phone"></label></div>}
+ <label class="form-label">Vínculo<input class="form-input" name="pickupRelationship" [(ngModel)]="pickup.relationship" required maxlength="50"></label>
+ <label class="form-label">Teléfono<input class="form-input" name="pickupPhone" [(ngModel)]="pickup.phone" required type="text" inputmode="numeric" pattern="[0-9]{6,20}" maxlength="20"></label></div>}
  @else{<div class="form-grid">
  <label class="form-label">Nombre *<input class="form-input" name="resFirst" [(ngModel)]="restriction.firstName" required></label>
  <label class="form-label">Apellido *<input class="form-input" name="resLast" [(ngModel)]="restriction.lastName" required></label>
- <label class="form-label">Tipo documento<input class="form-input" name="resType" [(ngModel)]="restriction.documentType"></label>
- <label class="form-label">Número documento<input class="form-input" name="resDni" [(ngModel)]="restriction.documentNumber"></label>
- <label class="form-label">Descripción / medida *<textarea class="form-input" name="resDescription" [(ngModel)]="restriction.description" required></textarea></label>
+ <label class="form-label">Tipo documento<input class="form-input" name="resType" [(ngModel)]="restriction.documentType" required maxlength="50"></label>
+ <label class="form-label">Número documento<input class="form-input" name="resDni" [(ngModel)]="restriction.documentNumber" required type="text" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12"></label>
+ <label class="form-label">Descripción / medida *<textarea class="form-input" name="resDescription" [(ngModel)]="restriction.description" required maxlength="4000"></textarea></label>
  <label class="form-label">N° Legajo judicial<input class="form-input" name="resLegajo" [(ngModel)]="restriction.legajoNumber"></label>
  <label class="form-label">Matrícula<input class="form-input" name="resMatrix" [(ngModel)]="restriction.matrixNumber"></label>
  <label class="form-label">Folio<input class="form-input" name="resFolio" [(ngModel)]="restriction.folioNumber"></label>
  <label class="form-label">Fecha inscripción<input type="date" class="form-input" name="resDate" [(ngModel)]="restriction.inscriptionDate"></label></div>}
- <div class="form-actions"><button type="button" (click)="showForm=false" class="btn-secondary">Cancelar</button><button type="submit" [disabled]="busy" class="btn-primary">Guardar registro</button></div>
+ <div class="form-actions"><button type="button" (click)="confirmDiscard(ecoForm2, 'showForm')" class="btn-secondary">Cancelar</button><button type="submit" [disabled]="busy" class="btn-primary">Guardar registro</button></div>
  </form></div>}
  }
  </div>}

@@ -24,8 +24,43 @@
         <div class="fee-months fee-loading-months" aria-hidden="true">@for(m of months;track m.number){<div class="fee-month fee-month-placeholder"><strong>{{m.name}}</strong><span class="material-icons-outlined">hourglass_empty</span><small>Cargando</small></div>}</div>
       }
       @else {<div class="fee-months">@for(m of months;track m.number){<button type="button" class="fee-month" [class.inactive]="statusFor(m.number)==='INACTIVE'" [class.paid]="statusFor(m.number)==='PAID'" [class.overdue]="statusFor(m.number)==='OVERDUE' || statusFor(m.number)==='PENDING'" [class.changed]="statusFor(m.number)!==feeFor(m.number)?.status" [disabled]="!editMode||busy" (click)="togglePreview(m.number)"><strong>{{m.name}}</strong><span class="material-icons-outlined">{{statusFor(m.number)==='PAID'?'check_circle':statusFor(m.number)==='INACTIVE'?'remove_circle_outline':'error_outline'}}</span><small>{{statusFor(m.number)==='PAID'?'Abonado':statusFor(m.number)==='OVERDUE'?'Vencido':statusFor(m.number)==='PENDING'?'Pendiente':'Inactivo'}}</small></button>}</div>}
-      <div class="fee-lower"><div><h3>Canales oficiales</h3><div class="fee-contact"><div><small>Correo recepción de comprobantes</small><strong>{{emails.receiptEmail||'Sin configurar'}}</strong></div>@if(canEdit){<button (click)="showEmailModal=true">Modificar</button>}</div><div class="fee-contact"><div><small>Correo consultas de aranceles</small><strong>{{emails.feeQueryEmail||'Sin configurar'}}</strong></div>@if(canEdit){<button (click)="showEmailModal=true">Modificar</button>}</div></div><div class="fee-legend"><h3>Referencia</h3><p><span class="legend-square green"></span> Abonado</p><p><span class="legend-square red"></span> Pendiente / vencido</p><p><span class="legend-square grey"></span> Inactivo</p></div></div>
+      <div class="fee-lower"><div><h3>Canales oficiales</h3><div class="fee-contact"><div><small>Correo recepción de comprobantes</small><strong>{{emails.receiptEmail||'Sin configurar'}}</strong></div>@if(canEdit){<button (click)="openEmailModal()">Modificar</button>}</div><div class="fee-contact"><div><small>Correo consultas de aranceles</small><strong>{{emails.feeQueryEmail||'Sin configurar'}}</strong></div>@if(canEdit){<button (click)="openEmailModal()">Modificar</button>}</div></div><div class="fee-legend"><h3>Referencia</h3><p><span class="legend-square green"></span> Abonado</p><p><span class="legend-square red"></span> Pendiente / vencido</p><p><span class="legend-square grey"></span> Inactivo</p></div></div>
     </section>
   }
-  @if(showEmailModal){<div class="eco-modal-backdrop" role="presentation" (click)="showEmailModal=false"><form class="eco-modal fee-email-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()" (ngSubmit)="saveEmails()"><h3>Correos institucionales</h3><label class="form-label">Recepción de comprobantes<input class="form-input" name="receiptEmail" type="email" [(ngModel)]="emails.receiptEmail" required></label><label class="form-label">Consultas de cuotas<input class="form-input" name="feeQueryEmail" type="email" [(ngModel)]="emails.feeQueryEmail" required></label><div class="fee-actions"><button type="button" class="fee-back" (click)="showEmailModal=false">Cancelar</button><button type="submit" class="fee-primary" [disabled]="emailBusy">Guardar correos</button></div></form></div>}
+  @if(showEmailModal){<div class="eco-modal-backdrop" role="presentation"><form appValidateSubmit novalidate class="eco-modal fee-email-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()" #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (saveEmails())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
+@if(error){<p class="eco-error" role="alert">{{error}}</p>}
+<h3>Correos institucionales</h3>
+<p class="eco-muted">Los correos nuevos deben confirmarse con un código recibido en esa dirección. Los correos sin cambios no requieren verificación.</p>
+<label class="form-label">Recepción de comprobantes
+  <input class="form-input" name="receiptEmail" type="email" email [(ngModel)]="emails.receiptEmail" (ngModelChange)="onEmailEdited('receiptEmail')" required maxlength="150" autocomplete="email">
+</label>
+@if(needsEmailVerification('receiptEmail')) {
+  <div class="fee-verify">
+    @if(isEmailVerified('receiptEmail')) {<p class="eco-success">Correo de comprobantes verificado.</p>}
+    @else {
+      <button type="button" class="fee-back" [disabled]="emailVerificationBusy" (click)="requestEmailVerification('receiptEmail')">Enviar código</button>
+      <label class="form-label">Código de 6 dígitos
+        <input class="form-input" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" name="receiptVerificationCode" [(ngModel)]="emailCode.receiptEmail" placeholder="000000">
+      </label>
+      <button type="button" class="fee-primary" [disabled]="emailVerificationBusy" (click)="confirmEmailVerification('receiptEmail')">Verificar código</button>
+    }
+  </div>
+}
+<label class="form-label">Consultas de cuotas
+  <input class="form-input" name="feeQueryEmail" type="email" email [(ngModel)]="emails.feeQueryEmail" (ngModelChange)="onEmailEdited('feeQueryEmail')" required maxlength="150" autocomplete="email">
+</label>
+@if(needsEmailVerification('feeQueryEmail')) {
+  <div class="fee-verify">
+    @if(isEmailVerified('feeQueryEmail')) {<p class="eco-success">Correo de consultas verificado.</p>}
+    @else {
+      <button type="button" class="fee-back" [disabled]="emailVerificationBusy" (click)="requestEmailVerification('feeQueryEmail')">Enviar código</button>
+      <label class="form-label">Código de 6 dígitos
+        <input class="form-input" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" name="queryVerificationCode" [(ngModel)]="emailCode.feeQueryEmail" placeholder="000000">
+      </label>
+      <button type="button" class="fee-primary" [disabled]="emailVerificationBusy" (click)="confirmEmailVerification('feeQueryEmail')">Verificar código</button>
+    }
+  </div>
+}
+@if(emailVerificationMessage){<p class="eco-success" role="status">{{emailVerificationMessage}}</p>}
+<div class="fee-actions"><button type="button" class="fee-back" (click)="closeEmailModal(ecoForm1)">Cancelar</button><button type="submit" class="fee-primary" [disabled]="emailBusy || emailVerificationBusy">Guardar correos</button></div></form></div>}
 </div>

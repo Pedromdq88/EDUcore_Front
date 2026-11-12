@@ -1,0 +1,31 @@
+<div class="promotion-page">
+  <div class="promotion-top">
+    <a routerLink="/school-profile" class="btn-secondary">Volver al perfil institucional</a>
+    <div>
+      <p class="eyebrow">GESTIÓN ACADÉMICA</p>
+      <h2>Alumnos sin asignar</h2>
+      <p>Al cambiar el ciclo lectivo, los alumnos activos quedan sin aula hasta que decidas dónde ubicarlos.</p>
+    </div>
+  </div>
+  @if(error()){<p class="eco-error" role="alert">{{error()}}</p>}
+  @if(loading()){<p class="eco-muted">Cargando alumnos…</p>}
+  @else{
+    <div class="promotion-summary">Pendientes de aula: <strong>{{unassigned.length}}</strong></div>
+    @if(unassigned.length===0){<p class="eco-card">No hay alumnos activos sin aula.</p>}
+    @else{
+      <div class="promotion-table">
+        <table>
+          <thead><tr><th>Alumno</th><th>DNI</th><th>Ciclo</th></tr></thead>
+          <tbody>
+            @for(student of unassigned;track student.id){
+              <tr><td>{{student.lastName}}, {{student.firstName}}</td><td>{{student.documentNumber}}</td><td>{{student.academicYear}}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    <div class="promotion-actions">
+      <a class="btn-primary" [routerLink]="['/students']" [queryParams]="{sinAsignar:1}">Seleccionar aulas o eliminar alumnos</a>
+    </div>
+  }
+</div>

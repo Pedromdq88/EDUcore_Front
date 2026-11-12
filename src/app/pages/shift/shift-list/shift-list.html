@@ -6,12 +6,13 @@
   @if(error){<p class="eco-error">{{error}}</p>}
   @if(canEdit){<div class="eco-toolbar"><button class="btn-primary" type="button" (click)="openRoom()">+ Configurar aula</button>
   @if(classrooms().length===0){<button type="button" class="btn-secondary" [disabled]="busy" (click)="createDefaults()">Cargar Maternal, 1ª, 2ª y 3ª sección</button>}</div>}
-  @if(showForm){<form class="eco-card eco-inline-form" (ngSubmit)="saveRoom()">
+  @if(showForm){<form appValidateSubmit novalidate class="eco-card eco-inline-form" #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (saveRoom())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
+
     <h3 class="block-title">{{editingId?'Modificar aula':'Crear aula'}}</h3>
     <div class="form-grid"><label class="form-label">Nombre de la sala *<input class="form-input" name="name" [(ngModel)]="room.name" required></label>
     <label class="form-label">Edad mínima al 30/06<input class="form-input" type="number" min="0" max="25" name="age" [(ngModel)]="room.minimumAge" required></label>
     <label class="form-label">Turno<select class="form-input" name="shift" [(ngModel)]="room.shift"><option value="MANANA">Mañana</option><option value="TARDE">Tarde</option>@if(!editingId){<option value="AMBOS">Ambos turnos (crea mañana y tarde)</option>}</select></label></div>
-    <div class="form-actions"><button class="btn-secondary" type="button" (click)="showForm=false">Cancelar</button><button type="submit" [disabled]="busy" class="btn-primary">Guardar aula</button></div>
+    <div class="form-actions"><button class="btn-secondary" type="button" (click)="confirmDiscard(ecoForm1, 'showForm')">Cancelar</button><button type="submit" [disabled]="busy" class="btn-primary">Guardar aula</button></div>
   </form>}
   <div class="eco-toolbar shift-summary"><div class="eco-row"><span class="badge-classroom">{{classrooms().length}} aulas</span></div><a routerLink="/calendar" class="btn-primary"><span class="material-icons-outlined">event</span>Ver calendario de aulas</a></div>
   <div class="section-block">

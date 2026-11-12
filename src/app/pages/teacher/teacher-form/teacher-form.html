@@ -1,13 +1,14 @@
-<div class="form-wrapper"><div class="form-card"><div class="eco-toolbar"><h2 class="form-title">{{editingId?'Editar personal y asignaciones':'Registrar personal docente / administrativo'}}</h2>@if(embedded){<button type="button" class="btn-secondary" (click)="dismissed.emit()"><span class="material-icons-outlined">close</span></button>}</div>
+<div class="form-wrapper"><div class="form-card"><div class="eco-toolbar"><h2 class="form-title">{{editingId?'Editar personal y asignaciones':'Registrar personal docente / administrativo'}}</h2>@if(embedded){<button type="button" class="btn-secondary" (click)="closeEditor()"><span class="material-icons-outlined">close</span></button>}</div>
 @if(error){<p class="eco-error" role="alert">{{error}}</p>}
 @if(loading){<p role="status">Recuperando los datos guardados del personal…</p>}
-@if(!loading&&!loadFailed){<form (ngSubmit)="submitStaff()"><h3 class="block-title">Datos del personal</h3><div class="form-grid">
+@if(!loading&&!loadFailed){<form appValidateSubmit novalidate #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (submitStaff())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
+<h3 class="block-title">Datos del personal</h3><div class="form-grid">
 <label class="form-label">Nombre *<input class="form-input" name="firstName" [(ngModel)]="form.firstName" required></label>
 <label class="form-label">Apellido *<input class="form-input" name="lastName" [(ngModel)]="form.lastName" required></label>
-<label class="form-label">DNI *<input class="form-input" name="documentNumber" [(ngModel)]="form.documentNumber"></label>
-<label class="form-label">Email institucional *<input type="email" class="form-input" name="email" [(ngModel)]="form.email" required></label>
+<label class="form-label">DNI *<input class="form-input" name="documentNumber" [(ngModel)]="form.documentNumber" type="text" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12" required></label>
+<label class="form-label">Email institucional *<input type="email" class="form-input" name="email" [(ngModel)]="form.email" required maxlength="150"></label>
 <label class="form-label">Rol administrativo<select class="form-input" name="role" [(ngModel)]="form.role"><option value="TEACHER">Docente</option><option value="PRECEPTOR">Preceptor</option>@if(isDirector){<option value="ADMINISTRATIVE">Administrativo</option><option value="DIRECTOR">Director/a</option>}</select></label>
-<label class="form-label">Teléfono<input class="form-input" name="phone" [(ngModel)]="form.phone"></label>
+<label class="form-label">Teléfono<input class="form-input" name="phone" [(ngModel)]="form.phone" type="text" inputmode="numeric" pattern="[0-9]{6,20}" maxlength="20"></label>
 <label class="form-label">Fecha de alta<input type="date" class="form-input" name="hireDate" [(ngModel)]="form.hireDate"></label>
 <label class="form-label">Aula principal<select class="form-input" name="classroom" [(ngModel)]="form.classroom"><option [ngValue]="null">Sin aula</option>@for(r of classrooms();track r.id){<option [value]="r.name">{{r.name}}</option>}</select></label>
 </div>
@@ -20,4 +21,4 @@
 <button type="button" class="btn-danger" (click)="removeAssignment(i)">Quitar asignación</button></div>}
 <button type="button" class="btn-secondary" (click)="addAssignment()">+ Agregar asignación</button>
 <p class="eco-muted">El registro del personal guarda su legajo y sus asignaciones. Al crear personal se habilita su cuenta con el correo institucional y el DNI sin puntos como contraseña temporal cifrada. Deberá cambiarla al entrar.</p>
-<div class="form-actions">@if(embedded){<button type="button" (click)="dismissed.emit()" class="btn-secondary">Cancelar</button>}@else{<a routerLink="/teachers" class="btn-secondary">Cancelar</a>}<button [disabled]="busy" type="submit" class="btn-primary">{{busy?'Guardando…':'Guardar personal'}}</button></div></form>}</div></div>
+<div class="form-actions">@if(embedded){<button type="button" (click)="confirmDiscard(ecoForm1, 'dismissed')" class="btn-secondary">Cancelar</button>}@else{<a routerLink="/teachers" class="btn-secondary">Cancelar</a>}<button [disabled]="busy" type="submit" class="btn-primary">{{busy?'Guardando…':'Guardar personal'}}</button></div></form>}</div></div>

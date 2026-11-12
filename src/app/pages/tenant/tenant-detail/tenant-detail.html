@@ -3,6 +3,7 @@
     <div class="action-bar">
       <h2 class="view-title">Perfil Institucional</h2>
       @if(isDirector || canSeeTickets){<a routerLink="/school-profile/edit" class="btn-primary">Editar datos</a>}
+      @if(isDirector){<a routerLink="/school-profile/promotion" class="btn-secondary">Alumnos sin asignar</a>}
     </div>
 
     <div class="detail-card">

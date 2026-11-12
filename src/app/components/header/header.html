@@ -14,10 +14,11 @@
   </div>
 </header>
 
-@if(changingPassword){<div class="password-shade"><form class="password-modal" (ngSubmit)="savePassword()"><h3>Cambiar contraseña</h3>
+@if(changingPassword){<div class="password-shade"><form appValidateSubmit novalidate class="password-modal" #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (savePassword())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
+<h3>Cambiar contraseña</h3>
  <label>Contraseña actual<input name="old" [(ngModel)]="oldPassword" type="password" required autocomplete="current-password"></label>
  <label>Nueva contraseña (mínimo 12 caracteres)<input name="new" [(ngModel)]="newPassword" type="password" required minlength="12" autocomplete="new-password"></label>
  <label>Confirmar contraseña<input name="repeat" [(ngModel)]="repeatPassword" type="password" required autocomplete="new-password"></label>
  @if(changeError){<p role="alert" class="password-error">{{changeError}}</p>}
- <div class="password-actions"><button type="button" class="btn-secondary" (click)="changingPassword=false">Cancelar</button><button type="submit" class="btn-primary" [disabled]="saving">Guardar y cerrar sesión</button></div>
+ <div class="password-actions"><button type="button" class="btn-secondary" (click)="confirmDiscard(ecoForm1, 'changingPassword')">Cancelar</button><button type="submit" class="btn-primary" [disabled]="saving">Guardar y cerrar sesión</button></div>
  </form></div>}

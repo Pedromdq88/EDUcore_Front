@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TutorModal } from '../../../components/tutor-modal/tutor-modal';
@@ -7,6 +7,7 @@ import { TutorService } from '../../../services/tutor/tutor';
 import { Tutor } from '../../../models/tutor';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-tutor-list',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, TutorModal],

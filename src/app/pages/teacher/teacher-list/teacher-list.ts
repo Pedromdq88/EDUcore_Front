@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -8,6 +8,7 @@ import { TeacherForm } from '../teacher-form/teacher-form';
 
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-teacher-list',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, TeacherForm],

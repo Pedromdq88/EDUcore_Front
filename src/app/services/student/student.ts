@@ -1,32 +1,61 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, shareReplay, tap } from 'rxjs';
+import { Observable, shareReplay, tap, forkJoin, of, catchError, map, switchMap } from 'rxjs';
 import { getMultiTenantHeaders } from '../tenant/tenant';
 import { Student } from '../../models/student';
+import { studentWithPrimaryTutor } from '../../mappers/student-tutors.mapper';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class StudentService {
-  private apiUrl = 'http://localhost:8080/api/v1/students';
+  private apiUrl = '/api/v1/students';
   private cache?: Observable<Student[]>;
   private cacheTenant='';
   invalidate():void {this.cache=undefined;}
 
   constructor(private http: HttpClient) {}
 
+  private canSeeTutorData(): boolean {
+    return ['DIRECTOR','ADMINISTRATIVE','PRECEPTOR'].includes(
+      sessionStorage.getItem('current_user_role') || '');
+  }
+
+  getPrimaryTutorId(id: string): Observable<{tutorId: string}> {
+    return this.http.get<{tutorId: string}>(`${this.apiUrl}/${id}/tutors/primary`,
+      {headers:getMultiTenantHeaders()});
+  }
+
+  getPrimaryTutorMap(): Observable<Record<string, string>> {
+    return this.http.get<Record<string, string>>(`${this.apiUrl}/tutor-primaries`,
+      {headers:getMultiTenantHeaders()});
+  }
+
+
   getStudents(): Observable<Student[]> {
     const tenant=sessionStorage.getItem('current_institution_id')||'';
     if(!this.cache || this.cacheTenant!==tenant){
       this.cacheTenant=tenant;
-      this.cache=this.http.get<Student[]>(this.apiUrl,{headers:getMultiTenantHeaders()}).pipe(shareReplay({bufferSize:1,refCount:false}));
+      this.cache=this.http.get<Student[]>(this.apiUrl,{headers:getMultiTenantHeaders()}).pipe(
+        switchMap(students => this.canSeeTutorData()
+          ? this.getPrimaryTutorMap().pipe(
+              map(ids => students.map(s => studentWithPrimaryTutor(s, ids[s.id || '']))),
+              // Datos antiguos pueden no tener aún is_primary; no bloquear el listado.
+              catchError(() => of(students)))
+          : of(students)),
+        shareReplay({bufferSize:1,refCount:false}));
     }
     return this.cache;
   }
 
   getStudentById(id: string): Observable<Student> {
-    return this.http.get<Student>(`${this.apiUrl}/${id}`, { headers: getMultiTenantHeaders() });
+    const student = this.http.get<Student>(`${this.apiUrl}/${id}`, {headers:getMultiTenantHeaders()});
+    if (!this.canSeeTutorData()) return student;
+    return forkJoin({
+      student,
+      primary: this.getPrimaryTutorId(id).pipe(catchError(() => of({tutorId:''})))
+    }).pipe(map(result => studentWithPrimaryTutor(result.student, result.primary.tutorId)));
   }
 
   createStudent(student: Student): Observable<Student> {
@@ -35,6 +64,11 @@ export class StudentService {
 
   updateStudent(id: string, student: Student): Observable<Student> {
     return this.http.put<Student>(`${this.apiUrl}/${id}`, student, { headers: getMultiTenantHeaders() }).pipe(tap(()=>this.invalidate()));
+  }
+
+  assignClassroom(id:string, classroomName:string, shift:string):Observable<Student>{
+    return this.http.patch<Student>(`${this.apiUrl}/${id}/classroom`,{classroomName,shift},
+      {headers:getMultiTenantHeaders()}).pipe(tap(()=>this.invalidate()));
   }
 
   bajaStudent(id: string): Observable<any> {

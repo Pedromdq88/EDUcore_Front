@@ -119,3 +119,19 @@ button:disabled { cursor:not-allowed; opacity:.55; }
 .eco-modal-header{display:flex;align-items:start;justify-content:space-between;gap:20px}.eco-modal-close{border:0;background:#f1f5f9;border-radius:8px;padding:3px 11px;font-size:23px;color:#334155;cursor:pointer}
 .eco-student-modal{width:min(100%,1060px);padding:0}.eco-student-modal .form-wrapper{max-width:100%}.eco-student-modal .form-card{border:0;box-shadow:none;padding:25px}
 @media(max-width:670px){.eco-filterbar{align-items:stretch}.eco-searchbox{flex-basis:100%}.eco-counter{margin:0}.eco-student-modal .form-card{padding:14px}}
+
+/* Feedback inmediato de formularios: sin botones inactivos por campos inválidos. */
+form.ng-submitted input.ng-invalid:not([type="checkbox"]):not([type="radio"]),
+form.ng-submitted select.ng-invalid, form.ng-submitted textarea.ng-invalid,
+form input.ng-invalid.ng-touched:not([type="checkbox"]):not([type="radio"]),
+form select.ng-invalid.ng-touched, form textarea.ng-invalid.ng-touched {
+  border: 2px solid #b91c1c !important;
+  background: #fff7f7 !important;
+  box-shadow: 0 0 0 2px rgba(185, 28, 28, .08);
+}
+form.ng-submitted .eco-error[role="alert"] {margin: 10px 0 16px;font-weight: 700;}
+.eco-modal-backdrop, .eco-modal-shade {overscroll-behavior: contain;}
+
+/* Mensajes recién al salir del campo o presionar Guardar/Continuar. */
+.eco-field-error{display:block;margin:4px 0 6px;color:#b91c1c;font-size:12px;font-weight:600;line-height:1.4}
+form input[aria-invalid="true"],form select[aria-invalid="true"],form textarea[aria-invalid="true"]{border:2px solid #b91c1c!important;background:#fff7f7!important}

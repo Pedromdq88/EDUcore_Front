@@ -4,11 +4,20 @@
  @if(error){<p class="eco-error" role="alert">{{error}}</p>} @if(message){<p class="eco-success" role="status">{{message}}</p>}
  <div class="eco-filterbar"><label class="eco-searchbox"><span class="material-icons-outlined">search</span><input class="eco-search" [(ngModel)]="query" placeholder="Nombre, apellido, DNI o legajo" aria-label="Buscar alumno"></label>
  <label class="eco-filterlabel">Sala<select class="eco-select" [(ngModel)]="classroom"><option value="ALL">Todas las salas</option>@for(c of classrooms;track c){<option [value]="c">{{c}}</option>}</select></label>
- <span class="badge-classroom">Ciclo activo: {{academicYear}}</span>
+ <label class="eco-filterlabel">Ciclo lectivo<select class="eco-select" [(ngModel)]="academicYear">
+    <option value="ALL">Todos los ciclos</option>
+    @for(year of academicYears;track year){<option [value]="year">{{year}}</option>}
+ </select></label>
+ <label class="eco-filterlabel"><input type="checkbox" [(ngModel)]="onlyUnassigned"> Solo sin asignar</label>
  <span class="eco-counter">{{filteredStudents.length}} alumnos</span></div>
  <div class="table-container"><table class="data-table"><thead><tr><th>Alumno</th><th>DNI</th><th>Sección</th><th>Ciclo</th><th class="text-center">Ficha y edición</th></tr></thead><tbody>
  @if(filteredStudents.length===0){<tr><td colspan="5" class="empty-row">No hay alumnos para los filtros seleccionados.</td></tr>}
- @for(s of filteredStudents;track s.id){<tr><td><div class="eco-person"><span class="eco-initials">{{s.firstName[0]}}{{s.lastName[0]}}</span><strong>{{s.lastName}}, {{s.firstName}}</strong></div></td><td>{{s.documentNumber}}</td><td><span class="badge-classroom">{{s.classroom||'Sin sala'}}</span></td><td>{{s.academicYear}}</td><td><div class="eco-row actions-cell"><a [routerLink]="['/students',s.id]" class="eco-profile-button" title="Abrir el perfil completo del alumno"><span class="material-icons-outlined">badge</span> Ver perfil</a></div></td></tr>}
+ @for(s of filteredStudents;track s.id){<tr><td><div class="eco-person"><span class="eco-initials">{{s.firstName[0]}}{{s.lastName[0]}}</span><strong>{{s.lastName}}, {{s.firstName}}</strong></div></td><td>{{s.documentNumber}}</td><td><span class="badge-classroom">{{s.classroom||'Sin asignar'}}</span></td><td>{{s.academicYear}}</td><td><div class="eco-row actions-cell"><a [routerLink]="['/students',s.id]" class="eco-profile-button" title="Abrir el perfil completo del alumno"><span class="material-icons-outlined">badge</span> Ver perfil</a>
+ @if(canManage && !s.classroom){
+  <button type="button" class="btn-primary" (click)="assigning=s">Seleccionar aula</button>
+  <button type="button" class="btn-danger-quiet" [disabled]="deletingId===s.id" (click)="deleteStudent(s)">Eliminar alumno</button>
+ }</div></td></tr>}
  </tbody></table></div>
- @if(modalOpen){<div class="eco-modal-backdrop" role="presentation" (click)="modalOpen=false"><div class="eco-modal eco-student-modal" role="dialog" aria-modal="true" aria-label="Formulario de matrícula" (click)="$event.stopPropagation()"><app-student-form [embedded]="true" [studentId]="modalStudentId" (saved)="onSaved($event)" (dismissed)="modalOpen=false"></app-student-form></div></div>}
+ @if(modalOpen){<div class="eco-modal-backdrop" role="presentation"><div class="eco-modal eco-student-modal" role="dialog" aria-modal="true" aria-label="Formulario de matrícula" (click)="$event.stopPropagation()"><app-student-form [embedded]="true" [studentId]="modalStudentId" (saved)="onSaved($event)" (dismissed)="modalOpen=false"></app-student-form></div></div>}
+ @if(assigning; as student){<app-classroom-assignment [student]="student" (saved)="onAssigned()" (dismissed)="assigning=null"></app-classroom-assignment>}
 </div>

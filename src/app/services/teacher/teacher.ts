@@ -9,7 +9,7 @@ import { getMultiTenantHeaders } from '../tenant/tenant';
   providedIn: 'root'
 })
 export class TeacherService {
-  private apiUrl = 'http://localhost:8080/api/v1/institution/staff';
+  private apiUrl = '/api/v1/institution/staff';
 
   constructor(private http: HttpClient) {}
 

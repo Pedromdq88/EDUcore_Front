@@ -1,13 +1,15 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { Footer } from './components/footer/footer';
+import { UiDialog } from './components/ui-dialog/ui-dialog';
 import { Header } from './components/header/header';
 import { Sidebar } from './components/sidebar/sidebar';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, Header, Footer, Sidebar],
+  imports: [RouterOutlet, Header, Footer, Sidebar, UiDialog],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

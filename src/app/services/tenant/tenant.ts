@@ -15,7 +15,7 @@ export function getMultiTenantHeaders(): HttpHeaders {
   providedIn: 'root'
 })
 export class TenantService {
-  private apiUrl = 'http://localhost:8080/api/v1';
+  private apiUrl = '/api/v1';
   private cachedProfile?: Observable<any>;
   private cachedFor = '';
   invalidateProfile():void { this.cachedProfile=undefined; }

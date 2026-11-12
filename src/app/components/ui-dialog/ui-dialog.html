@@ -1,0 +1,15 @@
+@if (dialogs.current(); as dialog) {
+<div class="ui-dialog-backdrop" role="presentation">
+  <section class="ui-dialog-card" role="alertdialog" aria-modal="true" aria-labelledby="ui-dialog-title" aria-describedby="ui-dialog-message">
+    <div class="ui-dialog-symbol" [class.danger]="dialog.critical">
+      <span class="material-icons-outlined">{{ dialog.critical ? 'warning_amber' : 'info' }}</span>
+    </div>
+    <h2 id="ui-dialog-title">{{dialog.title}}</h2>
+    <p id="ui-dialog-message">{{dialog.message}}</p>
+    <div class="ui-dialog-actions">
+      @if(!dialog.onlyInfo) {<button type="button" class="ui-dialog-cancel" (click)="dialogs.answer(false)">{{dialog.cancelText}}</button>}
+      <button type="button" class="ui-dialog-accept" [class.danger]="dialog.critical" (click)="dialogs.answer(true)">{{dialog.confirmText}}</button>
+    </div>
+  </section>
+</div>
+}

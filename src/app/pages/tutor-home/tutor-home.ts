@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { getMultiTenantHeaders } from '../../services/tenant/tenant';
@@ -6,7 +6,8 @@ import { switchMap } from 'rxjs';
 
 interface TutorProfile { id: string; firstName: string; lastName: string; email: string; }
 interface LinkedStudent { id: string; firstName: string; lastName: string; classroom: string; academicYear: number; }
-@Component({selector:'app-tutor-home',standalone:true,imports:[RouterLink],templateUrl:'./tutor-home.html',styleUrl:'./tutor-home.css'})
+@Component({
+  changeDetection: ChangeDetectionStrategy.Eager,selector:'app-tutor-home',standalone:true,imports:[RouterLink],templateUrl:'./tutor-home.html',styleUrl:'./tutor-home.css'})
 export class TutorHome implements OnInit {
  students=signal<LinkedStudent[]>([]); error=''; loading=true;
  profile=signal<TutorProfile|null>(null);
@@ -16,7 +17,7 @@ export class TutorHome implements OnInit {
  showMedical(student:any):void{
   if(!this.students().some(s=>s.id===student.id))return;
   this.medicalStudent.set(student);this.medical.set(null);this.medicalError='';this.medicalLoading=true;
-  this.http.get<Record<string,any>>(`http://localhost:8080/api/v1/students/${encodeURIComponent(student.id)}/medical-record`,{headers:getMultiTenantHeaders()})
+  this.http.get<Record<string,any>>(`/api/v1/students/${encodeURIComponent(student.id)}/medical-record`,{headers:getMultiTenantHeaders()})
    .subscribe({next:record=>{this.medical.set(record);this.medicalLoading=false;},error:()=>{this.medicalError='No se pudo consultar la ficha médica.';this.medicalLoading=false;}});
  }
  closeMedical():void {this.medicalStudent.set(null);this.medical.set(null);this.medicalError='';}
@@ -36,10 +37,10 @@ export class TutorHome implements OnInit {
   }
   const headers = getMultiTenantHeaders();
   // Sin legajo verificado no se cargan alumnos ni se muestra información de otras familias.
-  this.http.get<TutorProfile>('http://localhost:8080/api/v1/auth/my-tutor', {headers}).pipe(
+  this.http.get<TutorProfile>('/api/v1/auth/my-tutor', {headers}).pipe(
     switchMap(profile => {
       this.profile.set(profile);
-      return this.http.get<LinkedStudent[]>('http://localhost:8080/api/v1/auth/my-students', {headers});
+      return this.http.get<LinkedStudent[]>('/api/v1/auth/my-students', {headers});
     })
   ).subscribe({
     next: items => { this.students.set(items); this.loading = false; },

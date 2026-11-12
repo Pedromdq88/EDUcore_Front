@@ -38,13 +38,15 @@
       <div class="section-block">
         <div class="eco-toolbar"><h3 class="block-title">Portfolio y Certificaciones</h3>@if(canEdit){<button type="button" class="btn-secondary" (click)="portfolioOpen=!portfolioOpen;portfolioEditId=''">+ Portfolio</button>}</div>
         @if(portfolioError){<p class="eco-error">{{portfolioError}}</p>}
-        @if(portfolioOpen){<div class="eco-modal-backdrop" role="presentation" (click)="portfolioOpen=false"><form class="eco-modal records-edit-modal" role="dialog" aria-modal="true" aria-label="Editar portfolio" (click)="$event.stopPropagation()" (ngSubmit)="savePortfolio()"><h3 class="block-title">{{portfolioEditId?'Editar portfolio':'Agregar portfolio profesional'}}</h3>
+        @if(portfolioOpen){<div class="eco-modal-backdrop" role="presentation"><form appValidateSubmit novalidate class="eco-modal records-edit-modal" role="dialog" aria-modal="true" aria-label="Editar portfolio" (click)="$event.stopPropagation()" #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (savePortfolio())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
+@if(portfolioError){<p class="eco-error" role="alert">{{portfolioError}}</p>}
+<h3 class="block-title">{{portfolioEditId?'Editar portfolio':'Agregar portfolio profesional'}}</h3>
           <div class="form-grid"><label class="form-label">Título *<input class="form-input" name="ptitle" [(ngModel)]="portfolio.title" required></label>
           <label class="form-label">Categoría<select class="form-input" name="pcat" [(ngModel)]="portfolio.category"><option value="CURSO">Curso</option><option value="CAPACITACION">Capacitación</option><option value="PROYECTO">Proyecto</option><option value="OTRO">Otro</option></select></label>
           <label class="form-label">Fecha<input class="form-input" type="date" name="pdate" [(ngModel)]="portfolio.activityDate"></label>
           <label class="form-label">URL material<input class="form-input" name="pmedia" [(ngModel)]="portfolio.mediaUrl"></label>
           <label class="form-label">Descripción<textarea class="form-input" name="pdesc" [(ngModel)]="portfolio.description"></textarea></label></div>
-          <div class="form-actions"><button type="button" class="btn-secondary" (click)="portfolioOpen=false">Cancelar</button><button type="submit" class="btn-primary" [disabled]="portfolioBusy">Guardar portfolio</button></div>
+          <div class="form-actions"><button type="button" class="btn-secondary" (click)="confirmDiscard(ecoForm1, 'portfolioOpen')">Cancelar</button><button type="submit" class="btn-primary" [disabled]="portfolioBusy">Guardar portfolio</button></div>
         </form></div>}
         @if (portfolios().length === 0) {
           <p class="empty-text">No hay registros en el portfolio profesional.</p>
@@ -62,4 +64,4 @@
     </div>
   </div>
 }
-@if(canEdit && editOpen && teacher(); as current){<div class="eco-modal-backdrop" role="presentation" (click)="editOpen=false"><div class="eco-modal eco-student-modal" role="dialog" aria-modal="true" aria-label="Editar personal" (click)="$event.stopPropagation()"><app-teacher-form [embedded]="true" [staffId]="current.id||''" (saved)="afterEdit(current.id||'')" (dismissed)="editOpen=false"></app-teacher-form></div></div>}
+@if(canEdit && editOpen && teacher(); as current){<div class="eco-modal-backdrop" role="presentation"><div class="eco-modal eco-student-modal" role="dialog" aria-modal="true" aria-label="Editar personal" (click)="$event.stopPropagation()"><app-teacher-form [embedded]="true" [staffId]="current.id||''" (saved)="afterEdit(current.id||'')" (dismissed)="editOpen=false"></app-teacher-form></div></div>}

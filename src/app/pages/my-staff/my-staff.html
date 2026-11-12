@@ -15,13 +15,15 @@
 @for(item of portfolios();track item.id){<div class="sub-card"><strong>{{item.title}}</strong><p>{{item.description}}</p>
 <div class="eco-row"><button class="btn-sm" type="button" (click)="startPortfolio(item)">Editar</button>
 <button class="btn-danger" type="button" (click)="deletePortfolio(item.id)">Eliminar</button></div></div>}
-@if(showPortfolioForm){<div class="eco-modal-backdrop" role="presentation"><form class="eco-modal" (ngSubmit)="savePortfolio()" role="dialog" aria-modal="true"><h3>{{portfolioEditId?'Editar portfolio':'Nuevo portfolio'}}</h3>
+@if(showPortfolioForm){<div class="eco-modal-backdrop" role="presentation"><form appValidateSubmit novalidate class="eco-modal" #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (savePortfolio())" role="dialog" aria-modal="true">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
+@if(portfolioError){<p class="eco-error" role="alert">{{portfolioError}}</p>}
+<h3>{{portfolioEditId?'Editar portfolio':'Nuevo portfolio'}}</h3>
 <label class="form-label">Título<input name="title" class="form-input" [(ngModel)]="portfolio.title" required></label>
 <label class="form-label">Categoría<select name="category" class="form-input" [(ngModel)]="portfolio.category"><option value="CURSO">Curso</option><option value="CAPACITACION">Capacitación</option><option value="PROYECTO">Proyecto</option></select></label>
 <label class="form-label">Descripción<textarea name="description" class="form-input" [(ngModel)]="portfolio.description" required></textarea></label>
 <label class="form-label">Fecha<input name="date" type="date" class="form-input" [(ngModel)]="portfolio.activityDate" required></label>
 <label class="form-label">Adjunto (URL)<input name="media" class="form-input" [(ngModel)]="portfolio.mediaUrl"></label>
-<div class="form-actions"><button class="btn-secondary" type="button" (click)="showPortfolioForm=false">Cancelar</button><button class="btn-primary" type="submit" [disabled]="portfolioBusy">Guardar</button></div>
+<div class="form-actions"><button class="btn-secondary" type="button" (click)="confirmDiscard(ecoForm1, 'showPortfolioForm')">Cancelar</button><button class="btn-primary" type="submit" [disabled]="portfolioBusy">Guardar</button></div>
 </form></div>}
 </div>}
 }

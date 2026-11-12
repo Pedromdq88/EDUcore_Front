@@ -1,19 +1,48 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { inject } from '@angular/core';
+import { UiDialogService } from '../../services/ui-dialog/ui-dialog';
+import { NgForm } from '@angular/forms';
+import { canDiscardForm } from '../../utils/forms/form-ux';
+import { ValidateSubmitDirective } from '../../utils/forms/validate-submit.directive'
+import { FieldValidationDirective } from '../../utils/forms/field-validation.directive';
+import { ViewChild, Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { StudentService } from '../../services/student/student';
 import { Student } from '../../models/student';
 
-@Component({selector:'app-student-records',standalone:true,imports:[FormsModule,RouterLink],templateUrl:'./student-records.html',styleUrl:'./student-records.css'})
+@Component({
+  changeDetection: ChangeDetectionStrategy.Eager,selector:'app-student-records',standalone:true,imports: [FieldValidationDirective, ValidateSubmitDirective, FormsModule,RouterLink],templateUrl:'./student-records.html',styleUrl:'./student-records.css'})
 export class StudentRecords implements OnInit {
+  private readonly formCdr = inject(ChangeDetectorRef);
+
+  private readonly dialogs=inject(UiDialogService);
+
+  readonly canDiscardForm = canDiscardForm;
+  @ViewChild(NgForm) private activeForm?: NgForm;
+  async closeMedicalEditor(): Promise<void> {
+    if(this.busy || (this.activeForm?.dirty &&
+      !(await this.dialogs.confirm('Tenés cambios sin guardar. ¿Querés descartarlos?', 'Descartar cambios')))) return;
+    this.medicalModal=false;
+    this.formCdr.markForCheck();
+  }
  students=signal<Student[]>([]);records=signal<any[]>([]);linkedTutors=signal<any[]>([]);medical:any={};medicalDraft:any={};medicalExists=signal(false);medicalModal=false;
  private selectedState=signal('');
  get selectedId():string{return this.selectedState();}
  set selectedId(value:string){this.selectedState.set(value);}
- error='';message='';private loadingState=signal(false);
+ private readonly errorState = signal('');
+  get error(): string {return this.errorState();}
+  set error(value: string) {this.errorState.set(value);}
+  private readonly messageState = signal('');
+  get message(): string {return this.messageState();}
+  set message(value: string) {this.messageState.set(value);}
+  private loadingState=signal(false);
  get loading():boolean{return this.loadingState();}
  set loading(value:boolean){this.loadingState.set(value);}
- busy=false;studentQuery='';expandedRecord='';private loadGeneration=0;
+ private readonly busyState = signal(false);
+  get busy(): boolean {return this.busyState();}
+  set busy(value: boolean) {this.busyState.set(value);}
+  studentQuery='';expandedRecord='';private loadGeneration=0;
  mode:'medical'|'pickups'|'restrictions'='medical';editPickupId='';showForm=false;
  pickup:any={fullName:'',documentNumber:'',birthDate:'',relationship:'',phone:''};
  restriction:any={firstName:'',lastName:'',documentType:'DNI',documentNumber:'',description:'',legajoNumber:'',matrixNumber:'',folioNumber:'',inscriptionDate:''};
@@ -54,7 +83,8 @@ export class StudentRecords implements OnInit {
      error:()=>{if(reqId!==this.loadGeneration)return;this.loading=false;this.error='No se pudieron consultar los registros del alumno.';}});
  }
  openMedical():void {if(!this.canEdit)return;this.medicalDraft={...this.medical};this.medicalModal=true;this.error='';}
- saveMedical():void {if(!this.selectedId||!this.canEdit)return;this.busy=true;this.error='';
+ saveMedical():void {if(this.busy)return;
+if(!this.selectedId||!this.canEdit)return;this.busy=true;this.error='';
   this.api.saveMedicalRecord(this.selectedId,this.medicalDraft).subscribe({next:()=>{this.busy=false;this.medicalModal=false;this.load();this.message='Ficha médica guardada.';},error:e=>{this.busy=false;this.error='No se pudo guardar la ficha médica (HTTP '+(e.status||'sin conexión')+').';}});
  }
  authorizeTutor(t:any):void {
@@ -62,16 +92,46 @@ export class StudentRecords implements OnInit {
   this.editPickupId='';
  }
  openPickup(item?:any):void {this.error='';this.showForm=true;this.editPickupId=item?.id||'';this.pickup=item?{...item}:{fullName:'',documentNumber:'',birthDate:'',relationship:'',phone:''};}
- savePickup():void {if(!this.selectedId||!this.pickup.fullName.trim()||!this.pickup.documentNumber.trim()||!this.pickup.birthDate)return;
+ savePickup():void {if(this.busy)return;
+
+  if(!this.selectedId || !this.pickup.fullName?.trim() || !this.pickup.documentNumber?.trim() ||
+     !this.pickup.birthDate || !this.pickup.relationship?.trim() || !this.pickup.phone?.trim()) {
+    this.error='Completá nombre, DNI, nacimiento, vínculo y teléfono del autorizado.';
+    return;
+  }
+  const dni = String(this.pickup.documentNumber).trim();
+  if(!/^\d{6,12}$/.test(dni)) {this.error='El DNI del autorizado debe tener de 6 a 12 dígitos.';return;}
+  this.pickup.documentNumber=dni;
+  if(!/^[0-9]{6,20}$/.test(String(this.pickup.phone).trim())){this.error='El teléfono debe tener solo números, de 6 a 20 dígitos.';return;}
   if(!/^\d{4}-\d{2}-\d{2}$/.test(this.pickup.birthDate) || !Number.isFinite(this.age(this.pickup.birthDate))){this.error='Ingresá una fecha de nacimiento válida.';return;}
   const age=this.age(this.pickup.birthDate);if(age<18){this.error='La persona autorizada debe ser mayor de 18 años.';return;}
   this.busy=true;this.error='';const data={...this.pickup,age};const req=this.editPickupId?this.api.updateAuthorizedPickup(this.selectedId,this.editPickupId,data):this.api.createAuthorizedPickup(this.selectedId,data);
   req.subscribe({next:()=>{this.busy=false;this.load();},error:e=>{this.busy=false;this.error='No se pudo guardar la autorización (HTTP '+(e.status||'sin conexión')+').';}});
  }
  age(date:string):number {const born=new Date(date+'T12:00:00');const today=new Date();return today.getFullYear()-born.getFullYear()-(today.getMonth()<born.getMonth()||(today.getMonth()===born.getMonth()&&today.getDate()<born.getDate())?1:0);}
- removePickup(id:string):void {if(!this.selectedId||!confirm('¿Eliminar esta persona autorizada?'))return;this.api.deleteAuthorizedPickup(this.selectedId,id).subscribe({next:()=>this.load(),error:()=>this.error='No se pudo eliminar el autorizado.'});}
- saveRestriction():void {if(!this.selectedId||!this.restriction.firstName.trim()||!this.restriction.lastName.trim()||!this.restriction.description.trim())return;
+ async removePickup(id:string):Promise<void>{if(!this.selectedId||!(await this.dialogs.confirm('¿Eliminar esta persona autorizada?')))return;this.api.deleteAuthorizedPickup(this.selectedId,id).subscribe({next:()=>this.load(),error:()=>this.error='No se pudo eliminar el autorizado.'});}
+ saveRestriction():void {if(this.busy)return;
+
+  if(!this.selectedId || !this.restriction.firstName?.trim() || !this.restriction.lastName?.trim() ||
+     !this.restriction.documentType?.trim() || !this.restriction.documentNumber?.trim() ||
+     !this.restriction.description?.trim()){
+    this.error='Completá nombre, apellido, tipo y número de documento y descripción de la medida.';
+    return;
+  }
+  if(!/^[0-9]{6,12}$/.test(String(this.restriction.documentNumber).trim())){this.error='El DNI de la restricción debe ser solo numérico (6 a 12 dígitos).';return;}
   this.busy=true;this.error='';this.api.createJudicialRestriction(this.selectedId,this.restriction).subscribe({next:()=>{this.busy=false;this.load();},error:e=>{this.busy=false;this.error='No se pudo guardar la restricción (HTTP '+(e.status||'sin conexión')+').';}});
  }
- removeRestriction(id:string):void {if(!this.selectedId||!confirm('¿Eliminar esta restricción judicial?'))return;this.api.deleteJudicialRestriction(this.selectedId,id).subscribe({next:()=>this.load(),error:()=>this.error='No se pudo eliminar la restricción.'});}
+ async removeRestriction(id:string):Promise<void>{if(!this.selectedId||!(await this.dialogs.confirm('¿Eliminar esta restricción judicial?')))return;this.api.deleteJudicialRestriction(this.selectedId,id).subscribe({next:()=>this.load(),error:()=>this.error='No se pudo eliminar la restricción.'});}
+
+  /** Conservar los campos hasta que la persona acepte descartar los cambios. */
+  async confirmDiscard(form: { dirty?: boolean | null } | null | undefined, target: string): Promise<void> {
+    if (form?.dirty && !(await this.dialogs.confirm('Tenés cambios sin guardar. ¿Querés descartarlos?', 'Descartar cambios'))) return;
+    this.formCdr.markForCheck();
+    if (target === 'dismissed') {
+      (this as any).dismissed?.emit();
+    } else {
+      (this as any)[target] = false;
+      this.formCdr.markForCheck();
+    }
+  }
 }

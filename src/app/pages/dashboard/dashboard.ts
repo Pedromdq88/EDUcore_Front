@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AnnouncementService } from '../../services/announcements/announcements';
@@ -9,6 +9,7 @@ import { StudentService } from '../../services/student/student';
 
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-dashboard',
   standalone: true,
   imports: [CommonModule, RouterModule],

@@ -1,3 +1,9 @@
+import { ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { inject } from '@angular/core';
+import { UiDialogService } from '../../services/ui-dialog/ui-dialog';
+import { canDiscardForm } from '../../utils/forms/form-ux';
+import { ValidateSubmitDirective } from '../../utils/forms/validate-submit.directive'
+import { FieldValidationDirective } from '../../utils/forms/field-validation.directive';
 import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CalendarService } from '../../services/calendar/calendar';
@@ -6,16 +12,29 @@ import { ShiftService } from '../../services/shift/shift';
 interface RoomSchedule {id:string;classroomId:string;subject:string;teacherName:string;dayOfWeek:number;startTime:string;endTime:string}
 interface SchoolEvent {id:string;date:string;title:string;category:string;section:string}
 
-@Component({selector:'app-calendar',standalone:true,imports:[FormsModule],templateUrl:'./calendar.html',styleUrl:'./calendar.css'})
+@Component({
+  changeDetection: ChangeDetectionStrategy.Eager,selector:'app-calendar',standalone:true,imports: [FieldValidationDirective, ValidateSubmitDirective, FormsModule],templateUrl:'./calendar.html',styleUrl:'./calendar.css'})
 export class Calendar implements OnInit {
+  private readonly formCdr = inject(ChangeDetectorRef);
+
+  private readonly dialogs=inject(UiDialogService);
+
+  readonly canDiscardForm = canDiscardForm;
   section:'school'|'rooms'='school';roomView:'week'|'month'='week';monthOffset=0;
-  roomFilter='';newEvent=false;selectedEvent:SchoolEvent|null=null;newSchedule=false;editingScheduleId='';error='';busy=false;
+  roomFilter='';newEvent=false;selectedEvent:SchoolEvent|null=null;newSchedule=false;editingScheduleId='';private readonly errorState = signal('');
+  get error(): string {return this.errorState();}
+  set error(value: string) {this.errorState.set(value);}
+  private readonly busyState = signal(false);
+  get busy(): boolean {return this.busyState();}
+  set busy(value: boolean) {this.busyState.set(value);}
+  
   rooms=signal<any[]>([]);schedules=signal<RoomSchedule[]>([]);events=signal<SchoolEvent[]>([]);
   days=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
   eventTitle='';eventDate='';eventCategory='GENERAL';eventSection='GENERAL';
   classroomId='';subject='';teacherName='';dayOfWeek=1;startTime='08:00';endTime='09:00';
   constructor(private calendar:CalendarService,private shifts:ShiftService){}
   ngOnInit():void {this.loadAll();}
+  openNewEvent():void {if(!this.canEdit)return;this.error='';this.newEvent=true;}
   get canEdit():boolean{return ['DIRECTOR','ADMINISTRATIVE'].includes(sessionStorage.getItem('current_user_role')||'');}
   get isTutor():boolean{return sessionStorage.getItem('current_user_role')==='TUTOR';}
   get monthDate():Date {const now=new Date();return new Date(now.getFullYear(),now.getMonth()+this.monthOffset,1);}
@@ -44,26 +63,28 @@ export class Calendar implements OnInit {
       this.shifts.getClassSchedules().subscribe({next:a=>this.schedules.set(a),error:()=>this.error='No se pudieron cargar los horarios.'});
     }
   }
-  saveEvent():void {
+  saveEvent():void {if(this.busy)return;if(this.busy)return;
+
     if(!this.canEdit || !this.eventTitle.trim() || !this.eventDate)return;
     this.busy=true;this.calendar.createEvent({title:this.eventTitle.trim(),date:this.eventDate,category:this.eventCategory,section:this.eventSection}).subscribe({
       next:()=>{this.busy=false;this.newEvent=false;this.eventTitle='';this.loadAll();},
       error:()=>{this.busy=false;this.error='No se pudo registrar el evento.';}
     });
   }
-  openEventOn(date:string):void{if(!this.canEdit)return;this.eventDate=date;this.eventTitle='';this.eventCategory='GENERAL';this.eventSection='GENERAL';this.newEvent=true;}
+  openEventOn(date:string):void{if(!this.canEdit)return;this.error='';this.eventDate=date;this.eventTitle='';this.eventCategory='GENERAL';this.eventSection='GENERAL';this.newEvent=true;}
   viewEvent(event:SchoolEvent):void{this.selectedEvent=event;}
-  removeEvent(id:string):void{
-    if(!this.canEdit || !confirm('¿Eliminar este evento?'))return;
+  async removeEvent(id:string):Promise<void>{
+    if(!this.canEdit || !(await this.dialogs.confirm('¿Eliminar este evento?')))return;
     this.calendar.deleteEvent(id).subscribe({next:()=>this.loadAll(),error:()=>this.error='No se pudo eliminar el evento.'});
   }
-  openSchedule(record?:RoomSchedule):void {
+  openSchedule(record?:RoomSchedule):void {this.error='';
     this.newSchedule=true;this.editingScheduleId=record?.id||'';
     this.classroomId=record?.classroomId||this.rooms()[0]?.id||'';this.subject=record?.subject||'';
     this.teacherName=record?.teacherName||'';this.dayOfWeek=record?.dayOfWeek||1;
     this.startTime=record?.startTime?.slice(0,5)||'08:00';this.endTime=record?.endTime?.slice(0,5)||'09:00';
   }
-  saveSchedule():void {
+  saveSchedule():void {if(this.busy)return;if(this.busy)return;
+
     if(!this.canEdit || !this.classroomId || !this.subject.trim() || !this.teacherName.trim() || !this.startTime || !this.endTime)return;
     if(this.startTime>=this.endTime){this.error='La hora de finalización debe ser posterior a la inicial.';return;}
     this.error='';this.busy=true;
@@ -73,8 +94,20 @@ export class Calendar implements OnInit {
       error:(err)=>{this.busy=false;this.error=err.status===409?'Superposición: el aula o docente ya tiene un horario en ese momento.':'No se pudo guardar el horario.';}
     });
   }
-  removeSchedule(id:string):void{
-    if(!this.canEdit || !confirm('¿Eliminar este horario recurrente?'))return;
+  async removeSchedule(id:string):Promise<void>{
+    if(!this.canEdit || !(await this.dialogs.confirm('¿Eliminar este horario recurrente?')))return;
     this.shifts.deleteClassSchedule(id).subscribe({next:()=>this.loadAll(),error:()=>this.error='No se pudo eliminar el horario.'});
+  }
+
+  /** Conservar los campos hasta que la persona acepte descartar los cambios. */
+  async confirmDiscard(form: { dirty?: boolean | null } | null | undefined, target: string): Promise<void> {
+    if (form?.dirty && !(await this.dialogs.confirm('Tenés cambios sin guardar. ¿Querés descartarlos?', 'Descartar cambios'))) return;
+    this.formCdr.markForCheck();
+    if (target === 'dismissed') {
+      (this as any).dismissed?.emit();
+    } else {
+      (this as any)[target] = false;
+      this.formCdr.markForCheck();
+    }
   }
 }

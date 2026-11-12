@@ -1,19 +1,27 @@
-<div class="view-wrapper"><div class="view-header"><div><p class="eyebrow">COMUNICACIÓN ESCOLAR</p><h2 class="view-title">Tablón de comunicados</h2><p class="view-subtitle">Avisos institucionales, por sala y privados</p></div>
+<div class="view-wrapper"><div class="view-header"><div><p class="eyebrow">COMUNICACIÓN ESCOLAR</p><h2 class="view-title">Tablón de comunicados</h2><p class="view-subtitle">Avisos institucionales y por sala</p></div>
 @if(canEdit){<button type="button" class="btn-primary" (click)="openNew()">+ Nuevo comunicado</button>}</div>
 @if(error){<p class="eco-error" role="alert">{{error}}</p>}
-@if(creating){<form class="eco-card announcement-form" (ngSubmit)="save()"><h3 class="block-title">{{editingId?'Editar comunicado':'Nuevo comunicado'}}</h3>
+@if(creating){<form appValidateSubmit novalidate class="eco-card announcement-form" #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (save())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
+<h3 class="block-title">{{editingId?'Editar comunicado':'Nuevo comunicado'}}</h3>
 <div class="form-grid"><label class="form-label">Título *<input class="form-input" name="title" [(ngModel)]="title" required></label>
 <label class="form-label">Categoría<select class="form-input" name="category" [(ngModel)]="category"><option value="GENERAL">General</option><option value="IMPORTANTE">Importante</option><option value="EVENTO">Evento</option><option value="URGENTE">Urgente</option></select></label>
-<label class="form-label">Destinatarios<select class="form-input" name="scope" [(ngModel)]="scope"><option value="GLOBAL" [disabled]="isTeacher">Toda la escuela</option><option value="CLASSROOM">Sala / sección</option>@if(canPrivate){<option value="PRIVATE_STUDENT">Alumno en particular</option>}</select></label>
+<label class="form-label">Destinatarios<select class="form-input" name="scope" [(ngModel)]="scope"><option value="GLOBAL" [disabled]="isTeacher">Toda la escuela</option><option value="CLASSROOM">Sala / sección</option></select></label>
 @if(scope==='CLASSROOM'){<label class="form-label">Aula destinataria<select class="form-input" name="targetClassroom" [(ngModel)]="targetClassroom"><option value="">Seleccionar</option>@for(r of rooms();track r.id){<option [value]="r.name">{{r.name}}</option>}</select></label>}
-@if(scope==='PRIVATE_STUDENT'){<label class="form-label">Alumno destinatario<select class="form-input" name="targetStudentId" [(ngModel)]="targetStudentId"><option value="">Seleccionar</option>@for(s of students();track s.id){<option [value]="s.id">{{s.lastName}}, {{s.firstName}} · {{s.classroom}}</option>}</select></label>}
+
 <label class="form-label">URL de adjunto (opcional)<input class="form-input" name="mediaUrl" [(ngModel)]="mediaUrl"></label>
 <label class="form-label full-row">Contenido *<textarea class="form-input" name="content" [(ngModel)]="content" rows="5" required></textarea></label>
 <label class="eco-check"><input type="checkbox" name="pinned" [(ngModel)]="isPinned"> Destacar comunicado</label></div>
-<div class="form-actions"><button type="button" class="btn-secondary" (click)="creating=false">Cancelar</button><button type="submit" class="btn-primary" [disabled]="busy">Guardar comunicado</button></div></form>}
+<div class="form-actions"><button type="button" class="btn-secondary" (click)="confirmDiscard(ecoForm1, 'creating')">Cancelar</button><button type="submit" class="btn-primary" [disabled]="busy">Guardar comunicado</button></div></form>}
 @if(items().length===0){<p class="eco-empty">No hay comunicados publicados.</p>}
-<div class="announcement-list">@for(a of items();track a.id){<article class="eco-card announcement-item">
-<div class="announcement-top"><span class="category-badge">{{a.isPinned?'DESTACADO · ':''}}{{a.category||'GENERAL'}}</span><span class="eco-muted text-xs">{{a.scope==='GLOBAL'?'Toda la escuela':a.scope==='CLASSROOM'?'Sala: '+a.targetClassroom:'Privado para alumno'}}</span></div>
+<div class="announcement-list">@for(a of items();track a.id){<article class="eco-card announcement-item" [class.private-student-notice]="a.scope==='PRIVATE_STUDENT'">
+<div class="announcement-top">
+@if(a.scope==='PRIVATE_STUDENT'){
+  <span class="category-badge private-category"><span class="material-icons-outlined" aria-hidden="true">lock</span> Aviso privado</span>
+  <span class="private-notice-recipient">Dirigido a: <strong>{{recipientName(a.targetStudentId)}}</strong></span>
+}@else{
+  <span class="category-badge">{{a.isPinned?'DESTACADO · ':''}}{{a.category||'GENERAL'}}</span>
+  <span class="eco-muted text-xs">{{a.scope==='GLOBAL'?'Toda la escuela':'Sala: '+a.targetClassroom}}</span>
+}</div>
 <h3>{{a.title}}</h3><p class="announcement-body">{{a.content}}</p>@if(a.mediaUrl){<a [href]="a.mediaUrl" target="_blank" rel="noopener noreferrer">Ver adjunto</a>}
 <div class="announcement-bottom"><span>{{a.authorName||'Institución'}} · {{a.createdAt?(a.createdAt | date:'dd/MM/yyyy'):''}}</span>
 @if(canEdit && !(isTeacher && a.category==='OBSERVACION')){<div class="eco-row"><button class="btn-sm" type="button" (click)="edit(a)">Editar</button><button class="btn-danger" type="button" (click)="remove(a.id)">Eliminar</button></div>}</div></article>}</div>

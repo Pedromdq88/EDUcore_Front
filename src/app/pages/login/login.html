@@ -7,7 +7,8 @@
       <p class="login-subtitle">Sistema de Gestión Escolar · Multi-Tenant</p>
     </div>
     <div class="login-separator"><span>ACCESO INSTITUCIONAL</span></div>
-    <form class="login-form" (ngSubmit)="handleLogin()">
+    <form appValidateSubmit novalidate class="login-form" #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (handleLogin())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
+
       <div class="form-group"><label for="loginInstitutionSelect">Institución educativa</label>
         <select id="loginInstitutionSelect" name="institution" [(ngModel)]="institutionId" class="form-control" required>
           <option value="">{{ institutionsLoading ? 'Cargando instituciones…' : 'Seleccioná tu institución' }}</option>

@@ -3,7 +3,8 @@
  <span class="badge-role">{{subjects().length}} materias</span></div>
  <div class="subject-layout">
   <section class="eco-card"><h3 class="block-title">Nueva materia / Asignatura</h3><p class="eco-muted text-xs">Agregá una materia al catálogo oficial del establecimiento.</p>
-   <form (ngSubmit)="add()"><label class="form-label" for="subjectName">Nombre de la materia *</label><input id="subjectName" name="name" class="form-input" [(ngModel)]="name" placeholder="Ej. Matemática, Música, Historia" required [disabled]="!canEdit">
+   <form appValidateSubmit novalidate #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (add())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
+<label class="form-label" for="subjectName">Nombre de la materia *</label><input id="subjectName" name="name" class="form-input" [(ngModel)]="name" placeholder="Ej. Matemática, Música, Historia" required [disabled]="!canEdit">
    <button type="submit" class="btn-primary full-button" [disabled]="!canEdit || busy"><span class="material-icons-outlined">save</span>Guardar asignatura</button></form>
    @if(!canEdit){<p class="eco-muted text-xs">Solo Dirección y Administración pueden modificar el catálogo.</p>}
   </section>

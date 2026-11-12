@@ -11,6 +11,7 @@ import { TutorForm } from './pages/tutor/tutor-form/tutor-form';
 import { TutorDetail } from './pages/tutor/tutor-detail/tutor-detail';
 import { TenantDetail } from './pages/tenant/tenant-detail/tenant-detail';
 import { TenantForm } from './pages/tenant/tenant-form/tenant-form';
+import { YearPromotion } from './pages/year-promotion/year-promotion';
 import { FeeList } from './pages/fee/fee-list/fee-list';
 import { FeeDetail } from './pages/fee/fee-detail/fee-detail';
 import { ShiftList } from './pages/shift/shift-list/shift-list';
@@ -25,6 +26,7 @@ import { Calendar } from './pages/calendar/calendar';
 import { StudentRecords } from './pages/student-records/student-records';
 import { TutorHome } from './pages/tutor-home/tutor-home';
 import { TutorStudentDetail } from './pages/tutor-home/tutor-student-detail';
+import { TutorStudentMedical } from './pages/tutor-home/tutor-student-medical';
 import { ForcedPassword } from './pages/forced-password/forced-password';
 import { MyStaff } from './pages/my-staff/my-staff';
 
@@ -58,6 +60,7 @@ export const routes: Routes = [
   // Institución
   { path: 'school-profile', component: TenantDetail ,canActivate: [authGuard], data: { roles: CAPABILITY_ROLES['school'] }},
   { path: 'school-profile/edit', component: TenantForm ,canActivate: [authGuard], data: { roles: CAPABILITY_ROLES['school-edit'] }},
+  { path: 'school-profile/promotion', component: YearPromotion, canActivate: [authGuard], data: { roles:['DIRECTOR','ADMINISTRATIVE'] } },
 
   // Cuotas
   { path: 'fees', component: FeeList ,canActivate: [authGuard], data: { roles: CAPABILITY_ROLES['fees'] }},
@@ -69,6 +72,7 @@ export const routes: Routes = [
 
   { path:'my-profile',component:MyStaff,canActivate:[authGuard],data:{roles:CAPABILITY_ROLES['my-profile']} },
   { path:'my-students',data:{roles:CAPABILITY_ROLES['my-students']},component:TutorHome,canActivate:[authGuard] },
+  { path:'my-students/:id/medical',data:{roles:CAPABILITY_ROLES['my-students']},component:TutorStudentMedical,canActivate:[authGuard] },
   { path:'my-students/:id',data:{roles:CAPABILITY_ROLES['my-students']},component:TutorStudentDetail,canActivate:[authGuard] },
   // Módulos recuperados del frontend tradicional
   { path:'subjects',data:{roles:CAPABILITY_ROLES['subjects']},component:Subjects,canActivate:[authGuard] },

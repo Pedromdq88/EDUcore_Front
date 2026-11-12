@@ -1,4 +1,6 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { ValidateSubmitDirective } from '../../utils/forms/validate-submit.directive'
+import { FieldValidationDirective } from '../../utils/forms/field-validation.directive';
+import { Component, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
@@ -10,9 +12,10 @@ interface VerifyResponse { valid: boolean; message: string; }
 type Stage = 'request' | 'verify' | 'new-password' | 'complete';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-password-recovery',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FieldValidationDirective, ValidateSubmitDirective, FormsModule, RouterLink],
   templateUrl: './password-recovery.html',
   styleUrl: './password-recovery.css'
 })
@@ -29,7 +32,7 @@ export class PasswordRecovery implements OnInit {
   message = signal('');
   error = signal('');
   showPassword = false;
-  private readonly url = 'http://localhost:8080/api/v1/auth';
+  private readonly url = '/api/v1/auth';
 
   constructor(private http: HttpClient, private schools: TenantService) {}
 
@@ -48,6 +51,7 @@ export class PasswordRecovery implements OnInit {
   }
 
   requestCode(): void {
+    if (this.busy()) return;
     if (!this.institutionId || !this.email.trim()) {
       this.error.set('Seleccioná una institución e ingresá tu correo.');
       return;
@@ -75,6 +79,7 @@ export class PasswordRecovery implements OnInit {
   }
 
   verifyCode(): void {
+    if (this.busy()) return;
     if (!/^[0-9]{6}$/.test(this.code.trim())) {
       this.error.set('Ingresá el código de 6 dígitos.');
       return;
@@ -104,6 +109,7 @@ export class PasswordRecovery implements OnInit {
   }
 
   confirmCode(): void {
+    if (this.busy()) return;
     if (this.stage() !== 'new-password') return;
     if (this.nextPassword.length < 12 || this.nextPassword.length > 72) {
       this.error.set('Usá una contraseña de 12 a 72 caracteres.');

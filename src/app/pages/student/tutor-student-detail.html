@@ -1,0 +1,96 @@
+<div class="view-wrapper family-detail">
+  <a class="family-back" routerLink="/my-students"><span class="material-icons-outlined">arrow_back</span> Mis alumnos</a>
+  @if (loading) { <div class="family-panel family-loading" role="status">Cargando el perfil de tu hijo…</div> }
+  @if (error) { <div class="eco-error" role="alert">{{error}}</div> }
+  @if (child(); as s) {
+    <header class="family-hero">
+      <div class="family-icon"><span class="material-icons-outlined">school</span></div>
+      <div class="family-hero-text"><p class="family-eyebrow">PERFIL ESCOLAR · SOLO LECTURA</p>
+        <h2>{{s.firstName}} {{s.lastName}}</h2><p>{{s.classroom || 'Sin sección asignada'}} · {{s.shift || 'Sin turno'}} · Ciclo {{s.academicYear}}</p>
+      </div>
+      <span class="family-status">{{s.status === 'ACTIVE' ? 'Alumno activo' : s.status}}</span>
+    </header>
+    <div class="family-shortcuts">
+      <a routerLink="/announcements"><span class="material-icons-outlined">campaign</span><span>Avisos</span><span class="material-icons-outlined">arrow_forward</span></a>
+      <a routerLink="/fees" [queryParams]="{studentId:s.id}"><span class="material-icons-outlined">payments</span><span>Cuotas</span><span class="material-icons-outlined">arrow_forward</span></a>
+      <a routerLink="/calendar"><span class="material-icons-outlined">event</span><span>Calendario</span><span class="material-icons-outlined">arrow_forward</span></a>
+    </div>
+    <div class="family-columns">
+      <section class="family-panel"><h3><span class="material-icons-outlined">badge</span> Datos del alumno</h3>
+        <div class="family-info">
+          <div><small>DNI</small><strong>{{s.documentNumber || 'No registrado'}}</strong></div>
+          <div><small>Fecha de nacimiento</small><strong>{{s.birthDate | date:'dd/MM/yyyy'}}</strong></div>
+          <div><small>Legajo</small><strong>{{s.legajoNumber || 'Sin número'}}</strong></div>
+          <div><small>CUIL</small><strong>{{s.cuil || 'No registrado'}}</strong></div>
+          <div><small>Nacionalidad</small><strong>{{s.nationality || 'No informada'}}</strong></div>
+          <div><small>País y localidad de nacimiento</small><strong>{{s.birthCountry || '—'}} · {{s.birthLocality || '—'}}</strong></div>
+          <div><small>Provincia de nacimiento</small><strong>{{s.birthProvince || 'No informada'}}</strong></div>
+          <div><small>Identidad de género</small><strong>{{s.genderIdentity || 'No informada'}}</strong></div>
+          <div><small>Ciclo lectivo</small><strong>{{s.academicYear}}</strong></div>
+          <div><small>Sección y turno</small><strong>{{s.classroom || 'Sin aula'}} · {{s.shift || 'Sin turno'}}</strong></div>
+          <div><small>Domicilio registrado</small><strong>{{s.address || 'No informado'}}</strong></div>
+          <div><small>Distrito</small><strong>{{s.addressDistrict || 'No informado'}}</strong></div>
+          <div><small>Hermanos/as</small><strong>{{s.hasSiblings ? (s.siblingCount || 'Sí') : 'No registrados'}}</strong></div>
+          <div><small>Teléfono de contacto</small><strong>{{s.contactPhone || 'No informado'}}</strong></div>
+        </div>
+      </section>
+      <section class="family-panel"><h3><span class="material-icons-outlined">family_restroom</span> Responsables vinculados</h3>
+        @if (!s.tutors.length) { <p class="family-muted">No hay responsables vinculados.</p> }
+        @for (t of s.tutors; track t.id) {
+          <div class="family-person"><span class="family-person-avatar">{{t.firstName[0]}}{{t.lastName[0]}}</span>
+            <div><strong>{{t.firstName}} {{t.lastName}}</strong><small>{{t.relationship || 'Tutor'}} · {{t.phone || 'Sin teléfono'}}</small></div></div>
+        }
+      </section>
+      <section class="family-panel"><h3><span class="material-icons-outlined">medical_services</span> Ficha médica</h3>
+        <p class="family-muted">Información registrada por la institución. No se puede modificar desde esta cuenta.</p>
+        @if (medicalLoading) { <p role="status">Cargando ficha médica…</p> }
+        @if (medicalError) { <p class="eco-error">{{medicalError}}</p> }
+        @if (!medicalLoading && !medicalError) {
+          @if (hasMedical()) { <div class="family-info">
+            @for (field of medicalFields; track field.key) {
+              <div><small>{{field.label}}</small><strong>{{field.value}}</strong></div>
+            }
+          </div> } @else { <p class="family-empty">Todavía no hay una ficha médica cargada.</p> }
+        }
+      </section>
+      <section class="family-panel"><h3><span class="material-icons-outlined">verified_user</span> Personas autorizadas para retiro</h3>
+        @if (pickupsLoading) { <p role="status">Cargando autorizaciones…</p> }
+        @if (pickupError) { <p class="eco-error">{{pickupError}}</p> }
+        @if (!pickupsLoading && !pickupError) {
+          @for (p of pickups(); track p.id) {
+            <div class="family-person"><span class="family-person-avatar"><span class="material-icons-outlined">person</span></span>
+              <div><strong>{{p.fullName}}</strong><small>{{p.relationship}} · DNI {{p.documentNumber}} · {{p.phone}}</small></div></div>
+          } @empty { <p class="family-empty">No hay personas autorizadas adicionales registradas.</p> }
+        }
+      </section>
+      <section class="family-panel family-wide"><h3><span class="material-icons-outlined">campaign</span> Avisos y observaciones para este alumno</h3>
+        @if (noticeLoading) { <p role="status">Cargando avisos…</p> }
+        @if (noticeError) { <p class="eco-error">{{noticeError}}</p> }
+        @if (!noticeLoading && !noticeError) {
+          @for (n of notices(); track n.id) {
+            <article class="family-notice" [class.private-student-notice]="n.scope==='PRIVATE_STUDENT'">
+              @if(n.scope==='PRIVATE_STUDENT'){
+                <span class="private-notice-label"><span class="material-icons-outlined" aria-hidden="true">lock</span> Aviso privado · Dirigido a {{s.firstName}} {{s.lastName}}</span>
+              }
+              <div><strong>{{n.title}}</strong><small>{{n.category || 'Aviso'}} · {{n.createdAt | date:'dd/MM/yyyy'}}</small></div>
+              <p>{{n.content}}</p>
+            </article>
+          } @empty { <p class="family-empty">No hay avisos para este alumno o su sección.</p> }
+        }
+      </section>
+      <section class="family-panel family-wide"><h3><span class="material-icons-outlined">payments</span> Estado de cuotas · Ciclo {{academicYear || '…'}}</h3>
+        <p class="family-muted">Consulta únicamente. Dirección o Administración registran los pagos.</p>
+        @if (feesLoading) { <p role="status">Cargando cuotas…</p> }
+        @if (feeError) { <p class="eco-error">{{feeError}}</p> }
+        @if (!feesLoading && !feeError) {
+          <div class="family-months">@for (m of months; track m.number) {
+            <div class="family-month" [class.paid]="feeState(m.number)==='PAID'"
+                 [class.pending]="feeState(m.number)==='PENDING'||feeState(m.number)==='OVERDUE'">
+              <strong>{{m.label}}</strong><small>{{feeState(m.number)==='PAID'?'Abonada':feeState(m.number)==='PENDING'?'Pendiente':feeState(m.number)==='OVERDUE'?'Vencida':'Sin registro'}}</small>
+            </div>
+          }</div>
+        }
+      </section>
+    </div>
+  }
+</div>
