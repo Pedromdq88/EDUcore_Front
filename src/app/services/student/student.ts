@@ -89,6 +89,18 @@ export class StudentService {
     return this.http.put<any>(`${this.apiUrl}/${studentId}/authorized-pickups/${pickupId}`, payload, {headers:getMultiTenantHeaders()});
   }
 
+  getSiblingOptions(studentId: string): Observable<SiblingOptions> {
+    return this.http.get<SiblingOptions>(`${this.apiUrl}/${studentId}/siblings`, {headers:getMultiTenantHeaders()});
+  }
+
+  confirmSibling(studentId: string, siblingId: string): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/${studentId}/siblings/${siblingId}`, {}, {headers:getMultiTenantHeaders()});
+  }
+
+  removeSibling(studentId: string, siblingId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${studentId}/siblings/${siblingId}`, {headers:getMultiTenantHeaders()});
+  }
+
   // Subrecurso: Cuotas / Aranceles
   getStudentFees(studentId: string, academicYear: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/${studentId}/fees?academicYear=${academicYear}`, { headers: getMultiTenantHeaders() });
@@ -133,3 +145,5 @@ export class StudentService {
     return this.http.delete(`${this.apiUrl}/${studentId}/judicial-restrictions/${restrictionId}`, { headers: getMultiTenantHeaders() });
   }
 }
+export interface LinkedSibling { id: string; firstName: string; lastName: string; classroom: string | null; }
+export interface SiblingOptions { confirmed: LinkedSibling[]; candidates: LinkedSibling[]; }

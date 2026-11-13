@@ -5,23 +5,46 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AnnouncementService } from '../../../services/announcements/announcements';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { StudentService } from '../../../services/student/student';
+import { StudentService, LinkedSibling } from '../../../services/student/student';
 import { Student } from '../../../models/student';
+import { PickupMiniProfile } from '../../../components/pickup-mini-profile/pickup-mini-profile';
 import { StudentForm } from '../student-form/student-form';
 import { PrivateStudentAnnouncement } from '../../../components/private-student-announcement/private-student-announcement';
+import { studentAgeAtCutoff } from '../../../utils/classroom-date';
+
+interface StudentProfile extends Student {
+  hasCpi?: boolean;
+  hasForeignDocument?: boolean;
+  foreignDocumentType?: string;
+  foreignDocumentNumber?: string;
+  birthDistrict?: string;
+  addressDistrict?: string;
+  otherAddressDetails?: string;
+  speaksOtherLanguageAtHome?: boolean;
+  indigenousLanguage?: boolean;
+  otherLanguage?: boolean;
+  bloodType?: string;
+  healthInsurance?: string;
+  allergies?: string;
+  birthPlace?: string;
+  address?: string;
+}
 
 @Component({
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-student-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, StudentForm, PrivateStudentAnnouncement],
+  imports: [CommonModule, FormsModule, RouterModule, StudentForm, PrivateStudentAnnouncement, PickupMiniProfile],
   templateUrl: './student-detail.html',
   styleUrl: './student-detail.css'
 })
 export class StudentDetail implements OnInit {
   private readonly dialogs=inject(UiDialogService);
 
-  student = signal<Student | null>(null); editOpen=false; privateNoticeOpen=false; privateNoticeToEdit:any|null=null; privateNoticeSuccess='';
+  confirmedSiblings = signal<LinkedSibling[]>([]);
+  siblingCandidates = signal<LinkedSibling[]>([]);
+  siblingError=''; siblingBusy=false;
+  student = signal<StudentProfile | null>(null); editOpen=false; privateNoticeOpen=false; privateNoticeToEdit:any|null=null; privateNoticeSuccess='';
   privateNotices=signal<any[]>([]);
   observation='';observationBusy=false;observationMessage='';observationError='';
   get isTeacher():boolean{return sessionStorage.getItem('current_user_role')==='TEACHER';}
@@ -44,6 +67,34 @@ export class StudentDetail implements OnInit {
   get canViewRestrictions():boolean{return this.canViewMedical;}
   get canViewFamily():boolean{return !['TEACHER'].includes(sessionStorage.getItem('current_user_role')||'');}
 
+  readonly ageAtCutoff = studentAgeAtCutoff;
+
+  get primaryTutor(): any | null {
+    const current = this.student();
+    const tutors = current?.tutors || [];
+    return tutors.find(t => t.id === current?.primaryTutorId)
+      ?? (tutors.length === 1 ? tutors[0] : null);
+  }
+
+  displayValue(value: unknown): string {
+    if (value === null || value === undefined || value === '') return 'No informado';
+    if (typeof value === 'boolean') return value ? 'Sí' : 'No';
+    return String(value);
+  }
+
+  displayShift(value: string | undefined): string {
+    if (value === 'MANANA') return 'Mañana';
+    if (value === 'TARDE') return 'Tarde';
+    if (value === 'AMBOS') return 'Ambos turnos';
+    return this.displayValue(value);
+  }
+
+  displayStatus(value: string | undefined): string {
+    if (value === 'ACTIVE') return 'Activo';
+    if (value === 'INACTIVE') return 'Inactivo';
+    return this.displayValue(value);
+  }
+
   constructor(
     private route: ActivatedRoute,
     private studentService: StudentService,private router:Router,private announcements:AnnouncementService
@@ -59,9 +110,47 @@ export class StudentDetail implements OnInit {
   loadStudentData(id: string) {
     this.studentService.getStudentById(id).subscribe(data => this.student.set(data));
     if(this.canManagePrivateNotices)this.loadPrivateNotices(id);
+    if(this.canViewFamily)this.loadSiblings(id);
     if(this.canViewMedical)this.studentService.getMedicalRecord(id).subscribe(data => this.medicalRecord.set(data));
     if(this.canViewPickups)this.studentService.getAuthorizedPickups(id).subscribe(data => this.pickups.set(data));
     if(this.canViewRestrictions)this.studentService.getJudicialRestrictions(id).subscribe(data => this.restrictions.set(data));
+  }
+
+  private loadSiblings(studentId: string): void {
+    this.studentService.getSiblingOptions(studentId).subscribe({
+      next: options => {
+        this.confirmedSiblings.set(options.confirmed);
+        this.siblingCandidates.set(options.candidates);
+        this.siblingError='';
+      },
+      error: () => {this.siblingError='No se pudieron consultar los vínculos de hermanos.';}
+    });
+  }
+
+  async confirmSibling(candidate: LinkedSibling): Promise<void> {
+    const student=this.student();
+    if (!this.canEditStudent || !student?.id || this.siblingBusy) return;
+    const accepted=await this.dialogs.confirm(
+      `¿Confirmás que ${candidate.firstName} ${candidate.lastName} es hermano/a de ${student.firstName} ${student.lastName}?`,
+      'Confirmar vínculo familiar'
+    );
+    if (!accepted) return;
+    this.siblingBusy=true;
+    this.studentService.confirmSibling(student.id, candidate.id).subscribe({
+      next:()=>{this.siblingBusy=false;this.loadSiblings(student.id!);},
+      error:()=>{this.siblingBusy=false;this.siblingError='No se pudo guardar el vínculo de hermanos.';}
+    });
+  }
+
+  async removeSibling(sibling: LinkedSibling): Promise<void> {
+    const student=this.student();
+    if (!this.canEditStudent || !student?.id || this.siblingBusy) return;
+    if (!(await this.dialogs.confirm(`¿Quitar el vínculo de hermanos con ${sibling.firstName} ${sibling.lastName}?`, 'Quitar vínculo'))) return;
+    this.siblingBusy=true;
+    this.studentService.removeSibling(student.id, sibling.id).subscribe({
+      next:()=>{this.siblingBusy=false;this.loadSiblings(student.id!);},
+      error:()=>{this.siblingBusy=false;this.siblingError='No se pudo quitar el vínculo de hermanos.';}
+    });
   }
 
   private loadPrivateNotices(studentId:string):void{

@@ -27,6 +27,10 @@
   </div></div>}
  </div></div>
  <button class="btn-secondary" type="button" (click)="openTutorModal()">+ Agregar tutor (ventana emergente)</button>
+ @if(selectedTutorOne){<p class="eco-muted">Contacto principal: {{selectedTutorOne.firstName}} {{selectedTutorOne.lastName}} · {{selectedTutorOne.phone || 'Sin teléfono registrado'}}. Se toma del tutor, no se duplica en el alumno.</p>}
+ @if(possibleSiblings.length){<div class="possible-siblings" role="status"><strong>Posibles hermanos en esta escuela</strong><p>Estos alumnos comparten un tutor, pero no se consideran hermanos hasta que se confirme el vínculo en el perfil del alumno.</p>
+   @for(other of possibleSiblings;track other.id){<span>{{other.firstName}} {{other.lastName}} · {{other.classroom || 'Sin asignar'}}</span>}
+ </div>}
  <h3 class="block-title">Identidad y documentación</h3><div class="form-grid">
  <label class="form-label">Nombre *<input class="form-input" name="firstName" [(ngModel)]="form.firstName" required></label>
  <label class="form-label">Apellido *<input class="form-input" name="lastName" [(ngModel)]="form.lastName" required></label>
@@ -80,7 +84,6 @@
  <label class="form-label">Teléfono fijo<input class="form-input" name="studentLandlinePhone" [(ngModel)]="form.studentLandlinePhone" type="text" inputmode="numeric" pattern="[0-9]{6,20}" maxlength="20"></label>
  <label class="form-label">Celular<input class="form-input" name="studentCellphone" [(ngModel)]="form.studentCellphone" type="text" inputmode="numeric" pattern="[0-9]{6,20}" maxlength="20"></label>
  <label class="form-label">Localidad<input class="form-input" name="addressLocality" [(ngModel)]="form.addressLocality"></label>
- <label class="form-label">Teléfono de contacto<input class="form-input" name="contactPhone" [(ngModel)]="form.contactPhone" type="text" inputmode="numeric" pattern="[0-9]{6,20}" maxlength="20"></label>
  </div>
  <h3 class="block-title eco-subheading">Escolaridad y contexto familiar</h3><div class="form-grid">
  <div class="eco-schoolyear"><strong>Ciclo lectivo activo: {{form.academicYear}}</strong><small>Administrado desde Datos de la escuela; es el único ciclo válido.</small></div>
