@@ -38,3 +38,5 @@
 .family-person-restricted{background:#fff7f7;border-color:#fecdd3}
 .family-person-restricted .family-person-avatar{background:#ffe4e6;color:#be123c}
 @media(max-width:780px){.family-columns{grid-template-columns:1fr}.family-column{gap:14px}}
+
+.family-sibling-link{text-decoration:none;color:inherit}.family-sibling-link:hover{border-color:#10b981;background:#f0fdfa}.family-sibling-link>span:last-child{min-width:0}

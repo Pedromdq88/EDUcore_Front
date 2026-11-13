@@ -3,28 +3,121 @@
 @if(error){<p class="eco-error" role="alert">{{error}}</p>}
 @if(profile();as p){
 <div class="user-header"><div class="avatar">{{p.firstName[0]}}{{p.lastName[0]}}</div><div><p class="eyebrow">MI LEGAJO</p><h1 class="user-name">{{p.firstName}} {{p.lastName}}</h1><span class="tag">{{p.role}}</span></div></div>
-<div class="section-block"><h3 class="block-title">Datos de contacto</h3><div class="info-grid"><div class="info-box"><label>Correo</label><span>{{p.email}}</span></div><div class="info-box"><label>Teléfono</label><span>{{p.phone || 'Sin registrar'}}</span></div></div></div>
+<div class="section-block">
+  <div class="eco-toolbar personal-heading">
+    <h3 class="block-title">Mis datos personales</h3>
+    <button class="btn-primary" type="button" (click)="startPersonalEdit()" [disabled]="editingPersonal">Editar mis datos</button>
+  </div>
+  @if(personalSuccess){<p class="eco-success" role="status">{{personalSuccess}}</p>}
+  <div class="info-grid">
+    <div class="info-box"><label>Nombre</label><span>{{p.firstName}}</span></div>
+    <div class="info-box"><label>Apellido</label><span>{{p.lastName}}</span></div>
+    <div class="info-box"><label>DNI</label><span>{{p.documentNumber || 'No informado'}}</span></div>
+    <div class="info-box"><label>Teléfono</label><span>{{p.phone || 'No informado'}}</span></div>
+    <div class="info-box"><label>Correo de acceso</label><span>{{p.email}}</span></div>
+    <div class="info-box"><label>Fecha de ingreso</label><span>{{p.hireDate || 'No informado'}}</span></div>
+  </div>
+  <p class="eco-muted">El correo de acceso, el rol y las asignaciones se gestionan desde Administración o Dirección.</p>
+</div>
+@if(editingPersonal){
+  <div class="eco-modal-backdrop" role="presentation">
+    <div class="eco-modal personal-modal" role="dialog" aria-modal="true" aria-label="Editar mis datos personales">
+      <form [formGroup]="personalForm" (ngSubmit)="savePersonal()" novalidate>
+        <h3>Editar mis datos</h3>
+        <p class="eco-muted">Los cambios se aplicarán solamente a tu legajo.</p>
+        @if(personalError){<p class="eco-error" role="alert">{{personalError}}</p>}
+        <div class="personal-fields">
+          <fieldset>
+            <label for="personal-firstName">Nombre *</label>
+            <input id="personal-firstName" class="form-input" formControlName="firstName" maxlength="100">
+            @if(firstName.touched && firstName.hasError('required')){<small class="eco-error">El nombre es obligatorio.</small>}
+            @if(firstName.touched && firstName.hasError('minlength')){<small class="eco-error">Ingresá al menos 2 caracteres.</small>}
+          </fieldset>
+          <fieldset>
+            <label for="personal-lastName">Apellido *</label>
+            <input id="personal-lastName" class="form-input" formControlName="lastName" maxlength="100">
+            @if(lastName.touched && lastName.hasError('required')){<small class="eco-error">El apellido es obligatorio.</small>}
+            @if(lastName.touched && lastName.hasError('minlength')){<small class="eco-error">Ingresá al menos 2 caracteres.</small>}
+          </fieldset>
+          <fieldset>
+            <label for="personal-document">DNI</label>
+            <input id="personal-document" class="form-input" formControlName="documentNumber" inputmode="numeric" maxlength="12" autocomplete="off">
+            @if(documentNumber.touched && documentNumber.hasError('pattern')){<small class="eco-error">El DNI debe tener entre 6 y 12 números.</small>}
+          </fieldset>
+          <fieldset>
+            <label for="personal-phone">Teléfono</label>
+            <input id="personal-phone" class="form-input" formControlName="phone" inputmode="numeric" maxlength="20">
+            @if(phone.touched && phone.hasError('pattern')){<small class="eco-error">El teléfono debe tener entre 6 y 20 números.</small>}
+          </fieldset>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="cancelPersonalEdit()" [disabled]="savingPersonal">Cancelar</button>
+          <button type="submit" class="btn-primary" [disabled]="savingPersonal">{{savingPersonal?'Guardando…':'Guardar mis datos'}}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
 <div class="section-block"><h3 class="block-title">Mis asignaciones</h3>
 @if(p.assignments.length===0){<p class="empty-text">No tenés aulas asignadas.</p>}
 @for(a of p.assignments;track a.classroom+a.subject+a.shift){<div class="sub-card"><strong>{{a.classroom}}</strong><p>{{a.subject}} · {{a.shift}}</p></div>}
 </div>
-@if(isTeacher){<div class="section-block"><div class="eco-toolbar"><h3 class="block-title">Mis portfolios</h3>
+@if(canManagePortfolio){<div class="section-block"><div class="eco-toolbar"><h3 class="block-title">Mis portfolios</h3>
 <button class="btn-primary" type="button" (click)="startPortfolio()">+ Nuevo portfolio</button></div>
 @if(portfolioError){<p class="eco-error">{{portfolioError}}</p>}
 @if(portfolios().length===0){<p class="empty-text">No tenés portfolios cargados.</p>}
 @for(item of portfolios();track item.id){<div class="sub-card"><strong>{{item.title}}</strong><p>{{item.description}}</p>
 <div class="eco-row"><button class="btn-sm" type="button" (click)="startPortfolio(item)">Editar</button>
 <button class="btn-danger" type="button" (click)="deletePortfolio(item.id)">Eliminar</button></div></div>}
-@if(showPortfolioForm){<div class="eco-modal-backdrop" role="presentation"><form appValidateSubmit novalidate class="eco-modal" #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (savePortfolio())" role="dialog" aria-modal="true">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
-@if(portfolioError){<p class="eco-error" role="alert">{{portfolioError}}</p>}
-<h3>{{portfolioEditId?'Editar portfolio':'Nuevo portfolio'}}</h3>
-<label class="form-label">Título<input name="title" class="form-input" [(ngModel)]="portfolio.title" required></label>
-<label class="form-label">Categoría<select name="category" class="form-input" [(ngModel)]="portfolio.category"><option value="CURSO">Curso</option><option value="CAPACITACION">Capacitación</option><option value="PROYECTO">Proyecto</option></select></label>
-<label class="form-label">Descripción<textarea name="description" class="form-input" [(ngModel)]="portfolio.description" required></textarea></label>
-<label class="form-label">Fecha<input name="date" type="date" class="form-input" [(ngModel)]="portfolio.activityDate" required></label>
-<label class="form-label">Adjunto (URL)<input name="media" class="form-input" [(ngModel)]="portfolio.mediaUrl"></label>
-<div class="form-actions"><button class="btn-secondary" type="button" (click)="confirmDiscard(ecoForm1, 'showPortfolioForm')">Cancelar</button><button class="btn-primary" type="submit" [disabled]="portfolioBusy">Guardar</button></div>
-</form></div>}
+@if(showPortfolioForm){
+  <div class="eco-modal-backdrop" role="presentation">
+    <form appValidateSubmit novalidate class="eco-modal portfolio-modal" #ecoForm1="ngForm"
+          (ngSubmit)="ecoForm1.valid && savePortfolio()" role="dialog" aria-modal="true"
+          aria-labelledby="portfolio-dialog-title">
+      <div class="portfolio-modal-header">
+        <h3 id="portfolio-dialog-title">{{portfolioEditId ? 'Editar portfolio' : 'Nuevo portfolio'}}</h3>
+        <p class="eco-muted">Completá la información de tu actividad.</p>
+      </div>
+
+      @if(ecoForm1.invalid && ecoForm1.submitted){
+        <p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>
+      }
+      @if(portfolioError){<p class="eco-error" role="alert">{{portfolioError}}</p>}
+
+      <div class="portfolio-form-fields">
+        <label class="form-label portfolio-field-full" for="portfolio-title">
+          Título *
+          <input id="portfolio-title" name="title" class="form-input" [(ngModel)]="portfolio.title" required>
+        </label>
+        <label class="form-label" for="portfolio-category">
+          Categoría
+          <select id="portfolio-category" name="category" class="form-input" [(ngModel)]="portfolio.category">
+            <option value="CURSO">Curso</option>
+            <option value="CAPACITACION">Capacitación</option>
+            <option value="PROYECTO">Proyecto</option>
+          </select>
+        </label>
+        <label class="form-label" for="portfolio-date">
+          Fecha *
+          <input id="portfolio-date" name="date" type="date" class="form-input" [(ngModel)]="portfolio.activityDate" required>
+        </label>
+        <label class="form-label portfolio-field-full" for="portfolio-description">
+          Descripción *
+          <textarea id="portfolio-description" name="description" class="form-input" rows="4" [(ngModel)]="portfolio.description" required></textarea>
+        </label>
+        <label class="form-label portfolio-field-full" for="portfolio-media">
+          Adjunto (URL)
+          <input id="portfolio-media" name="media" class="form-input" [(ngModel)]="portfolio.mediaUrl" placeholder="https://...">
+        </label>
+      </div>
+
+      <div class="form-actions portfolio-modal-actions">
+        <button class="btn-secondary" type="button" (click)="confirmDiscard(ecoForm1, 'showPortfolioForm')">Cancelar</button>
+        <button class="btn-primary" type="submit" [disabled]="portfolioBusy">{{portfolioBusy ? 'Guardando…' : 'Guardar portfolio'}}</button>
+      </div>
+    </form>
+  </div>
+}
 </div>}
 }
 </div></div>

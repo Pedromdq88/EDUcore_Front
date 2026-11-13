@@ -1,40 +1,60 @@
 @if (teacher(); as t) {
   <div class="detail-wrapper">
     <div class="action-bar">
-      <a routerLink="/teachers" class="btn-secondary">
-        <span class="material-icons-outlined">arrow_back</span> Volver al Listado
-      </a>
-      @if(canEdit){<button type="button" class="btn-primary" (click)="editOpen=true">Editar personal</button><button (click)="bajaTeacher()" class="btn-danger">Dar de Baja</button>}
+      <a routerLink="/teachers" class="btn-secondary"><span class="material-icons-outlined">arrow_back</span> Volver al listado</a>
+      @if (canEdit) {
+        <div class="action-buttons">
+          <button type="button" class="btn-primary" (click)="editOpen=true">Editar personal</button>
+          <button type="button" (click)="bajaTeacher()" class="btn-danger">Dar de baja</button>
+        </div>
+      }
     </div>
-
     <div class="detail-card">
-      <div class="user-header">
-        <div class="avatar">{{ t.firstName[0] }}{{ t.lastName[0] }}</div>
+      <header class="user-header">
+        <div class="avatar">{{t.firstName?.[0]}}{{t.lastName?.[0]}}</div>
         <div>
-          <h1 class="user-name">{{ t.lastName }}, {{ t.firstName }}</h1>
+          <h1 class="user-name">{{t.lastName}}, {{t.firstName}}</h1>
           <div class="meta-tags">
-            <span class="tag">Email: {{ t.email }}</span>
-            <span class="tag">Rol: {{ t.role }}</span>
-            <span class="tag emerald">{{ t.status }}</span>
+            <span class="tag">{{roleName(t.role)}}</span>
+            <span class="tag">{{t.email}}</span>
+            <span class="tag emerald">{{t.status || 'Sin estado'}}</span>
           </div>
         </div>
-      </div>
-
-      <!-- Asignaciones Áulicas -->
-      <div class="section-block">
-        <h3 class="block-title">Asignaciones en Aulas</h3>
-        @if (!t.assignments || t.assignments.length === 0) {
-          <p class="empty-text">No tiene asignaciones de materias registradas.</p>
-        } @else {
-          @for (asg of t.assignments; track asg.id) {
-            <div class="sub-card">
-              <span class="font-bold text-xs">{{ asg.subject }}</span> — <span class="text-xs text-slate-500">Aula: {{ asg.classroom }}</span>
+      </header>
+      <section class="section-block">
+        <h3 class="block-title">Identidad y documentación</h3>
+        <div class="staff-info-grid">
+          <div><small>Nombre</small><strong>{{displayValue(t.firstName)}}</strong></div>
+          <div><small>Apellido</small><strong>{{displayValue(t.lastName)}}</strong></div>
+          <div><small>DNI</small><strong>{{displayValue(t.documentNumber)}}</strong></div>
+          <div><small>Rol</small><strong>{{roleName(t.role)}}</strong></div>
+        </div>
+      </section>
+      <section class="section-block">
+        <h3 class="block-title">Contacto y datos laborales</h3>
+        <div class="staff-info-grid">
+          <div><small>Correo institucional</small><strong>{{displayValue(t.email)}}</strong></div>
+          <div><small>Teléfono</small><strong>{{displayValue(t.phone)}}</strong></div>
+          <div><small>Fecha de alta</small><strong>{{t.hireDate ? (t.hireDate | date:'dd/MM/yyyy') : 'No informado'}}</strong></div>
+          <div><small>Estado</small><strong>{{displayValue(t.status)}}</strong></div>
+          <div><small>Aula principal</small><strong>{{t.classroom || 'Sin aula asignada'}}</strong></div>
+          <div><small>Asignaciones</small><strong>{{t.assignments?.length || 0}}</strong></div>
+        </div>
+      </section>
+      <section class="section-block">
+        <h3 class="block-title">Asignaciones de materias y aulas</h3>
+        @for (asg of t.assignments || []; track asg.id || $index) {
+          <div class="staff-assignment-card">
+            <strong>{{asg.subject || 'Sin materia'}}</strong>
+            <div class="staff-assignment-details">
+              <span><span class="material-icons-outlined" aria-hidden="true">school</span> {{asg.classroom || 'Sin aula'}}</span>
+              <span><span class="material-icons-outlined" aria-hidden="true">schedule</span> {{shiftName(asg.shift)}}</span>
+              @if (asg.isClassroomTeacher) {<span class="staff-lead">Docente titular</span>}
             </div>
-          }
-        }
-      </div>
+          </div>
+        } @empty {<p class="empty-text">No tiene asignaciones registradas.</p>}
+      </section>
 
-      <!-- Portfolio Profesional -->
       <div class="section-block">
         <div class="eco-toolbar"><h3 class="block-title">Portfolio y Certificaciones</h3>@if(canEdit){<button type="button" class="btn-secondary" (click)="portfolioOpen=!portfolioOpen;portfolioEditId=''">+ Portfolio</button>}</div>
         @if(portfolioError){<p class="eco-error">{{portfolioError}}</p>}
@@ -64,4 +84,10 @@
     </div>
   </div>
 }
-@if(canEdit && editOpen && teacher(); as current){<div class="eco-modal-backdrop" role="presentation"><div class="eco-modal eco-student-modal" role="dialog" aria-modal="true" aria-label="Editar personal" (click)="$event.stopPropagation()"><app-teacher-form [embedded]="true" [staffId]="current.id||''" (saved)="afterEdit(current.id||'')" (dismissed)="editOpen=false"></app-teacher-form></div></div>}
+@if (canEdit && editOpen && teacher(); as current) {
+  <div class="eco-modal-backdrop" role="presentation">
+    <div class="eco-modal eco-student-modal" role="dialog" aria-modal="true" aria-label="Editar personal" (click)="$event.stopPropagation()">
+      <app-teacher-form [embedded]="true" [staffId]="current.id || ''" (saved)="afterEdit(current.id || '')" (dismissed)="editOpen=false"></app-teacher-form>
+    </div>
+  </div>
+}

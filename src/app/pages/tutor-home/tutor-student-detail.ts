@@ -7,6 +7,7 @@ import { FeeService } from '../../services/fee/fee';
 import { AnnouncementService } from '../../services/announcements/announcements';
 import { forkJoin } from 'rxjs';
 import { getMedicalHighlights } from './tutor-medical-fields';
+import { PickupMiniProfile } from '../../components/pickup-mini-profile/pickup-mini-profile';
 
 interface LinkedTutor {
   id: string; firstName: string; lastName: string; relationship: string; phone: string | null;
@@ -18,8 +19,9 @@ interface MyChild {
   address: string | null; contactPhone: string | null; cuil: string | null;
   genderIdentity: string | null; birthCountry: string | null; birthProvince: string | null;
   birthLocality: string | null; addressDistrict: string | null; hasSiblings: boolean | null;
-  siblingCount: number | null; tutors: LinkedTutor[];
+  siblingCount: number | null; primaryTutorId: string | null; tutors: LinkedTutor[];
 }
+interface LinkedSibling { id: string; firstName: string; lastName: string; classroom: string | null; }
 interface AuthorizedPickup {
   id: string; fullName: string; relationship: string; documentNumber: string; phone: string;
 }
@@ -33,7 +35,7 @@ interface FamilyNotice {
 @Component({
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-tutor-student-detail', standalone: true,
-  imports: [RouterLink, DatePipe],
+  imports: [RouterLink, DatePipe, PickupMiniProfile],
   templateUrl: './tutor-student-detail.html', styleUrl: './tutor-student-detail.css'
 })
 export class TutorStudentDetail implements OnInit {
@@ -44,6 +46,8 @@ export class TutorStudentDetail implements OnInit {
   restrictions = signal<RestrictedPickup[]>([]);
   fees = signal<StudentFee[]>([]);
   notices = signal<FamilyNotice[]>([]);
+  confirmedSiblings = signal<LinkedSibling[]>([]);
+  siblingsLoading=false; siblingsError='';
   noticeLoading = false;
   noticeError = '';
   loading = true;
@@ -73,6 +77,7 @@ export class TutorStudentDetail implements OnInit {
         next: child => {
           this.child.set(child);
           this.loading = false;
+          this.loadSiblings(child.id);
           this.loadMedical(child.id);
           this.loadPickups(child.id);
           this.loadRestrictions(child.id);
@@ -89,6 +94,16 @@ export class TutorStudentDetail implements OnInit {
               : 'No se pudo cargar el perfil del alumno. Intentá nuevamente.';
           this.cdr.markForCheck();
         }
+      });
+  }
+
+  private loadSiblings(id: string): void {
+    this.siblingsLoading=true;
+    this.siblingsError='';
+    this.http.get<LinkedSibling[]>(`/api/v1/auth/my-students/${encodeURIComponent(id)}/siblings`,
+      {headers:getMultiTenantHeaders()}).subscribe({
+        next: rows=>{this.confirmedSiblings.set(rows);this.siblingsLoading=false;this.cdr.markForCheck();},
+        error: ()=>{this.siblingsLoading=false;this.siblingsError='No se pudieron consultar los vínculos familiares.';this.cdr.markForCheck();}
       });
   }
 

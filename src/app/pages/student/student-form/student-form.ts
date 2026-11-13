@@ -16,6 +16,7 @@ import { validStudentBirthDate, studentAgeAtCutoff } from '../../../utils/classr
 import { TutorModal } from '../../../components/tutor-modal/tutor-modal';
 import { StudentService } from '../../../services/student/student';
 import { TutorService } from '../../../services/tutor/tutor';
+import { Student } from '../../../models/student';
 import { TenantService } from '../../../services/tenant/tenant';
 import { ShiftService } from '../../../services/shift/shift';
 
@@ -42,6 +43,7 @@ export class StudentForm implements OnInit {
   @Output() saved = new EventEmitter<string>();
   @Output() dismissed = new EventEmitter<void>();
   tutors=signal<any[]>([]);
+  existingStudents=signal<Student[]>([]);
   eligibility=signal<RoomEligibility | null>(null);
   editingId=''; private readonly busyState = signal(false);
   get busy(): boolean {return this.busyState();}
@@ -62,6 +64,14 @@ export class StudentForm implements OnInit {
   tutorDropdown:1|2|0=0;
   get selectedTutorOne():any{return this.tutors().find(t=>t.id===this.tutorOne);}
   get selectedTutorTwo():any{return this.tutors().find(t=>t.id===this.tutorTwo);}
+  get possibleSiblings(): Student[] {
+    const selected = [this.tutorOne, this.tutorTwo].filter(Boolean);
+    if (!selected.length) return [];
+    return this.existingStudents().filter(student =>
+      student.id !== this.editingId &&
+      (student.tutors || []).some(tutor => selected.includes(tutor.id))
+    );
+  }
   toggleTutorPicker(which:1|2):void{this.tutorSearch='';this.tutorDropdown=this.tutorDropdown===which?0:which;}
   chooseTutor(which:1|2, id:string):void{
     if(which===1){if(this.tutorTwo===id)this.tutorTwo='';this.tutorOne=id;this.primarySelectionRequired=false;}
@@ -87,7 +97,7 @@ export class StudentForm implements OnInit {
   get tutorTwoOptions():any[]{return this.selectableTutors.filter(t=>t.id!==this.tutorOne||t.id===this.tutorTwo);}
   get tutorOneOptions():any[]{return this.selectableTutors.filter(t=>t.id!==this.tutorTwo||t.id===this.tutorOne);}
   chooseExistingTutor(t:any):void{if(!this.tutorOne)this.tutorOne=t.id;else if(!this.tutorTwo&&this.tutorOne!==t.id)this.tutorTwo=t.id;this.newTutorOpen=false;this.tutorDropdown=0;}
-  form:any={firstName:'',lastName:'',documentNumber:'',legajoNumber:'',birthDate:'',classroom:'',studentShift:'MANANA',academicYear:new Date().getFullYear(),status:'ACTIVE',cuil:'',dniStatus:'FISICO',hasCpi:false,hasForeignDocument:false,foreignDocumentType:'',foreignDocumentNumber:'',genderIdentity:'NO_RESPONDE',birthCountry:'ARGENTINA',nationality:'Argentina',birthProvince:'Buenos Aires',birthDistrict:'',birthLocality:'',street:'',streetNumber:'',floor:'',tower:'',apartment:'',betweenStreets:'',addressDistrict:'',addressLocality:'',otherAddressDetails:'',studentLandlinePhone:'',studentCellphone:'',hasSiblings:false,siblingCount:0,siblingsInThisSchool:0,receivesAuh:false,belongsToNativePeople:false,speaksOtherLanguageAtHome:false,indigenousLanguage:false,otherLanguage:false,transportationMethods:'A_PIE',contactPhone:'',gender:'',bloodType:'',healthInsurance:'',allergies:'',birthPlace:'',address:''};
+  form:any={firstName:'',lastName:'',documentNumber:'',legajoNumber:'',birthDate:'',classroom:'',studentShift:'MANANA',academicYear:new Date().getFullYear(),status:'ACTIVE',cuil:'',dniStatus:'FISICO',hasCpi:false,hasForeignDocument:false,foreignDocumentType:'',foreignDocumentNumber:'',genderIdentity:'NO_RESPONDE',birthCountry:'ARGENTINA',nationality:'Argentina',birthProvince:'Buenos Aires',birthDistrict:'',birthLocality:'',street:'',streetNumber:'',floor:'',tower:'',apartment:'',betweenStreets:'',addressDistrict:'',addressLocality:'',otherAddressDetails:'',studentLandlinePhone:'',studentCellphone:'',hasSiblings:false,siblingCount:0,siblingsInThisSchool:0,receivesAuh:false,belongsToNativePeople:false,speaksOtherLanguageAtHome:false,indigenousLanguage:false,otherLanguage:false,transportationMethods:'A_PIE',gender:'',bloodType:'',healthInsurance:'',allergies:'',birthPlace:'',address:''};
   constructor(private students:StudentService, private tutorApi:TutorService, private tenantApi:TenantService, private shifts:ShiftService, private route:ActivatedRoute, private router:Router){}
   get isEdit():boolean{return !!this.editingId;}
   ngOnInit():void {
@@ -99,6 +109,7 @@ export class StudentForm implements OnInit {
       this.formCdr.markForCheck();
     },error:()=>{this.activeYearLoading=false;this.error='No se pudo recuperar el ciclo lectivo activo de la escuela.';this.formCdr.markForCheck();}});
     this.tutorApi.getTutors().subscribe({next:rows=>{this.tutors.set(rows);this.formCdr.markForCheck();},error:e=>{this.error=this.errorText(e,'No se pudieron cargar los tutores');this.formCdr.markForCheck();}});
+    this.students.getStudents().subscribe({next:rows=>{this.existingStudents.set(rows);this.formCdr.markForCheck();},error:()=>{}});
     this.shifts.getClassroomsConfig().subscribe({
       next:rooms=>{this.allClassrooms=rooms;this.formCdr.markForCheck();},
       error:()=>{if(this.isEdit)this.error='No se pudieron cargar las aulas registradas.';this.formCdr.markForCheck();}
@@ -177,7 +188,7 @@ export class StudentForm implements OnInit {
     if(this.form.dniStatus==='FISICO' && !validNumericDni(this.form.documentNumber)) {
       this.error='El DNI debe tener entre 6 y 12 números, sin puntos ni letras.';return;
     }
-    for(const phone of [this.form.studentCellphone, this.form.studentLandlinePhone, this.form.contactPhone]) {
+    for(const phone of [this.form.studentCellphone, this.form.studentLandlinePhone]) {
       if(!validNumericPhone(phone)) {this.error='Los teléfonos deben contener solamente números (6 a 20).';return;}
     }
     this.birthDateError=validStudentBirthDate(this.form.birthDate,Number(this.form.academicYear));
@@ -191,7 +202,7 @@ export class StudentForm implements OnInit {
     }
     const tutorIds=[this.tutorOne,this.tutorTwo].filter(Boolean);
     const assignments=toStudentTutorAssignments(tutorIds,this.tutors());
-    const {tutors, tutorIds:ignored, ...payload}=this.form;
+    const {tutors, tutorIds:ignored, contactPhone:ignoredContact, ...payload}=this.form;
     // Nunca enviamos identificadores ni datos de otras instituciones.
     delete payload.id;delete payload.tenantId;delete payload.institutionId;delete payload.createdAt;delete payload.updatedAt;
     this.error='';this.busy=true;

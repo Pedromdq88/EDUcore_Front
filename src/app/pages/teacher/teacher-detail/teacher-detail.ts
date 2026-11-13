@@ -67,6 +67,15 @@ export class TeacherDetail implements OnInit {
   async removePortfolio(id:string):Promise<void>{const t=this.teacher();if(!t?.id||!(await this.dialogs.confirm('¿Eliminar este portfolio?')))return;
     this.portfolioService.deletePortfolio(id).subscribe({next:()=>this.portfolioService.getPortfoliosByStaff(t.id!).subscribe(list=>this.portfolios.set(list)),error:()=>this.portfolioError='No se pudo eliminar el portfolio.'});
   }
+  roleName(role: string): string {
+    return ({DIRECTOR:'Director/a', ADMINISTRATIVE:'Administración', PRECEPTOR:'Preceptor/a', TEACHER:'Docente'} as Record<string,string>)[role] || role || 'No informado';
+  }
+  shiftName(shift: string): string {
+    return ({MANANA:'Mañana', TARDE:'Tarde', AMBOS:'Ambos turnos'} as Record<string,string>)[shift] || shift || 'No informado';
+  }
+  displayValue(value: unknown): string {
+    return value === null || value === undefined || value === '' ? 'No informado' : String(value);
+  }
   afterEdit(id:string):void{this.editOpen=false;this.loadTeacherData(id);}
   async bajaTeacher(): Promise<void> {
     const t = this.teacher();

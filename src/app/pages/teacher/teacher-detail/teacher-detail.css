@@ -15,3 +15,27 @@
 .block-title { font-size: 0.875rem; font-weight: bold; color: #1e293b; margin: 0 0 0.75rem 0; }
 .empty-text { font-size: 0.75rem; color: #94a3b8; font-style: italic; }
 .sub-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 0.75rem; margin-bottom: 0.5rem; }
+
+.detail-wrapper{max-width:1200px;margin:0 auto;padding:14px 12px}
+.detail-card{background:#f8fafc;border:0;box-shadow:none;padding:0}
+.action-bar{display:flex;gap:12px;flex-wrap:wrap}
+.action-buttons{display:flex;gap:9px;flex-wrap:wrap}
+.user-header{background:linear-gradient(113deg,#064e3b,#0f766e);color:#fff;border:0;border-radius:19px;padding:26px;margin-bottom:18px;box-shadow:0 14px 35px rgba(6,78,59,.13)}
+.user-header .avatar{background:white;color:#047857;width:74px;height:74px;min-width:74px;font-size:25px}
+.user-header .user-name{color:white;font-size:26px}
+.user-header .tag{background:#ffffff22;color:#fff;border:1px solid #ffffff33;padding:5px 11px;border-radius:999px}
+.user-header .tag.emerald{background:#d1fae5;color:#065f46}
+.section-block{background:#fff;border:1px solid #e2e8f0;border-left:1px solid #e2e8f0;border-radius:17px;padding:24px;margin:0 0 16px;box-shadow:0 5px 15px #0f172a09}
+.section-block>.block-title{border-left:4px solid #10b981;padding-left:12px;font-size:15px;font-weight:750;margin-bottom:16px}
+.staff-info-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.staff-info-grid>div{background:#f8fafc;border:1px solid #edf2f7;border-radius:12px;padding:15px;min-width:0}
+.staff-info-grid small{display:block;color:#64748b;font-size:11px;margin-bottom:6px}
+.staff-info-grid strong{display:block;color:#0f172a;font-size:13px;overflow-wrap:anywhere}
+.staff-assignment-card{padding:15px;border:1px solid #e2e8f0;background:#f8fafc;border-radius:12px;margin:10px 0}
+.staff-assignment-card>strong{font-size:14px;color:#0f172a}
+.staff-assignment-details{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:9px}
+.staff-assignment-details span{font-size:12px;color:#475569;display:inline-flex;align-items:center;gap:4px}
+.staff-assignment-details .material-icons-outlined{font-size:16px;color:#0f766e}
+.staff-assignment-details .staff-lead{border-radius:20px;padding:4px 9px;background:#d1fae5;color:#065f46;font-weight:750}
+@media(max-width:750px){.staff-info-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.user-header{flex-wrap:wrap}}
+@media(max-width:480px){.staff-info-grid{grid-template-columns:1fr}.section-block{padding:16px}}

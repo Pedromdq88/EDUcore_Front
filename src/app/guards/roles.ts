@@ -24,7 +24,7 @@ export const CAPABILITY_ROLES: Record<Capability, readonly Role[]> = {
   pickups:['DIRECTOR','ADMINISTRATIVE','PRECEPTOR'],
   restrictions:['DIRECTOR','ADMINISTRATIVE','PRECEPTOR'],
   'my-students':['TUTOR'],
-  'my-profile':['TEACHER','PRECEPTOR']
+  'my-profile':['DIRECTOR','ADMINISTRATIVE','PRECEPTOR','TEACHER']
 };
 export function can(role:string|null|undefined,capability:Capability): boolean {
   return CAPABILITY_ROLES[capability].includes((role||'') as Role);
