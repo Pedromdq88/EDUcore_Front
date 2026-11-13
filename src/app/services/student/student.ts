@@ -132,23 +132,6 @@ export class StudentService {
       headers: getMultiTenantHeaders()
     });
   }
-<<<<<<< HEAD
-=======
-
-  getSiblingOptions(studentId: string): Observable<SiblingOptions> {
-    return this.http.get<SiblingOptions>(`${this.apiUrl}/${studentId}/siblings`, {headers:getMultiTenantHeaders()});
-  }
-
-  confirmSibling(studentId: string, siblingId: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/${studentId}/siblings/${siblingId}`, {}, {headers:getMultiTenantHeaders()});
-  }
-
-  removeSibling(studentId: string, siblingId: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${studentId}/siblings/${siblingId}`, {headers:getMultiTenantHeaders()});
-  }
-
-  // Subrecurso: Cuotas / Aranceles
->>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
   getStudentFees(studentId: string, academicYear: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/${studentId}/fees?academicYear=${academicYear}`, {
       headers: getMultiTenantHeaders()
@@ -200,7 +183,6 @@ export class StudentService {
     });
   }
 }
-<<<<<<< HEAD
 export interface LinkedSibling {
   id: string;
   firstName: string;
@@ -211,7 +193,3 @@ export interface SiblingOptions {
   confirmed: LinkedSibling[];
   candidates: LinkedSibling[];
 }
-=======
-export interface LinkedSibling { id: string; firstName: string; lastName: string; classroom: string | null; }
-export interface SiblingOptions { confirmed: LinkedSibling[]; candidates: LinkedSibling[]; }
->>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d

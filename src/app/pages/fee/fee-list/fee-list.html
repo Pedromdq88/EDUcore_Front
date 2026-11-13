@@ -15,6 +15,7 @@
         </p>
       </div>
     </header>
+    <ng-container *ngTemplateOutlet="feeContacts"></ng-container>
     <div class="fee-search-row">
       <label class="fee-search">
         <span class="material-icons-outlined">search</span>
@@ -144,27 +145,7 @@
         </div>
       }
       <div class="fee-lower">
-        <div>
-          <h3>Canales oficiales</h3>
-          <div class="fee-contact">
-            <div>
-              <small>Correo recepción de comprobantes</small>
-              <strong>{{emails.receiptEmail||'Sin configurar'}}</strong>
-            </div>
-            @if(canEdit){
-              <button (click)="openEmailModal()">Modificar</button>
-            }
-          </div>
-          <div class="fee-contact">
-            <div>
-              <small>Correo consultas de aranceles</small>
-              <strong>{{emails.feeQueryEmail||'Sin configurar'}}</strong>
-            </div>
-            @if(canEdit){
-              <button (click)="openEmailModal()">Modificar</button>
-            }
-          </div>
-        </div>
+        <ng-container *ngTemplateOutlet="feeContacts"></ng-container>
         <div class="fee-legend">
           <h3>Referencia</h3>
           <p>
@@ -312,3 +293,31 @@
     </div>
   }
 </div>
+
+<ng-template #feeContacts>
+  <section class="fee-contacts" aria-label="Correos de cuotas">
+    <h3>Canales oficiales</h3>
+    @for (contact of [
+      { label: 'Enviar comprobante de pago', email: emails.receiptEmail },
+      { label: 'Consultar cómo abonar', email: emails.feeQueryEmail }
+    ]; track contact.label) {
+      <div class="fee-contact">
+        <div>
+          <small>{{contact.label}}</small>
+          @if (contact.email) {
+            <a [href]="'mailto:' + contact.email">{{contact.email}}</a>
+          } @else {
+            <strong>Sin configurar</strong>
+          }
+        </div>
+        @if (contact.email) {
+          <button type="button" (click)="copyPaymentEmail(contact.email)" [attr.aria-label]="'Copiar correo: ' + contact.label">Copiar</button>
+        }
+      </div>
+    }
+    @if (canEdit) {
+      <button type="button" class="fee-back" (click)="openEmailModal()">Modificar correos</button>
+    }
+    <p role="status" class="fee-copy-status">{{copyEmailStatus()}}</p>
+  </section>
+</ng-template>

@@ -2,7 +2,7 @@ import { notBlank } from '../../validators/form.validator';
 import { inject } from '@angular/core';
 import { UiDialogService } from '../../services/ui-dialog/ui-dialog';
 import { Component, OnInit, signal } from '@angular/core';
-import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormGroup, FormControl, FormGroupDirective, Validators } from '@angular/forms';
 import { SubjectService } from '../../services/subjects/subjects';
 @Component({
   selector: 'app-subjects',
@@ -56,7 +56,7 @@ export class Subjects implements OnInit {
       error: () => this.error = 'No se pudieron cargar las materias.'
     });
   }
-  add(): void {
+  add(form: FormGroupDirective): void {
     if (this.busy || !this.canEdit)
       return;
     this.subjectForm.markAllAsTouched();
@@ -71,7 +71,7 @@ export class Subjects implements OnInit {
       name
     }).subscribe({
       next: () => {
-        this.subjectForm.reset();
+        form.resetForm();
         this.busy = false;
         this.load();
       },

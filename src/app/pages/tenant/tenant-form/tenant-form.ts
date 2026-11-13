@@ -59,6 +59,9 @@ export class TenantForm implements OnInit {
   get isDirector(): boolean {
     return ['DIRECTOR', 'ADMINISTRATIVE'].includes(sessionStorage.getItem('current_user_role') || '');
   }
+  get canChangeAcademicYear(): boolean {
+    return sessionStorage.getItem('current_user_role') === 'DIRECTOR';
+  }
   tenant: Tenant = {
     name: '',
     legalName: '',
@@ -214,6 +217,10 @@ export class TenantForm implements OnInit {
       return;
     }
     const newYear = Number(this.tenant.academicYear);
+    if (!this.canChangeAcademicYear && newYear !== this.originalAcademicYear) {
+      this.error.set('Solo Dirección puede modificar el ciclo lectivo.');
+      return;
+    }
     if (!Number.isInteger(newYear) || newYear < 2000 || newYear > 2100) {
       this.error.set('Ingresá un ciclo lectivo válido entre 2000 y 2100.');
       return;
@@ -229,10 +236,6 @@ export class TenantForm implements OnInit {
     if (newYear > this.originalAcademicYear) {
       if (!this.yearChangeEnabled) {
         this.error.set(`El cambio al ciclo ${newYear} estará habilitado desde el ${this.unlockDate}.`);
-        return;
-      }
-      if (!this.isDirector) {
-        this.error.set('Solo Dirección o Administración pueden aplicar cambios de ciclo.');
         return;
       }
       if (!this.acknowledgedYearChange) {

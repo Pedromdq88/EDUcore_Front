@@ -1,5 +1,5 @@
 import { notBlank, integer } from '../../../validators/form.validator';
-import { ChangeDetectorRef } from '@angular/core';
+import { afterNextRender, ChangeDetectorRef, ElementRef, Injector, viewChild } from '@angular/core';
 import { inject } from '@angular/core';
 import { UiDialogService } from '../../../services/ui-dialog/ui-dialog';
 import { canDiscardForm } from '../../../utils/forms/form-ux';
@@ -9,6 +9,7 @@ import { ReactiveFormsModule, FormControl, FormGroup, Validators } from '@angula
 import { RouterLink } from '@angular/router';
 import { ShiftService } from '../../../services/shift/shift';
 import { StudentService } from '../../../services/student/student';
+import { apiErrorMessage } from '../../../utils/forms/api-error';
 @Component({
   selector: 'app-shift-list',
   standalone: true,
@@ -19,6 +20,8 @@ import { StudentService } from '../../../services/student/student';
 export class ShiftList implements OnInit {
   private readonly formCdr = inject(ChangeDetectorRef);
   private readonly dialogs = inject(UiDialogService);
+  private readonly injector = inject(Injector);
+  private readonly roomNameInput = viewChild<ElementRef<HTMLInputElement>>('roomNameInput');
   readonly canDiscardForm = canDiscardForm;
   get canEdit(): boolean {
     return ['DIRECTOR', 'ADMINISTRATIVE'].includes(sessionStorage.getItem('current_user_role') || '');
@@ -39,6 +42,7 @@ export class ShiftList implements OnInit {
     this.errorState.set(value);
   }
   editingId = '';
+  editingRoomHadBothShifts = false;
   roomForm: FormGroup;
   name: FormControl;
   minimumAge: FormControl;
@@ -92,9 +96,13 @@ export class ShiftList implements OnInit {
     });
   }
   openRoom(room?: any): void {
+    if (!this.canEdit || this.busy)
+      return;
     this.showForm = true;
+    this.error = '';
     this.editingId = room?.id || '';
-    this.roomForm.patchValue(room ? {
+    this.editingRoomHadBothShifts = room?.shift === 'AMBOS';
+    this.roomForm.reset(room ? {
       name: room.name,
       minimumAge: room.minimumAge,
       shift: room.shift
@@ -103,6 +111,7 @@ export class ShiftList implements OnInit {
       minimumAge: 3,
       shift: 'MANANA'
     });
+    afterNextRender(() => this.roomNameInput()?.nativeElement.focus(), { injector: this.injector });
   }
   saveRoom(): void {
     this.roomForm.markAllAsTouched();
@@ -126,7 +135,7 @@ export class ShiftList implements OnInit {
       },
       error: e => {
         this.busy = false;
-        this.error = 'No se pudo guardar el aula (HTTP ' + (e.status || 'sin conexión') + ').';
+        this.error = apiErrorMessage(e, 'No se pudo guardar el aula.');
       }
     });
   }

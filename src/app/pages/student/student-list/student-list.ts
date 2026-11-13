@@ -9,6 +9,7 @@ import { RouterModule } from '@angular/router';
 import { StudentService } from '../../../services/student/student';
 import { TenantService } from '../../../services/tenant/tenant';
 import { Student } from '../../../models/student';
+import { ShiftService } from '../../../services/shift/shift';
 @Component({
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-student-list',
@@ -19,6 +20,8 @@ import { Student } from '../../../models/student';
 })
 export class StudentList implements OnInit {
   students = signal<Student[]>([]);
+  readonly assignedClassrooms = signal<string[] | null>(null);
+  readonly classroomLoadFailed = signal(false);
   query = '';
   classroom = 'ALL';
   academicYear = 'ALL';
@@ -31,6 +34,9 @@ export class StudentList implements OnInit {
   message = '';
   get canManage(): boolean {
     return ['DIRECTOR', 'ADMINISTRATIVE'].includes(sessionStorage.getItem('current_user_role') || '');
+  }
+  get isTeacher(): boolean {
+    return sessionStorage.getItem('current_user_role') === 'TEACHER';
   }
   get classrooms(): string[] {
     return [...new Set(this.students().map(s => s.classroom).filter(Boolean))].sort();
@@ -53,11 +59,17 @@ export class StudentList implements OnInit {
     this.loadStudents();
     this.message = 'La matrícula se guardó. Podés abrir la ficha desde el listado.';
   }
-  constructor(private studentService: StudentService, private school: TenantService, private dialogs: UiDialogService, private route: ActivatedRoute) { }
+  constructor(private studentService: StudentService, private school: TenantService, private dialogs: UiDialogService, private route: ActivatedRoute, private shifts: ShiftService) { }
   ngOnInit(): void {
     this.academicYear = 'ALL';
     this.onlyUnassigned = this.route.snapshot.queryParamMap.get('sinAsignar') === '1';
     this.loadStudents();
+    if (this.isTeacher) {
+      this.shifts.getClassroomsConfig().subscribe({
+        next: rooms => this.assignedClassrooms.set([...new Set<string>(rooms.map(room => room.name))].sort()),
+        error: () => this.classroomLoadFailed.set(true)
+      });
+    }
   }
   onAssigned(): void {
     this.assigning = null;

@@ -5,12 +5,14 @@ import { UiDialogService } from '../../services/ui-dialog/ui-dialog';
 import { canDiscardForm } from '../../utils/forms/form-ux';
 import { Component, OnInit, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { getMultiTenantHeaders } from '../../services/tenant/tenant';
 import { DatePipe } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { AnnouncementService } from '../../services/announcements/announcements';
 import { ShiftService } from '../../services/shift/shift';
+import { apiErrorMessage } from '../../utils/forms/api-error';
 interface LinkedStudent {
   id: string;
   firstName: string;
@@ -20,7 +22,7 @@ interface LinkedStudent {
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-announcements',
   standalone: true,
-  imports: [ReactiveFormsModule, DatePipe],
+  imports: [ReactiveFormsModule, DatePipe, RouterLink],
   templateUrl: './announcements.html',
   styleUrl: './announcements.css'
 })
@@ -30,6 +32,14 @@ export class Announcements implements OnInit {
   readonly canDiscardForm = canDiscardForm;
   items = signal<any[]>([]);
   rooms = signal<any[]>([]);
+  readonly roomsLoaded = signal(false);
+  readonly roomsFailed = signal(false);
+  get roomNames(): string[] {
+    return [...new Set<string>(this.rooms().map(room => room.name))];
+  }
+  get canPublish(): boolean {
+    return this.canEdit && (!this.isTeacher || this.roomNames.length > 0);
+  }
   linkedStudents = signal<LinkedStudent[]>([]);
   private readonly errorState = signal('');
   get error(): string {
@@ -113,8 +123,11 @@ export class Announcements implements OnInit {
     this.load();
     if (this.canEdit) {
       this.shifts.getClassroomsConfig().subscribe({
-        next: r => this.rooms.set(r),
-        error: () => { }
+        next: r => {
+          this.rooms.set(r);
+          this.roomsLoaded.set(true);
+        },
+        error: () => this.roomsFailed.set(true)
       });
     }
   }
@@ -145,12 +158,14 @@ export class Announcements implements OnInit {
     });
   }
   openNew(): void {
+    if (!this.canPublish)
+      return;
     this.editingId = '';
     this.title = '';
     this.content = '';
     this.category = 'GENERAL';
     this.scope = this.isTeacher ? 'CLASSROOM' : 'GLOBAL';
-    this.targetClassroom = '';
+    this.targetClassroom = this.isTeacher && this.roomNames.length === 1 ? this.roomNames[0] : '';
     this.targetStudentId = '';
     this.mediaUrl = '';
     this.isPinned = false;
@@ -207,8 +222,8 @@ export class Announcements implements OnInit {
       this.error = 'Revisá título (máximo 255), contenido (máximo 20000) o URL de multimedia.';
       return;
     }
-    if (this.isTeacher && this.scope === 'GLOBAL') {
-      this.error = 'El docente no puede publicar comunicados globales.';
+    if (this.isTeacher && (this.scope !== 'CLASSROOM' || !this.roomNames.includes(this.targetClassroom))) {
+      this.error = 'Seleccioná una de tus aulas asignadas.';
       return;
     }
     if (this.scope === 'PRIVATE_STUDENT') {
@@ -244,7 +259,7 @@ export class Announcements implements OnInit {
       },
       error: e => {
         this.busy = false;
-        this.error = 'No se pudo guardar el comunicado (HTTP ' + (e.status || 'sin conexión') + ').';
+        this.error = apiErrorMessage(e, 'No se pudo guardar el comunicado.');
       }
     });
   }

@@ -17,12 +17,15 @@
       }
     </div>
   }
+  @else {
+    <p class="eco-muted">Solo Dirección y Administración pueden editar aulas.</p>
+  }
   @if(showForm){
     <form class="eco-card eco-inline-form" [formGroup]="roomForm" (ngSubmit)="saveRoom()" novalidate>
       <h3 class="block-title">{{editingId?'Modificar aula':'Crear aula'}}</h3>
       <div class="form-grid">
         <label class="form-label">Nombre de la sala *
-          <input class="form-input" name="name" formControlName="name" required maxlength="255">
+          <input #roomNameInput class="form-input" name="name" formControlName="name" required maxlength="255">
           @if (name.hasError('spaces') && name.touched) {
             <small class="eco-field-error" role="alert">Este campo no puede contener solo espacios.</small>
           }
@@ -62,8 +65,8 @@
           <select class="form-input" name="shift" formControlName="shift">
             <option value="MANANA">Mañana</option>
             <option value="TARDE">Tarde</option>
-            @if(!editingId){
-              <option value="AMBOS">Ambos turnos (crea mañana y tarde)</option>
+            @if(!editingId || editingRoomHadBothShifts){
+              <option value="AMBOS">{{editingId ? 'Ambos turnos' : 'Ambos turnos (crea mañana y tarde)'}}</option>
             }
           </select>
           @if(shift.hasError('required') && shift.touched) {

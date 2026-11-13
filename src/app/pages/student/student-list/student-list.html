@@ -14,6 +14,18 @@
   @if(error){
     <p class="eco-error" role="alert">{{error}}</p>
   }
+  @if(isTeacher){
+    <p class="eco-card">
+      <strong>Aulas asignadas</strong><br>
+      @if(classroomLoadFailed()){
+        No se pudieron consultar tus aulas.
+      } @else if(assignedClassrooms(); as assigned){
+        {{assigned.length ? assigned.join(', ') : 'Todavía no tenés aulas asignadas.'}}
+      } @else {
+        Consultando tus aulas…
+      }
+    </p>
+  }
   @if(message){
     <p class="eco-success" role="status">{{message}}</p>
   }

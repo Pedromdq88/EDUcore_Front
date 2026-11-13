@@ -226,20 +226,18 @@ export class Calendar implements OnInit {
       next: a => this.events.set(a),
       error: () => this.error = 'No se pudo cargar el calendario escolar.'
     });
-    if (!this.isTutor) {
-      this.shifts.getClassroomsConfig().subscribe({
-        next: a => this.rooms.set(a),
-        error: () => this.error = 'No se pudo cargar el catálogo de aulas.'
-      });
-      this.shifts.getClassSchedules().subscribe({
-        next: a => {
-          this.schedules.set(a);
-          this.schedulesReady = true;
-          this.scheduleForm.updateValueAndValidity();
-        },
-        error: () => this.error = 'No se pudieron cargar los horarios.'
-      });
-    }
+    this.shifts.getClassroomsConfig().subscribe({
+      next: a => this.rooms.set(a),
+      error: () => this.error = 'No se pudo cargar el catálogo de aulas.'
+    });
+    this.shifts.getClassSchedules().subscribe({
+      next: a => {
+        this.schedules.set(a);
+        this.schedulesReady = true;
+        this.scheduleForm.updateValueAndValidity();
+      },
+      error: () => this.error = 'No se pudieron cargar los horarios.'
+    });
   }
   saveEvent(): void {
     this.eventForm.markAllAsTouched();

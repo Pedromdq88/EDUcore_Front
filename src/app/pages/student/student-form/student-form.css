@@ -122,7 +122,6 @@
 .possible-siblings strong{display:block;font-size:13px}
 .possible-siblings p{font-size:12px;line-height:1.5;margin:6px 0}
 .possible-siblings span{display:inline-block;font-size:12px;background:#fff;border:1px solid #ccfbf1;border-radius:8px;padding:7px 9px;margin:4px 6px 2px 0}
-<<<<<<< HEAD
 
 .tutor-section-header {
   display: flex;
@@ -187,5 +186,3 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
-=======
->>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d

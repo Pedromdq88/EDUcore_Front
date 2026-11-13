@@ -11,11 +11,9 @@
     <button type="button" (click)="section='school'" [class.active]="section==='school'">
       <span class="material-icons-outlined">event_note</span>Calendario escolar
     </button>
-    @if(!isTutor){
-      <button type="button" (click)="section='rooms'" [class.active]="section==='rooms'">
-        <span class="material-icons-outlined">meeting_room</span>Calendario de aulas
-      </button>
-    }
+    <button type="button" (click)="section='rooms'" [class.active]="section==='rooms'">
+      <span class="material-icons-outlined">meeting_room</span>Calendario de aulas
+    </button>
   </div>
   <div class="eco-card calendar-shell">
     <div class="calendar-toolbar">
@@ -26,7 +24,7 @@
       <div class="calendar-controls">
         @if(section==='rooms'){
           <select class="eco-select" [formControl]="roomFilter" aria-label="Filtrar por aula">
-            <option value="">Todas las aulas</option>
+            <option value="">{{isTutor ? 'Aulas de mis alumnos' : 'Todas las aulas'}}</option>
             @for(room of rooms();track room.id){
               <option [value]="room.id">{{room.name}}</option>
             }

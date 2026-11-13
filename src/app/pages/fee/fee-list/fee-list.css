@@ -7,3 +7,12 @@
 @keyframes fee-pulse{50%{opacity:.55}}
 
 .fee-verify{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:13px;background:#f0fdfa;border:1px solid #99f6e4;border-radius:12px}.fee-verify .form-label{width:100%}.fee-verify .form-input{max-width:160px;letter-spacing:.1em}.fee-verify .eco-success{font-size:12px;font-weight:750;margin:0}
+
+.fee-contacts { min-width: 0; margin-bottom: 18px; }
+.fee-contacts h3 { font-size: 14px; margin: 0 0 8px; }
+.fee-contact div { min-width: 0; }
+.fee-contact a { color: #065f46; font-weight: 700; overflow-wrap: anywhere; }
+.fee-contacts .fee-back { margin-top: 10px; }
+.fee-copy-status { font-size: 13px; color: #334155; }
+.fee-copy-status:empty { display: none; }
+

@@ -5,7 +5,6 @@
       <strong>{{displayName}}</strong>
       <small>{{kind === 'authorized' ? 'Puede retirar al alumno' : 'No puede retirar al alumno'}}</small>
     </span>
-<<<<<<< HEAD
     <span class="pickup-mini-toggle">Ver miniperfil <span class="material-icons-outlined" aria-hidden="true">expand_more</span>
     </span>
   </summary>
@@ -50,22 +49,6 @@
           <small>Restricción registrada</small>
           <strong>{{person.description}}</strong>
         </div>
-=======
-    <span class="pickup-mini-toggle">Ver miniperfil <span class="material-icons-outlined" aria-hidden="true">expand_more</span></span>
-  </summary>
-  <div class="pickup-mini-data">
-    <div><small>Nombre</small><strong>{{displayName}}</strong></div>
-    <div><small>Documento</small><strong>{{person.documentType || 'DNI'}} · {{displayDocument}}</strong></div>
-    @if (kind === 'authorized') {
-      <div><small>Vínculo</small><strong>{{person.relationship || 'No informado'}}</strong></div>
-      <div><small>Teléfono</small><strong>{{person.phone || 'No informado'}}</strong></div>
-      @if (person.birthDate) {<div><small>Nacimiento</small><strong>{{person.birthDate | date:'dd/MM/yyyy'}}</strong></div>}
-      @if (person.age !== null && person.age !== undefined) {<div><small>Edad registrada</small><strong>{{person.age}} años</strong></div>}
-    } @else {
-      <div><small>Situación</small><strong class="pickup-mini-denied">Retiro no permitido</strong></div>
-      @if (institutional && person.description) {
-        <div class="pickup-mini-full"><small>Restricción registrada</small><strong>{{person.description}}</strong></div>
->>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
       }
     }
   </div>

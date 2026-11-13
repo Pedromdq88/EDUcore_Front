@@ -170,6 +170,15 @@ export class FeeList implements OnInit {
   get isTutor(): boolean {
     return sessionStorage.getItem('current_user_role') === 'TUTOR';
   }
+  readonly copyEmailStatus = signal('');
+  async copyPaymentEmail(email: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(email);
+      this.copyEmailStatus.set('Correo copiado: ' + email);
+    } catch {
+      this.copyEmailStatus.set('No se pudo copiar. Podés seleccionar la dirección y copiarla.');
+    }
+  }
   get canEdit(): boolean {
     return ['DIRECTOR', 'ADMINISTRATIVE'].includes(sessionStorage.getItem('current_user_role') || '');
   }

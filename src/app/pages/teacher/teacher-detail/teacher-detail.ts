@@ -166,19 +166,6 @@ export class TeacherDetail implements OnInit {
   displayValue(value: unknown): string {
     return value === null || value === undefined || value === '' ? 'No informado' : String(value);
   }
-<<<<<<< HEAD
-=======
-  roleName(role: string): string {
-    return ({DIRECTOR:'Director/a', ADMINISTRATIVE:'Administración', PRECEPTOR:'Preceptor/a', TEACHER:'Docente'} as Record<string,string>)[role] || role || 'No informado';
-  }
-  shiftName(shift: string): string {
-    return ({MANANA:'Mañana', TARDE:'Tarde', AMBOS:'Ambos turnos'} as Record<string,string>)[shift] || shift || 'No informado';
-  }
-  displayValue(value: unknown): string {
-    return value === null || value === undefined || value === '' ? 'No informado' : String(value);
-  }
-  afterEdit(id:string):void{this.editOpen=false;this.loadTeacherData(id);}
->>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
   async bajaTeacher(): Promise<void> {
     const t = this.teacher();
     if (t?.id && (await this.dialogs.confirm("¿Dar de baja a este miembro del personal?"))) {

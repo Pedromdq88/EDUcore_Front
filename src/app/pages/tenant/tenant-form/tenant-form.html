@@ -228,7 +228,7 @@
           [max]="(currentYear ?? 2099) + 1"
           formControlName="academicYear"
           class="form-input"
-          [readonly]="!isDirector || !yearChangeEnabled">
+          [readonly]="!canChangeAcademicYear || !yearChangeEnabled">
         @if (academicYear.hasError('integer') && academicYear.touched) {
           <small class="eco-field-error" role="alert">Ingresá un año entero.</small>
         }
@@ -242,10 +242,13 @@
           <small class="eco-field-error" role="alert">El campo ciclo lectivo es mayor al permitido.</small>
         }
         <small class="eco-muted">Único ciclo utilizado en la calculadora y cuotas.</small>
-        @if(isDirector && currentYear !== null && !yearChangeEnabled){
+        @if(!canChangeAcademicYear){
+          <small class="eco-muted">Solo Dirección puede modificar el ciclo lectivo.</small>
+        }
+        @if(canChangeAcademicYear && currentYear !== null && !yearChangeEnabled){
           <p class="year-change-locked" role="status">El siguiente ciclo se habilitará el {{unlockDate}}.</p>
         }
-        @if(isDirector && currentYear !== null && yearChangeEnabled){
+        @if(canChangeAcademicYear && currentYear !== null && yearChangeEnabled){
           <small class="eco-muted">Podés avanzar únicamente al ciclo {{currentYear + 1}}.</small>
         }
       </div>
@@ -275,7 +278,7 @@
         }
       </div>
     </div>
-    @if(isDirector && yearChangeRequested){
+    @if(canChangeAcademicYear && yearChangeRequested){
       <section class="year-change-danger" role="alert">
         <h3>
           <span class="material-icons-outlined" aria-hidden="true">warning_amber</span> Cambio de ciclo lectivo definitivo

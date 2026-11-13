@@ -7,9 +7,9 @@
 .family-notice{border:1px solid #e2e8f0;background:#f8fafc;border-radius:11px;padding:15px;margin-top:10px}.family-notice strong,.family-notice small{display:block}.family-notice strong{color:#0f172a;font-size:14px}.family-notice small{color:#64748b;font-size:11px;margin-top:5px}.family-notice p{white-space:pre-wrap;color:#334155;font-size:13px;line-height:1.6;margin:12px 0 0}
 
 .family-notice.private-student-notice {
-  background: #f5f3ff;
-  border: 1px solid #c4b5fd;
-  border-left: 5px solid #7c3aed;
+  background: #f3edff;
+  border: 1px solid #a78bfa;
+  border-left: 5px solid #6d28d9;
 }
 .family-notice .private-notice-label {
   display: inline-flex;
@@ -17,14 +17,21 @@
   gap: 5px;
   width: fit-content;
   padding: 5px 10px;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
   border-radius: 999px;
-  background: #ede9fe;
-  color: #5b21b6;
+  background: #5b21b6;
+  color: #fff;
   font-size: 11px;
   font-weight: 800;
 }
 .family-notice .private-notice-label .material-icons-outlined { font-size: 15px; }
+.family-notice .private-notice-recipient {
+  margin: 0 0 10px;
+  color: #4c1d95;
+  font-size: 13px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
 
 .family-medical-link{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:16px;padding:12px 15px;border-radius:11px;background:#0f766e;color:#fff;text-decoration:none;font-size:13px;font-weight:700;transition:background .2s ease}
 .family-medical-link:hover{background:#115e59}

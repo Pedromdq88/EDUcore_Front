@@ -9,14 +9,17 @@ export class ShiftService {
   private apiUrl = '/api/v1';
   private roomCache?: Observable<any[]>;
   private cacheTenant = '';
+  private cacheSession: string | null = null;
   invalidate(): void {
     this.roomCache = undefined;
   }
   constructor(private http: HttpClient) { }
   getClassroomsConfig(): Observable<any[]> {
     const tenant = sessionStorage.getItem('current_institution_id') || '';
-    if (!this.roomCache || this.cacheTenant !== tenant) {
+    const session = sessionStorage.getItem('educore_access_token');
+    if (!this.roomCache || this.cacheTenant !== tenant || this.cacheSession !== session) {
       this.cacheTenant = tenant;
+      this.cacheSession = session;
       this.roomCache = this.http.get<any[]>(`${this.apiUrl}/classrooms-config`, {
         headers: getMultiTenantHeaders()
       }).pipe(shareReplay({

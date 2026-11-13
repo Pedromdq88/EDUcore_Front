@@ -5,10 +5,22 @@
       <h2 class="view-title">Tablón de comunicados</h2>
       <p class="view-subtitle">Avisos institucionales y por sala</p>
     </div>
-    @if(canEdit){
+    @if(canPublish){
       <button type="button" class="btn-primary" (click)="openNew()">+ Nuevo comunicado</button>
     }
   </div>
+  @if(isTeacher){
+    <p class="eco-card">
+      <strong>Aulas asignadas</strong><br>
+      @if(roomsFailed()){
+        No se pudieron consultar tus aulas.
+      } @else if(!roomsLoaded()){
+        Consultando tus aulas…
+      } @else {
+        {{roomNames.length ? roomNames.join(', ') : 'Todavía no tenés aulas asignadas para publicar comunicados.'}}
+      }
+    </p>
+  }
   @if(error){
     <p class="eco-error" role="alert">{{error}}</p>
   }
@@ -45,7 +57,9 @@
         </label>
         <label class="form-label">Destinatarios
           <select class="form-input" name="scope" formControlName="scope">
-            <option value="GLOBAL" [disabled]="isTeacher">Toda la escuela</option>
+            @if(!isTeacher){
+              <option value="GLOBAL">Toda la escuela</option>
+            }
             <option value="CLASSROOM">Sala / sección</option>
           </select>
         </label>
@@ -62,8 +76,8 @@
                 <small class="eco-field-error" role="alert">El aula: formato inválido.</small>
               }
               <option value="">Seleccionar</option>
-              @for(r of rooms();track r.id){
-                <option [value]="r.name">{{r.name}}</option>
+              @for(room of roomNames;track room){
+                <option [value]="room">{{room}}</option>
               }
             </select>
           </label>
@@ -107,7 +121,8 @@
             <span class="category-badge private-category">
               <span class="material-icons-outlined" aria-hidden="true">lock</span> Aviso privado
             </span>
-            <span class="private-notice-recipient">Dirigido a: <strong>{{recipientName(a.targetStudentId)}}</strong>
+            <span class="private-notice-recipient">
+              Dirigido a <a [routerLink]="['/my-students', a.targetStudentId]">{{recipientName(a.targetStudentId)}}</a>
             </span>
           }
           @else{
