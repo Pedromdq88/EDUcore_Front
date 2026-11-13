@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+/* Mantiene el diseño de fichas de EduCore. */
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
 .personal-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .personal-modal{width:min(94vw,680px);max-height:90vh;overflow-y:auto;padding:26px}
 .personal-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:22px 0}
@@ -5,6 +9,11 @@
 .personal-fields label{font-size:13px;font-weight:650;color:#334155}
 .personal-fields .eco-error{font-size:12px}
 @media(max-width:600px){.personal-fields{grid-template-columns:1fr}.personal-modal{padding:18px}}
+<<<<<<< HEAD
+=======
+
+/* Modal de portfolio: dimensiones contenidas y espaciado consistente. */
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
 .eco-modal.portfolio-modal {
   box-sizing: border-box;
   width: min(94vw, 640px);

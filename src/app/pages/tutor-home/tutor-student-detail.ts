@@ -8,6 +8,10 @@ import { AnnouncementService } from '../../services/announcements/announcements'
 import { forkJoin } from 'rxjs';
 import { getMedicalHighlights } from './tutor-medical-fields';
 import { PickupMiniProfile } from '../../components/pickup-mini-profile/pickup-mini-profile';
+<<<<<<< HEAD
+=======
+
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
 interface LinkedTutor {
   id: string;
   firstName: string;
@@ -16,6 +20,7 @@ interface LinkedTutor {
   phone: string | null;
 }
 interface MyChild {
+<<<<<<< HEAD
   id: string;
   firstName: string;
   lastName: string;
@@ -45,7 +50,17 @@ interface LinkedSibling {
   firstName: string;
   lastName: string;
   classroom: string | null;
+=======
+  id: string; firstName: string; lastName: string; documentNumber: string;
+  legajoNumber: string | null; birthDate: string; classroom: string;
+  academicYear: number; shift: string; status: string; nationality: string | null;
+  address: string | null; contactPhone: string | null; cuil: string | null;
+  genderIdentity: string | null; birthCountry: string | null; birthProvince: string | null;
+  birthLocality: string | null; addressDistrict: string | null; hasSiblings: boolean | null;
+  siblingCount: number | null; primaryTutorId: string | null; tutors: LinkedTutor[];
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
 }
+interface LinkedSibling { id: string; firstName: string; lastName: string; classroom: string | null; }
 interface AuthorizedPickup {
   id: string;
   fullName: string;
@@ -77,11 +92,17 @@ interface FamilyNotice {
 }
 @Component({
   changeDetection: ChangeDetectionStrategy.Eager,
+<<<<<<< HEAD
   selector: 'app-tutor-student-detail',
   standalone: true,
   imports: [RouterLink, DatePipe, PickupMiniProfile],
   templateUrl: './tutor-student-detail.html',
   styleUrl: './tutor-student-detail.css'
+=======
+  selector: 'app-tutor-student-detail', standalone: true,
+  imports: [RouterLink, DatePipe, PickupMiniProfile],
+  templateUrl: './tutor-student-detail.html', styleUrl: './tutor-student-detail.css'
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
 })
 export class TutorStudentDetail implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
@@ -92,8 +113,12 @@ export class TutorStudentDetail implements OnInit {
   fees = signal<StudentFee[]>([]);
   notices = signal<FamilyNotice[]>([]);
   confirmedSiblings = signal<LinkedSibling[]>([]);
+<<<<<<< HEAD
   siblingsLoading = false;
   siblingsError = '';
+=======
+  siblingsLoading=false; siblingsError='';
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
   noticeLoading = false;
   noticeError = '';
   loading = true;
@@ -130,6 +155,7 @@ export class TutorStudentDetail implements OnInit {
   constructor(private route: ActivatedRoute, private http: HttpClient, private feesApi: FeeService, private school: TenantService, private noticesApi: AnnouncementService) { }
   ngOnInit(): void {
     const studentId = this.route.snapshot.paramMap.get('id');
+<<<<<<< HEAD
     if (!studentId) {
       this.loading = false;
       this.error = 'Falta identificar al alumno.';
@@ -179,6 +205,44 @@ export class TutorStudentDetail implements OnInit {
       }
     });
   }
+=======
+    if (!studentId) { this.loading = false; this.error = 'Falta identificar al alumno.'; this.cdr.markForCheck(); return; }
+    this.http.get<MyChild>(`/api/v1/auth/my-students/${encodeURIComponent(studentId)}`,
+      {headers: getMultiTenantHeaders()}).subscribe({
+        next: child => {
+          this.child.set(child);
+          this.loading = false;
+          this.loadSiblings(child.id);
+          this.loadMedical(child.id);
+          this.loadPickups(child.id);
+          this.loadRestrictions(child.id);
+          this.loadFees(child.id, child.academicYear);
+          this.loadNotices(child);
+          this.cdr.markForCheck();
+        },
+        error: err => {
+          this.loading = false;
+          this.error = err?.status === 403 || err?.status === 404
+            ? 'Este alumno no está vinculado a tu cuenta de Tutor, o ya no pertenece a la institución.'
+            : err?.status === 401
+              ? 'Tu sesión venció. Volvé a iniciar sesión.'
+              : 'No se pudo cargar el perfil del alumno. Intentá nuevamente.';
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  private loadSiblings(id: string): void {
+    this.siblingsLoading=true;
+    this.siblingsError='';
+    this.http.get<LinkedSibling[]>(`/api/v1/auth/my-students/${encodeURIComponent(id)}/siblings`,
+      {headers:getMultiTenantHeaders()}).subscribe({
+        next: rows=>{this.confirmedSiblings.set(rows);this.siblingsLoading=false;this.cdr.markForCheck();},
+        error: ()=>{this.siblingsLoading=false;this.siblingsError='No se pudieron consultar los vínculos familiares.';this.cdr.markForCheck();}
+      });
+  }
+
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
   private loadMedical(id: string): void {
     this.medicalLoading = true;
     this.medicalError = '';

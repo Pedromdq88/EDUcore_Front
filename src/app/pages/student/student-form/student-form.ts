@@ -17,6 +17,7 @@ import { validStudentBirthDate, studentAgeAtCutoff } from '../../../utils/classr
 import { TutorModal } from '../../../components/tutor-modal/tutor-modal';
 import { StudentService } from '../../../services/student/student';
 import { TutorService } from '../../../services/tutor/tutor';
+import { Student } from '../../../models/student';
 import { TenantService } from '../../../services/tenant/tenant';
 import { ShiftService } from '../../../services/shift/shift';
 interface RoomOption {
@@ -51,6 +52,7 @@ export class StudentForm implements OnInit {
     this.formCdr.markForCheck();
     this.dismissed.emit();
   }
+<<<<<<< HEAD
   @Input()
   embedded = false;
   @Input()
@@ -68,10 +70,53 @@ export class StudentForm implements OnInit {
   private readonly busyState = signal(false);
   get busy(): boolean {
     return this.busyState();
+=======
+  @Input() embedded = false;
+  @Input() studentId = '';
+  @Output() saved = new EventEmitter<string>();
+  @Output() dismissed = new EventEmitter<void>();
+  tutors=signal<any[]>([]);
+  existingStudents=signal<Student[]>([]);
+  eligibility=signal<RoomEligibility | null>(null);
+  editingId=''; private readonly busyState = signal(false);
+  get busy(): boolean {return this.busyState();}
+  set busy(value: boolean) {this.busyState.set(value);}
+   private readonly errorState = signal('');
+  get error(): string {return this.errorState();}
+  set error(value: string) {this.errorState.set(value);}
+   private readonly messageState = signal('');
+  get message(): string {return this.messageState();}
+  set message(value: string) {this.messageState.set(value);}
+   loadingStudent=false; studentLoadFailed=false;
+  roomLoading=false; private roomRequest=0; birthDateError='';
+  allClassrooms: RoomOption[]=[];
+  newTutorOpen=false;
+  tutorOne='';tutorTwo=''; tutorSearch=''; activeYearLoading=true;
+  /** Registros antiguos pueden no tener todavía un is_primary marcado. */
+  primarySelectionRequired=false;
+  tutorDropdown:1|2|0=0;
+  get selectedTutorOne():any{return this.tutors().find(t=>t.id===this.tutorOne);}
+  get selectedTutorTwo():any{return this.tutors().find(t=>t.id===this.tutorTwo);}
+  get possibleSiblings(): Student[] {
+    const selected = [this.tutorOne, this.tutorTwo].filter(Boolean);
+    if (!selected.length) return [];
+    return this.existingStudents().filter(student =>
+      student.id !== this.editingId &&
+      (student.tutors || []).some(tutor => selected.includes(tutor.id))
+    );
+  }
+  toggleTutorPicker(which:1|2):void{this.tutorSearch='';this.tutorDropdown=this.tutorDropdown===which?0:which;}
+  chooseTutor(which:1|2, id:string):void{
+    if(which===1){if(this.tutorTwo===id)this.tutorTwo='';this.tutorOne=id;this.primarySelectionRequired=false;}
+    else if(!this.tutorOne){this.tutorOne=id;this.primarySelectionRequired=false;}
+    else {if(this.tutorOne===id)this.tutorOne='';this.tutorTwo=id;}
+    this.tutorDropdown=0;this.tutorSearch='';
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
   }
   set busy(value: boolean) {
     this.busyState.set(value);
   }
+<<<<<<< HEAD
   private readonly errorState = signal('');
   get error(): string {
     return this.errorState();
@@ -155,6 +200,34 @@ export class StudentForm implements OnInit {
         return false;
       seen.add(key);
       return !q || [t.firstName, t.lastName, t.documentNumber].join(' ').toLocaleLowerCase('es').includes(q);
+=======
+  get matchingTutors():any[]{return this.selectableTutors.filter(t=>t.id!==(this.tutorDropdown===1?this.tutorTwo:this.tutorOne));}
+  get selectableTutors():any[]{const q=this.tutorSearch.trim().toLocaleLowerCase('es');
+    const seen=new Set<string>(); return this.tutors().filter(t=>{
+      const key=(t.documentNumber||'').replace(/\D/g,'')||t.id;
+      if(seen.has(key))return false;seen.add(key);
+      return !q||[t.firstName,t.lastName,t.documentNumber].join(' ').toLocaleLowerCase('es').includes(q);
+    });}
+  get tutorTwoOptions():any[]{return this.selectableTutors.filter(t=>t.id!==this.tutorOne||t.id===this.tutorTwo);}
+  get tutorOneOptions():any[]{return this.selectableTutors.filter(t=>t.id!==this.tutorTwo||t.id===this.tutorOne);}
+  chooseExistingTutor(t:any):void{if(!this.tutorOne)this.tutorOne=t.id;else if(!this.tutorTwo&&this.tutorOne!==t.id)this.tutorTwo=t.id;this.newTutorOpen=false;this.tutorDropdown=0;}
+  form:any={firstName:'',lastName:'',documentNumber:'',legajoNumber:'',birthDate:'',classroom:'',studentShift:'MANANA',academicYear:new Date().getFullYear(),status:'ACTIVE',cuil:'',dniStatus:'FISICO',hasCpi:false,hasForeignDocument:false,foreignDocumentType:'',foreignDocumentNumber:'',genderIdentity:'NO_RESPONDE',birthCountry:'ARGENTINA',nationality:'Argentina',birthProvince:'Buenos Aires',birthDistrict:'',birthLocality:'',street:'',streetNumber:'',floor:'',tower:'',apartment:'',betweenStreets:'',addressDistrict:'',addressLocality:'',otherAddressDetails:'',studentLandlinePhone:'',studentCellphone:'',hasSiblings:false,siblingCount:0,siblingsInThisSchool:0,receivesAuh:false,belongsToNativePeople:false,speaksOtherLanguageAtHome:false,indigenousLanguage:false,otherLanguage:false,transportationMethods:'A_PIE',gender:'',bloodType:'',healthInsurance:'',allergies:'',birthPlace:'',address:''};
+  constructor(private students:StudentService, private tutorApi:TutorService, private tenantApi:TenantService, private shifts:ShiftService, private route:ActivatedRoute, private router:Router){}
+  get isEdit():boolean{return !!this.editingId;}
+  ngOnInit():void {
+    this.editingId=this.studentId||this.route.snapshot.paramMap.get('id')||'';
+    this.tenantApi.getProfile().subscribe({next:p=>{
+      const year=Number((p.profile||p)?.academicYear);
+      if(year>=2000&&year<=2100 && !this.isEdit){this.form.academicYear=year;this.refreshClassrooms();}
+      this.activeYearLoading=false;
+      this.formCdr.markForCheck();
+    },error:()=>{this.activeYearLoading=false;this.error='No se pudo recuperar el ciclo lectivo activo de la escuela.';this.formCdr.markForCheck();}});
+    this.tutorApi.getTutors().subscribe({next:rows=>{this.tutors.set(rows);this.formCdr.markForCheck();},error:e=>{this.error=this.errorText(e,'No se pudieron cargar los tutores');this.formCdr.markForCheck();}});
+    this.students.getStudents().subscribe({next:rows=>{this.existingStudents.set(rows);this.formCdr.markForCheck();},error:()=>{}});
+    this.shifts.getClassroomsConfig().subscribe({
+      next:rooms=>{this.allClassrooms=rooms;this.formCdr.markForCheck();},
+      error:()=>{if(this.isEdit)this.error='No se pudieron cargar las aulas registradas.';this.formCdr.markForCheck();}
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
     });
   }
   get tutorTwoOptions(): any[] {
@@ -655,6 +728,7 @@ export class StudentForm implements OnInit {
   openTutorModal(): void {
     this.newTutorOpen = true;
   }
+<<<<<<< HEAD
   tutorCreated(t: any): void {
     this.tutors.update(rows => [...rows.filter(x => x.id !== t.id), t]);
     if (!this.tutorOne)
@@ -773,6 +847,43 @@ export class StudentForm implements OnInit {
         throw new Error('El backend no devolvió el ID del alumno.');
       this.editingId = id;
       return wasEditing ? this.students.linkTutors(id, assignments) : of(void 0);
+=======
+  submitStudent():void {
+    if(this.busy||this.loadingStudent||this.studentLoadFailed)return;
+    if(!this.form.firstName?.trim()||!this.form.lastName?.trim()||(this.form.dniStatus==='FISICO'&&!this.form.documentNumber?.trim())||!this.form.birthDate){this.error='Completá nombre, apellido, DNI y nacimiento.';return;}
+    if(this.form.dniStatus==='FISICO' && !validNumericDni(this.form.documentNumber)) {
+      this.error='El DNI debe tener entre 6 y 12 números, sin puntos ni letras.';return;
+    }
+    for(const phone of [this.form.studentCellphone, this.form.studentLandlinePhone]) {
+      if(!validNumericPhone(phone)) {this.error='Los teléfonos deben contener solamente números (6 a 20).';return;}
+    }
+    this.birthDateError=validStudentBirthDate(this.form.birthDate,Number(this.form.academicYear));
+    if(this.birthDateError){this.error=this.birthDateError;return;}
+    if(!this.tutorOne && !this.isEdit){this.error='Seleccioná al menos un tutor responsable.';return;}
+    if(this.tutorOne===this.tutorTwo){this.error='El segundo tutor debe ser una persona diferente.';return;}
+    if(this.primarySelectionRequired){this.error='Esta matrícula es anterior al registro de tutor principal. Seleccioná expresamente quién es el tutor principal antes de guardar.';return;}
+    if(!this.selectableClassrooms.some(room=>room.name===this.form.classroom) || this.roomLoading){
+      this.error=this.isEdit?'Elegí un aula registrada del turno seleccionado.':'Calculá y elegí una sala habilitada para su edad y turno.';
+      return;
+    }
+    const tutorIds=[this.tutorOne,this.tutorTwo].filter(Boolean);
+    const assignments=toStudentTutorAssignments(tutorIds,this.tutors());
+    const {tutors, tutorIds:ignored, contactPhone:ignoredContact, ...payload}=this.form;
+    // Nunca enviamos identificadores ni datos de otras instituciones.
+    delete payload.id;delete payload.tenantId;delete payload.institutionId;delete payload.createdAt;delete payload.updatedAt;
+    this.error='';this.busy=true;
+    const wasEditing=!!this.editingId;
+    // Alta atómica: incluir referencias a tutores en el mismo POST del alumno.
+    // Edición: vincular tutores por subrecurso, sin permitir una lista vacía.
+    if(tutorIds.length===0){this.busy=false;this.error='Seleccioná al menos un tutor.';return;}
+    const operation=wasEditing?this.students.updateStudent(this.editingId,payload)
+      :this.students.createStudent({...payload,tutors:tutorIds.map(id=>({id}))});
+    operation.pipe(switchMap((student:any)=>{
+      const id=this.editingId||student.id;
+      if(!id)throw new Error('El backend no devolvió el ID del alumno.');
+      this.editingId=id;
+      return wasEditing?this.students.linkTutors(id,assignments):of(void 0);
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
     })).subscribe({
       next: () => {
         this.busy = false;

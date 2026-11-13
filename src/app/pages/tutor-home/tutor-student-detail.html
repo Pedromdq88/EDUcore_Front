@@ -39,6 +39,7 @@
     </div>
     <div class="family-columns">
       <div class="family-column">
+<<<<<<< HEAD
         <section class="family-panel">
           <h3>
             <span class="material-icons-outlined">badge</span> Datos del alumno
@@ -126,6 +127,37 @@
                 </div>
                 @if (medicalHighlights.length > medicalPreview.length) {
                   <p class="family-medical-more">Y {{medicalHighlights.length - medicalPreview.length}} datos más en la ficha completa.</p>
+=======
+      <section class="family-panel"><h3><span class="material-icons-outlined">badge</span> Datos del alumno</h3>
+        <div class="family-info">
+          <div><small>DNI</small><strong>{{s.documentNumber || 'No registrado'}}</strong></div>
+          <div><small>Fecha de nacimiento</small><strong>{{s.birthDate | date:'dd/MM/yyyy'}}</strong></div>
+          <div><small>Legajo</small><strong>{{s.legajoNumber || 'Sin número'}}</strong></div>
+          <div><small>CUIL</small><strong>{{s.cuil || 'No registrado'}}</strong></div>
+          <div><small>Nacionalidad</small><strong>{{s.nationality || 'No informada'}}</strong></div>
+          <div><small>País y localidad de nacimiento</small><strong>{{s.birthCountry || '—'}} · {{s.birthLocality || '—'}}</strong></div>
+          <div><small>Provincia de nacimiento</small><strong>{{s.birthProvince || 'No informada'}}</strong></div>
+          <div><small>Identidad de género</small><strong>{{s.genderIdentity || 'No informada'}}</strong></div>
+          <div><small>Ciclo lectivo</small><strong>{{s.academicYear}}</strong></div>
+          <div><small>Sección y turno</small><strong>{{s.classroom || 'Sin aula'}} · {{s.shift || 'Sin turno'}}</strong></div>
+          <div><small>Domicilio registrado</small><strong>{{s.address || 'No informado'}}</strong></div>
+          <div><small>Distrito</small><strong>{{s.addressDistrict || 'No informado'}}</strong></div>
+          <div><small>Hermanos/as declarados</small><strong>{{s.hasSiblings ? (s.siblingCount || 'Sí') : 'No registrados'}}</strong></div>
+          <div><small>Contacto principal (tutor)</small><strong>{{s.contactPhone || 'Sin teléfono registrado'}}</strong></div>
+        </div>
+      </section>
+      <section class="family-panel">
+        <h3><span class="material-icons-outlined">medical_services</span> Ficha médica</h3>
+        <p class="family-muted">Resumen de los antecedentes y datos de salud informados. Solo lectura.</p>
+        @if (medicalLoading) { <p role="status">Cargando ficha médica…</p> }
+        @if (medicalError) { <p class="eco-error">{{medicalError}}</p> }
+        @if (!medicalLoading && !medicalError) {
+          @if (hasMedical()) {
+            @if (medicalPreview.length) {
+              <div class="family-info">
+                @for (field of medicalPreview; track field.key) {
+                  <div><small>{{field.label}}</small><strong>{{field.value}}</strong></div>
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
                 }
               }
               @else {
@@ -144,6 +176,7 @@
         </section>
       </div>
       <div class="family-column">
+<<<<<<< HEAD
         <section class="family-panel">
           <h3>
             <span class="material-icons-outlined">family_restroom</span> Responsables vinculados
@@ -228,6 +261,47 @@
             }
           }
         </section>
+=======
+      <section class="family-panel"><h3><span class="material-icons-outlined">family_restroom</span> Responsables vinculados</h3>
+        @if (!s.tutors.length) { <p class="family-muted">No hay responsables vinculados.</p> }
+        @for (t of s.tutors; track t.id) {
+          <div class="family-person"><span class="family-person-avatar">{{t.firstName[0]}}{{t.lastName[0]}}</span>
+            <div><strong>{{t.firstName}} {{t.lastName}}</strong><small>{{t.relationship || 'Tutor'}} · {{t.phone || 'Sin teléfono'}} @if(t.id===s.primaryTutorId){ · Principal }</small></div></div>
+        }
+      </section>
+      <section class="family-panel"><h3><span class="material-icons-outlined">groups</span> Hermanos confirmados</h3>
+        @if(siblingsLoading){<p role="status">Consultando vínculos…</p>}
+        @if(siblingsError){<p class="eco-error">{{siblingsError}}</p>}
+        @if(!siblingsLoading && !siblingsError){
+          @for(other of confirmedSiblings();track other.id){
+            <a class="family-person family-sibling-link" [routerLink]="['/my-students',other.id]">
+              <span class="family-person-avatar">{{other.firstName[0]}}{{other.lastName[0]}}</span>
+              <span><strong>{{other.firstName}} {{other.lastName}}</strong><small>{{other.classroom || 'Sin asignar'}}</small></span>
+            </a>
+          } @empty {<p class="family-empty">No hay hermanos confirmados entre tus alumnos vinculados.</p>}
+        }
+      </section>
+      <section class="family-panel"><h3><span class="material-icons-outlined">verified_user</span> Personas autorizadas para retiro</h3>
+        @if (pickupsLoading) { <p role="status">Cargando autorizaciones…</p> }
+        @if (pickupError) { <p class="eco-error">{{pickupError}}</p> }
+        @if (!pickupsLoading && !pickupError) {
+          @for (p of pickups(); track p.id) {
+            <app-pickup-mini-profile [person]="p" kind="authorized" />
+          } @empty { <p class="family-empty">No hay personas autorizadas adicionales registradas.</p> }
+        }
+      </section>
+      <section class="family-panel family-restricted">
+        <h3><span class="material-icons-outlined">person_off</span> Personas con restricción para retirar</h3>
+        <p class="family-muted">Restricciones registradas por la institución. Solo lectura.</p>
+        @if (restrictionsLoading) { <p role="status">Cargando restricciones…</p> }
+        @if (restrictionError) { <p class="eco-error">{{restrictionError}}</p> }
+        @if (!restrictionsLoading && !restrictionError) {
+          @for (r of restrictions(); track r.id) {
+            <app-pickup-mini-profile [person]="r" kind="restricted" />
+          } @empty { <p class="family-empty">No hay restricciones registradas para este alumno.</p> }
+        }
+      </section>
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
       </div>
       <section class="family-panel family-wide">
         <h3>

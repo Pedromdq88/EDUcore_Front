@@ -18,9 +18,14 @@
         </div>
       }
     </div>
+<<<<<<< HEAD
     @if (privateNoticeSuccess) {
       <p class="eco-success" role="status">{{privateNoticeSuccess}}</p>
     }
+=======
+
+    @if (privateNoticeSuccess) { <p class="eco-success" role="status">{{privateNoticeSuccess}}</p> }
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
     <div class="detail-card">
       <div class="user-header">
         <div class="avatar">{{ s.firstName[0] }}{{ s.lastName[0] }}</div>
@@ -33,23 +38,33 @@
           </div>
         </div>
       </div>
+<<<<<<< HEAD
+=======
+
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
       @if (canManagePrivateNotices) {
         <div class="section-block">
           <h3 class="block-title">Avisos privados del alumno</h3>
           @for (n of privateNotices(); track n.id) {
             <div class="sub-card private-student-notice">
               <div class="private-notice-content">
+<<<<<<< HEAD
                 <span class="private-notice-label">
                   <span class="material-icons-outlined" aria-hidden="true">lock</span> Aviso privado
                 </span>
                 <strong>{{ n.title }}</strong>
                 <p>{{ n.content }}</p>
+=======
+                <span class="private-notice-label"><span class="material-icons-outlined" aria-hidden="true">lock</span> Aviso privado</span>
+                <strong>{{ n.title }}</strong><p>{{ n.content }}</p>
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
               </div>
               <div class="private-notice-actions">
                 <button type="button" class="btn-secondary" (click)="openPrivateNotice(n)">Editar</button>
                 <button type="button" class="btn-danger" (click)="removePrivateNotice(n.id)">Eliminar</button>
               </div>
             </div>
+<<<<<<< HEAD
           }
           @empty {
             <p class="empty-text">No hay avisos privados registrados.</p>
@@ -84,10 +99,32 @@
           </form>
         </div>
       }
+=======
+          } @empty { <p class="empty-text">No hay avisos privados registrados.</p> }
+        </div>
+      }
+
+      @if (isTeacher) {
+        <div class="section-block">
+          <h3 class="block-title">Enviar observación a la familia</h3>
+          <p class="eco-muted">Este mensaje se enviará únicamente a los tutores vinculados a este alumno y a Dirección/Administración.</p>
+          <label class="form-label">Observación
+            <textarea class="form-input" [(ngModel)]="observation" rows="4" placeholder="Describí la situación o el seguimiento del estudiante."></textarea>
+          </label>
+          @if (observationError) { <p class="eco-error">{{observationError}}</p> }
+          @if (observationMessage) { <p class="eco-success">{{observationMessage}}</p> }
+          <button class="btn-primary" type="button" (click)="sendObservation()" [disabled]="observationBusy">
+            {{observationBusy?'Enviando…':'Enviar observación'}}
+          </button>
+        </div>
+      }
+
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
       @if (canViewFamily) {
         <div class="section-block">
           <h3 class="block-title">Identidad y documentación</h3>
           <div class="info-grid">
+<<<<<<< HEAD
             <div class="info-box">
               <label>Nombre</label>
               <span>{{ displayValue(s.firstName) }}</span>
@@ -236,6 +273,56 @@
               <label>Celular del alumno</label>
               <span>{{ displayValue(s.studentCellphone) }}</span>
             </div>
+=======
+            <div class="info-box"><label>Nombre</label><span>{{ displayValue(s.firstName) }}</span></div>
+            <div class="info-box"><label>Apellido</label><span>{{ displayValue(s.lastName) }}</span></div>
+            <div class="info-box"><label>DNI</label><span>{{ displayValue(s.documentNumber) }}</span></div>
+            <div class="info-box"><label>Estado del DNI</label><span>{{ displayValue(s.dniStatus) }}</span></div>
+            <div class="info-box"><label>CUIL</label><span>{{ displayValue(s.cuil) }}</span></div>
+            <div class="info-box"><label>Legajo</label><span>{{ displayValue(s.legajoNumber) }}</span></div>
+            <div class="info-box"><label>Fecha de nacimiento</label><span>{{ displayValue(s.birthDate) }}</span></div>
+            <div class="info-box"><label>Identidad de género</label><span>{{ displayValue(s.genderIdentity) }}</span></div>
+            <div class="info-box"><label>Posee CPI</label><span>{{ displayValue(s.hasCpi) }}</span></div>
+            <div class="info-box"><label>Documento extranjero</label><span>{{ displayValue(s.hasForeignDocument) }}</span></div>
+            @if (s.hasForeignDocument) {
+              <div class="info-box"><label>Tipo de documento extranjero</label><span>{{ displayValue(s.foreignDocumentType) }}</span></div>
+              <div class="info-box"><label>Número de documento extranjero</label><span>{{ displayValue(s.foreignDocumentNumber) }}</span></div>
+            }
+            <div class="info-box"><label>País de nacimiento</label><span>{{ displayValue(s.birthCountry) }}</span></div>
+            <div class="info-box"><label>Nacionalidad</label><span>{{ displayValue(s.nationality) }}</span></div>
+            <div class="info-box"><label>Provincia de nacimiento</label><span>{{ displayValue(s.birthProvince) }}</span></div>
+            <div class="info-box"><label>Distrito de nacimiento</label><span>{{ displayValue(s.birthDistrict) }}</span></div>
+            <div class="info-box"><label>Localidad de nacimiento</label><span>{{ displayValue(s.birthLocality) }}</span></div>
+            <div class="info-box"><label>Lugar de nacimiento</label><span>{{ displayValue(s.birthPlace) }}</span></div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <h3 class="block-title">Datos escolares</h3>
+          <div class="info-grid">
+            <div class="info-box"><label>Ciclo lectivo</label><span>{{ displayValue(s.academicYear) }}</span></div>
+            <div class="info-box"><label>Aula / sección</label><span>{{ s.classroom || 'Sin asignar' }}</span></div>
+            <div class="info-box"><label>Turno</label><span>{{ displayShift(s.studentShift) }}</span></div>
+            <div class="info-box"><label>Estado de matrícula</label><span>{{ displayStatus(s.status) }}</span></div>
+            <div class="info-box"><label>Edad al 30 de junio</label><span>{{ ageAtCutoff(s.birthDate, s.academicYear) ?? 'No disponible' }}</span></div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <h3 class="block-title">Domicilio y contacto</h3>
+          <div class="info-grid">
+            <div class="info-box"><label>Calle</label><span>{{ displayValue(s.street) }}</span></div>
+            <div class="info-box"><label>Número</label><span>{{ displayValue(s.streetNumber) }}</span></div>
+            <div class="info-box"><label>Piso</label><span>{{ displayValue(s.floor) }}</span></div>
+            <div class="info-box"><label>Departamento</label><span>{{ displayValue(s.apartment) }}</span></div>
+            <div class="info-box"><label>Torre</label><span>{{ displayValue(s.tower) }}</span></div>
+            <div class="info-box"><label>Entre calles</label><span>{{ displayValue(s.betweenStreets) }}</span></div>
+            <div class="info-box"><label>Distrito</label><span>{{ displayValue(s.addressDistrict) }}</span></div>
+            <div class="info-box"><label>Localidad</label><span>{{ displayValue(s.addressLocality) }}</span></div>
+            <div class="info-box profile-wide"><label>Detalles del domicilio</label><span>{{ displayValue(s.otherAddressDetails || s.address) }}</span></div>
+            <div class="info-box"><label>Teléfono fijo del alumno</label><span>{{ displayValue(s.studentLandlinePhone) }}</span></div>
+            <div class="info-box"><label>Celular del alumno</label><span>{{ displayValue(s.studentCellphone) }}</span></div>
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
           </div>
           <div class="contact-highlight">
             <span class="material-icons-outlined" aria-hidden="true">call</span>
@@ -244,13 +331,18 @@
               @if (primaryTutor; as tutor) {
                 <p>{{ tutor.firstName }} {{ tutor.lastName }} · {{ displayValue(tutor.phone || tutor.phoneFijo) }}</p>
                 <small>El número se obtiene de la ficha actual del tutor principal.</small>
+<<<<<<< HEAD
               }
               @else {
+=======
+              } @else {
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
                 <p>No se pudo identificar un tutor principal.</p>
               }
             </div>
           </div>
         </div>
+<<<<<<< HEAD
         <div class="section-block">
           <h3 class="block-title">Contexto familiar</h3>
           <div class="info-grid">
@@ -297,6 +389,27 @@
           @if (!s.tutors?.length) {
             <p class="empty-text">No hay tutores asociados a este alumno.</p>
           }
+=======
+
+        <div class="section-block">
+          <h3 class="block-title">Contexto familiar</h3>
+          <div class="info-grid">
+            <div class="info-box"><label>Tiene hermanos</label><span>{{ displayValue(s.hasSiblings) }}</span></div>
+            <div class="info-box"><label>Cantidad de hermanos</label><span>{{ displayValue(s.siblingCount) }}</span></div>
+            <div class="info-box"><label>Hermanos en la escuela</label><span>{{ displayValue(s.siblingsInThisSchool) }}</span></div>
+            <div class="info-box"><label>Recibe AUH</label><span>{{ displayValue(s.receivesAuh) }}</span></div>
+            <div class="info-box"><label>Pertenece a pueblo originario</label><span>{{ displayValue(s.belongsToNativePeople) }}</span></div>
+            <div class="info-box"><label>Habla otro idioma en casa</label><span>{{ displayValue(s.speaksOtherLanguageAtHome) }}</span></div>
+            <div class="info-box"><label>Lengua originaria</label><span>{{ displayValue(s.indigenousLanguage) }}</span></div>
+            <div class="info-box"><label>Otro idioma</label><span>{{ displayValue(s.otherLanguage) }}</span></div>
+            <div class="info-box profile-wide"><label>Medio de transporte</label><span>{{ displayValue(s.transportationMethods) }}</span></div>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <h3 class="block-title">Tutores responsables vinculados</h3>
+          @if (!s.tutors?.length) { <p class="empty-text">No hay tutores asociados a este alumno.</p> }
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
           @for (t of s.tutors || []; track t.id) {
             <div class="tutor-profile-card">
               <div class="tutor-profile-header">
@@ -304,9 +417,13 @@
                 <div class="linked-person-data">
                   <strong>{{t.lastName}}, {{t.firstName}}</strong>
                   <small>{{displayValue(t.relationship)}}</small>
+<<<<<<< HEAD
                   @if (primaryTutor?.id === t.id) {
                     <span class="badge primary-tutor-badge">Tutor principal</span>
                   }
+=======
+                  @if (primaryTutor?.id === t.id) { <span class="badge primary-tutor-badge">Tutor principal</span> }
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
                 </div>
                 @if (canEditStudent) {
                   <a class="linked-person-link" [routerLink]="['/tutors',t.id]">
@@ -315,6 +432,7 @@
                 }
               </div>
               <div class="info-grid tutor-info-grid">
+<<<<<<< HEAD
                 <div class="info-box">
                   <label>DNI</label>
                   <span>{{ displayValue(t.documentNumber) }}</span>
@@ -351,10 +469,22 @@
                   <label>Domicilio</label>
                   <span>{{ displayValue(t.direccion) }}</span>
                 </div>
+=======
+                <div class="info-box"><label>DNI</label><span>{{ displayValue(t.documentNumber) }}</span></div>
+                <div class="info-box"><label>Teléfono celular</label><span>{{ displayValue(t.phone) }}</span></div>
+                <div class="info-box"><label>Teléfono fijo</label><span>{{ displayValue(t.phoneFijo) }}</span></div>
+                <div class="info-box"><label>Correo electrónico</label><span>{{ displayValue(t.email) }}</span></div>
+                <div class="info-box"><label>Nacionalidad</label><span>{{ displayValue(t.nacionalidad) }}</span></div>
+                <div class="info-box"><label>Profesión</label><span>{{ displayValue(t.profesion) }}</span></div>
+                <div class="info-box"><label>Condición de actividad</label><span>{{ displayValue(t.condicionActividad) }}</span></div>
+                <div class="info-box"><label>Convive con el alumno</label><span>{{ displayValue(t.convive) }}</span></div>
+                <div class="info-box profile-wide"><label>Domicilio</label><span>{{ displayValue(t.direccion) }}</span></div>
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
               </div>
             </div>
           }
         </div>
+<<<<<<< HEAD
         <div class="section-block sibling-block">
           <h3 class="block-title">Hermanos confirmados en EDUcore</h3>
           @if (siblingError) {
@@ -381,11 +511,29 @@
           @empty {
             <p class="empty-text">No hay hermanos confirmados en la escuela.</p>
           }
+=======
+
+        <div class="section-block sibling-block">
+          <h3 class="block-title">Hermanos confirmados en EDUcore</h3>
+          @if (siblingError) { <p class="eco-error">{{siblingError}}</p> }
+          @for (sibling of confirmedSiblings(); track sibling.id) {
+            <div class="sub-card sibling-row">
+              <div><strong>{{sibling.firstName}} {{sibling.lastName}}</strong><small>{{sibling.classroom || 'Sin asignar'}}</small></div>
+              <div class="sibling-actions">
+                <a class="btn-secondary" [routerLink]="['/students', sibling.id]">Ver alumno</a>
+                @if (canEditStudent) {
+                  <button type="button" class="btn-secondary" [disabled]="siblingBusy" (click)="removeSibling(sibling)">Quitar vínculo</button>
+                }
+              </div>
+            </div>
+          } @empty { <p class="empty-text">No hay hermanos confirmados en la escuela.</p> }
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
           @if (canEditStudent && siblingCandidates().length) {
             <h4>Posibles hermanos por tutor compartido</h4>
             <p class="eco-muted">Compartir un tutor no confirma parentesco. Revisá cada caso antes de vincular.</p>
             @for (candidate of siblingCandidates(); track candidate.id) {
               <div class="sub-card sibling-row">
+<<<<<<< HEAD
                 <div>
                   <strong>{{candidate.firstName}} {{candidate.lastName}}</strong>
                   <small>{{candidate.classroom || 'Sin asignar'}}</small>
@@ -395,10 +543,15 @@
                   class="btn-primary"
                   [disabled]="siblingBusy"
                   (click)="confirmSibling(candidate)">Confirmar hermanos</button>
+=======
+                <div><strong>{{candidate.firstName}} {{candidate.lastName}}</strong><small>{{candidate.classroom || 'Sin asignar'}}</small></div>
+                <button type="button" class="btn-primary" [disabled]="siblingBusy" (click)="confirmSibling(candidate)">Confirmar hermanos</button>
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
               </div>
             }
           }
         </div>
+<<<<<<< HEAD
         <div class="section-block">
           <h3 class="block-title">Información complementaria de salud</h3>
           <div class="info-grid">
@@ -417,6 +570,19 @@
           </div>
         </div>
       }
+=======
+
+        <div class="section-block">
+          <h3 class="block-title">Información complementaria de salud</h3>
+          <div class="info-grid">
+            <div class="info-box"><label>Grupo sanguíneo</label><span>{{ displayValue(s.bloodType) }}</span></div>
+            <div class="info-box"><label>Cobertura médica</label><span>{{ displayValue(s.healthInsurance) }}</span></div>
+            <div class="info-box profile-wide"><label>Alergias registradas en matrícula</label><span>{{ displayValue(s.allergies) }}</span></div>
+          </div>
+        </div>
+      }
+
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
       @if (canViewMedical) {
         <div class="section-block">
           <div class="eco-toolbar">
@@ -427,12 +593,19 @@
             <div class="info-box bg-slate-50">
               <p class="font-bold text-xs text-slate-800">Obra Social: {{med.obraSocial}} (N° Afiliado: {{med.nroAfiliado || 'N/D'}})</p>
             </div>
+<<<<<<< HEAD
           }
           @else {
             <p class="empty-text">No hay ficha médica registrada.</p>
           }
         </div>
       }
+=======
+          } @else { <p class="empty-text">No hay ficha médica registrada.</p> }
+        </div>
+      }
+
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
       @if (canViewPickups) {
         <div class="section-block">
           <div class="eco-toolbar">
@@ -441,12 +614,19 @@
           </div>
           @for (p of pickups(); track p.id) {
             <app-pickup-mini-profile [person]="p" kind="authorized" [institutional]="true" />
+<<<<<<< HEAD
           }
           @empty {
             <p class="empty-text">No hay personas autorizadas registradas.</p>
           }
         </div>
       }
+=======
+          } @empty { <p class="empty-text">No hay personas autorizadas registradas.</p> }
+        </div>
+      }
+
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
       @if (canViewRestrictions) {
         <div class="section-block border-rose">
           <div class="eco-toolbar">
@@ -455,15 +635,20 @@
           </div>
           @for (r of restrictions(); track r.id) {
             <app-pickup-mini-profile [person]="r" kind="restricted" [institutional]="true" />
+<<<<<<< HEAD
           }
           @empty {
             <p class="empty-text">No constan medidas judiciales certificadas.</p>
           }
+=======
+          } @empty { <p class="empty-text">No constan medidas judiciales certificadas.</p> }
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
         </div>
       }
     </div>
   </div>
 }
+<<<<<<< HEAD
 @if (canEditStudent && editOpen && student(); as current) {
   <div class="eco-modal-backdrop" role="presentation">
     <div
@@ -487,4 +672,17 @@
     [notice]="privateNoticeToEdit"
     (closed)="closePrivateNotice()"
     (sent)="afterPrivateNotice()" />
+=======
+
+@if (canEditStudent && editOpen && student(); as current) {
+  <div class="eco-modal-backdrop" role="presentation">
+    <div class="eco-modal eco-student-modal" role="dialog" aria-modal="true" aria-label="Editar ficha del alumno" (click)="$event.stopPropagation()">
+      <app-student-form [embedded]="true" [studentId]="current.id || ''" (saved)="afterEdit($event)" (dismissed)="editOpen=false"></app-student-form>
+    </div>
+  </div>
+}
+
+@if (canManagePrivateNotices && privateNoticeOpen && student(); as current) {
+  <app-private-student-announcement [studentId]="current.id || ''" [studentName]="current.firstName + ' ' + current.lastName" [notice]="privateNoticeToEdit" (closed)="closePrivateNotice()" (sent)="afterPrivateNotice()" />
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
 }

@@ -1,9 +1,13 @@
 @if (teacher(); as t) {
   <div class="detail-wrapper">
     <div class="action-bar">
+<<<<<<< HEAD
       <a routerLink="/teachers" class="btn-secondary">
         <span class="material-icons-outlined">arrow_back</span> Volver al listado
       </a>
+=======
+      <a routerLink="/teachers" class="btn-secondary"><span class="material-icons-outlined">arrow_back</span> Volver al listado</a>
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
       @if (canEdit) {
         <div class="action-buttons">
           <button type="button" class="btn-primary" (click)="editOpen=true">Editar personal</button>
@@ -26,6 +30,7 @@
       <section class="section-block">
         <h3 class="block-title">Identidad y documentación</h3>
         <div class="staff-info-grid">
+<<<<<<< HEAD
           <div>
             <small>Nombre</small>
             <strong>{{displayValue(t.firstName)}}</strong>
@@ -42,11 +47,18 @@
             <small>Rol</small>
             <strong>{{roleName(t.role)}}</strong>
           </div>
+=======
+          <div><small>Nombre</small><strong>{{displayValue(t.firstName)}}</strong></div>
+          <div><small>Apellido</small><strong>{{displayValue(t.lastName)}}</strong></div>
+          <div><small>DNI</small><strong>{{displayValue(t.documentNumber)}}</strong></div>
+          <div><small>Rol</small><strong>{{roleName(t.role)}}</strong></div>
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
         </div>
       </section>
       <section class="section-block">
         <h3 class="block-title">Contacto y datos laborales</h3>
         <div class="staff-info-grid">
+<<<<<<< HEAD
           <div>
             <small>Correo institucional</small>
             <strong>{{displayValue(t.email)}}</strong>
@@ -71,6 +83,14 @@
             <small>Asignaciones</small>
             <strong>{{t.assignments?.length || 0}}</strong>
           </div>
+=======
+          <div><small>Correo institucional</small><strong>{{displayValue(t.email)}}</strong></div>
+          <div><small>Teléfono</small><strong>{{displayValue(t.phone)}}</strong></div>
+          <div><small>Fecha de alta</small><strong>{{t.hireDate ? (t.hireDate | date:'dd/MM/yyyy') : 'No informado'}}</strong></div>
+          <div><small>Estado</small><strong>{{displayValue(t.status)}}</strong></div>
+          <div><small>Aula principal</small><strong>{{t.classroom || 'Sin aula asignada'}}</strong></div>
+          <div><small>Asignaciones</small><strong>{{t.assignments?.length || 0}}</strong></div>
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
         </div>
       </section>
       <section class="section-block">
@@ -79,6 +99,7 @@
           <div class="staff-assignment-card">
             <strong>{{asg.subject || 'Sin materia'}}</strong>
             <div class="staff-assignment-details">
+<<<<<<< HEAD
               <span>
                 <span class="material-icons-outlined" aria-hidden="true">school</span> {{asg.classroom || 'Sin aula'}}
               </span>
@@ -95,6 +116,16 @@
           <p class="empty-text">No tiene asignaciones registradas.</p>
         }
       </section>
+=======
+              <span><span class="material-icons-outlined" aria-hidden="true">school</span> {{asg.classroom || 'Sin aula'}}</span>
+              <span><span class="material-icons-outlined" aria-hidden="true">schedule</span> {{shiftName(asg.shift)}}</span>
+              @if (asg.isClassroomTeacher) {<span class="staff-lead">Docente titular</span>}
+            </div>
+          </div>
+        } @empty {<p class="empty-text">No tiene asignaciones registradas.</p>}
+      </section>
+
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
       <div class="section-block">
         <div class="eco-toolbar">
           <h3 class="block-title">Portfolio y Certificaciones</h3>
@@ -193,6 +224,7 @@
 }
 @if (canEdit && editOpen && teacher(); as current) {
   <div class="eco-modal-backdrop" role="presentation">
+<<<<<<< HEAD
     <div
       class="eco-modal eco-student-modal"
       role="dialog"
@@ -204,6 +236,10 @@
         [staffId]="current.id || ''"
         (saved)="afterEdit(current.id || '')"
         (dismissed)="editOpen=false"></app-teacher-form>
+=======
+    <div class="eco-modal eco-student-modal" role="dialog" aria-modal="true" aria-label="Editar personal" (click)="$event.stopPropagation()">
+      <app-teacher-form [embedded]="true" [staffId]="current.id || ''" (saved)="afterEdit(current.id || '')" (dismissed)="editOpen=false"></app-teacher-form>
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
     </div>
   </div>
 }

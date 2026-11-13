@@ -1,6 +1,7 @@
 export type Role = 'DIRECTOR' | 'ADMINISTRATIVE' | 'PRECEPTOR' | 'TEACHER' | 'TUTOR';
 export type Capability = 'dashboard' | 'school' | 'school-edit' | 'students' | 'students-edit' | 'staff' | 'staff-edit' | 'tutors' | 'tutors-edit' | 'rooms' | 'subjects' | 'calendar' | 'fees' | 'announcements' | 'spreadsheet' | 'medical' | 'pickups' | 'restrictions' | 'my-students' | 'my-profile';
 export const CAPABILITY_ROLES: Record<Capability, readonly Role[]> = {
+<<<<<<< HEAD
   dashboard: ['DIRECTOR', 'ADMINISTRATIVE', 'PRECEPTOR'],
   school: ['DIRECTOR', 'ADMINISTRATIVE', 'PRECEPTOR', 'TEACHER', 'TUTOR'],
   'school-edit': ['DIRECTOR', 'ADMINISTRATIVE'],
@@ -21,6 +22,28 @@ export const CAPABILITY_ROLES: Record<Capability, readonly Role[]> = {
   restrictions: ['DIRECTOR', 'ADMINISTRATIVE', 'PRECEPTOR'],
   'my-students': ['TUTOR'],
   'my-profile': ['DIRECTOR', 'ADMINISTRATIVE', 'PRECEPTOR', 'TEACHER']
+=======
+  dashboard:['DIRECTOR','ADMINISTRATIVE','PRECEPTOR'],
+  school:['DIRECTOR','ADMINISTRATIVE','PRECEPTOR','TEACHER','TUTOR'],
+  'school-edit':['DIRECTOR','ADMINISTRATIVE'],
+  students:['DIRECTOR','ADMINISTRATIVE','PRECEPTOR','TEACHER'],
+  'students-edit':['DIRECTOR','ADMINISTRATIVE'],
+  staff:['DIRECTOR','ADMINISTRATIVE'],
+  'staff-edit':['DIRECTOR','ADMINISTRATIVE'],
+  tutors:['DIRECTOR','ADMINISTRATIVE'],
+  'tutors-edit':['DIRECTOR','ADMINISTRATIVE'],
+  rooms:['DIRECTOR','ADMINISTRATIVE','PRECEPTOR','TEACHER'],
+  subjects:['DIRECTOR','ADMINISTRATIVE','PRECEPTOR','TEACHER'],
+  calendar:['DIRECTOR','ADMINISTRATIVE','PRECEPTOR','TEACHER','TUTOR'],
+  fees:['DIRECTOR','ADMINISTRATIVE','TUTOR'],
+  announcements:['DIRECTOR','ADMINISTRATIVE','PRECEPTOR','TEACHER','TUTOR'],
+  spreadsheet:['DIRECTOR','ADMINISTRATIVE'],
+  medical:['DIRECTOR','ADMINISTRATIVE','PRECEPTOR'],
+  pickups:['DIRECTOR','ADMINISTRATIVE','PRECEPTOR'],
+  restrictions:['DIRECTOR','ADMINISTRATIVE','PRECEPTOR'],
+  'my-students':['TUTOR'],
+  'my-profile':['DIRECTOR','ADMINISTRATIVE','PRECEPTOR','TEACHER']
+>>>>>>> cafb98c40096dc668666b1ffc7f82798116ae73d
 };
 export function can(role: string | null | undefined, capability: Capability): boolean {
   return CAPABILITY_ROLES[capability].includes((role || '') as Role);
