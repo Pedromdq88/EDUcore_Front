@@ -1,16 +1,37 @@
 <div class="eco-modal-backdrop" role="presentation">
-  <div class="eco-modal private-notice-modal" role="dialog" aria-modal="true" [attr.aria-label]="isEditing ? 'Editar aviso privado' : 'Enviar aviso privado'">
+  <div
+    class="eco-modal private-notice-modal"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="isEditing ? 'Editar aviso privado' : 'Enviar aviso privado'">
     <div class="private-notice-header">
-      <div><h2>{{isEditing ? 'Editar aviso privado' : 'Aviso privado'}}</h2><p>Para los tutores vinculados a {{studentName}}</p></div>
-      <button class="btn-secondary" type="button" (click)="closed.emit()" [disabled]="busy()" aria-label="Cerrar">×</button>
+      <div>
+        <h2>{{isEditing ? 'Editar aviso privado' : 'Aviso privado'}}</h2>
+        <p>Para los tutores vinculados a {{studentName}}</p>
+      </div>
+      <button
+        class="btn-secondary"
+        type="button"
+        (click)="closed.emit()"
+        [disabled]="busy()"
+        aria-label="Cerrar">×</button>
     </div>
-    <p class="private-notice-explain">@if(isEditing){El aviso seguirá disponible solo para los tutores vinculados. Editarlo no envía otro correo.}@else{El aviso será visible únicamente en el portal de la familia. El tutor principal recibirá una notificación por correo, sin el contenido del mensaje.}</p>
+    <p class="private-notice-explain">
+      @if(isEditing){El aviso seguirá disponible solo para los tutores vinculados. Editarlo no envía otro correo.
+      }
+      @else{El aviso será visible únicamente en el portal de la familia. El tutor principal recibirá una notificación por correo, sin el contenido del mensaje.
+      }
+    </p>
     <form [formGroup]="form" (ngSubmit)="save()" novalidate>
       <fieldset>
         <label for="private-title">Título *</label>
-        <input id="private-title" class="form-input" formControlName="title" maxlength="200">
-        @if (title.hasError('required') && title.touched) { <small class="eco-error">Ingresá un título.</small> }
-        @if (title.hasError('maxlength') && title.touched) { <small class="eco-error">El título es demasiado largo.</small> }
+        <input id="private-title" class="form-input" formControlName="title" maxlength="255">
+        @if (title.hasError('required') && title.touched) {
+          <small class="eco-error">Ingresá un título.</small>
+        }
+        @if (title.hasError('maxlength') && title.touched) {
+          <small class="eco-error">El título es demasiado largo.</small>
+        }
       </fieldset>
       <fieldset>
         <label for="private-category">Categoría</label>
@@ -22,12 +43,21 @@
       </fieldset>
       <fieldset>
         <label for="private-content">Mensaje *</label>
-        <textarea id="private-content" class="form-input" rows="6" formControlName="content"></textarea>
-        @if (content.hasError('required') && content.touched) { <small class="eco-error">Escribí el mensaje.</small> }
-        @if (content.hasError('minlength') && content.touched) { <small class="eco-error">Escribí al menos 8 caracteres.</small> }
-        @if (content.hasError('maxlength') && content.touched) { <small class="eco-error">El mensaje es demasiado largo.</small> }
+        <textarea id="private-content" class="form-input" rows="6" formControlName="content" maxlength="20000">
+        </textarea>
+        @if (content.hasError('required') && content.touched) {
+          <small class="eco-error">Escribí el mensaje.</small>
+        }
+        @if (content.hasError('minlength') && content.touched) {
+          <small class="eco-error">Escribí al menos 8 caracteres.</small>
+        }
+        @if (content.hasError('maxlength') && content.touched) {
+          <small class="eco-error">El mensaje es demasiado largo.</small>
+        }
       </fieldset>
-      @if (error()) { <p class="eco-error" role="alert">{{error()}}</p> }
+      @if (error()) {
+        <p class="eco-error" role="alert">{{error()}}</p>
+      }
       <div class="form-actions">
         <button type="button" class="btn-secondary" (click)="closed.emit()" [disabled]="busy()">Cancelar</button>
         <button type="submit" class="btn-primary" [disabled]="busy()">{{busy() ? 'Guardando…' : isEditing ? 'Guardar cambios' : 'Enviar aviso privado'}}</button>

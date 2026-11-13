@@ -1,6 +1,4 @@
 .view-title{display:flex;align-items:center;gap:9px}.section-icon{color:#0891b2;font-size:25px}.records-filter{margin-bottom:20px;max-width:880px;padding:22px}.records-filter .form-input{max-width:550px}.records-filter .eco-row{flex-wrap:wrap;align-items:stretch}.records-content{max-width:980px}.records-content .block-title{margin-bottom:20px}.records-tile{display:flex;align-items:center;gap:14px;padding:14px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;margin-bottom:10px}.records-tile-icon{background:#ecfdf5;border-radius:9px;padding:10px;color:#047857}.records-tile strong{font-size:13px;color:#0f172a}.records-tile p{font-size:12px;color:#64748b;margin:4px 0 0}.records-tip{font-size:11px;color:#94a3b8;margin:20px 0 0}.eco-empty .material-icons-outlined{display:block;font-size:35px;color:#cbd5e1;margin:0 auto 12px}.eco-empty p{margin:0}.records-filter .btn-secondary{min-width:max-content}
-
-/* Master-detail replicando el selector y perfiles del Calendario Update. */
 .records-layout{display:grid;grid-template-columns:minmax(240px,300px) minmax(0,1fr);gap:17px;align-items:start}
 .student-selector{padding:0;position:sticky;top:80px;overflow:hidden}.records-list-head{display:flex;align-items:center;justify-content:space-between;background:#f1f5f9;padding:15px 17px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#334155;text-transform:uppercase}
 .student-selector .eco-searchbox{margin:13px}.student-selector .eco-search{max-width:unset;width:100%;background:#f8fafc;padding-left:39px}
@@ -10,8 +8,6 @@
 .eco-trustee{padding:14px;background:#f0fdf4;border:1px solid #a7f3d0;border-radius:12px;margin-bottom:23px}.eco-trustee .block-title{margin-bottom:10px}.eco-trustee small{display:block;color:#047857;margin-top:6px;font-size:10px}.eco-trustee .records-tile{background:white}
 .records-edit-modal{padding:25px}.eco-age-preview{display:flex;gap:10px;align-items:start;padding:13px;margin-bottom:15px;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;border-radius:11px}.eco-age-preview p{font-size:11px;margin:5px 0 0}
 @media(max-width:870px){.records-layout{grid-template-columns:1fr}.student-selector{position:static}.records-student-list{max-height:210px}.records-content{max-width:100%}}
-
-/* Alta de ficha médica en modal, consulta elegante cuando ya existe */
 .medical-empty-state{text-align:center;max-width:570px;margin:35px auto 48px;padding:32px 20px;color:#475569}
 .medical-empty-icon{margin:0 auto 16px;width:70px;height:70px;border-radius:20px;background:#ecfeff;color:#0891b2;display:flex;align-items:center;justify-content:center}
 .medical-empty-icon .material-icons-outlined{font-size:35px}

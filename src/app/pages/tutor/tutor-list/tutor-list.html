@@ -1,14 +1,90 @@
 <div class="view-wrapper">
- <div class="view-header"><div><p class="eyebrow">GESTIÓN INSTITUCIONAL</p><h2 class="view-title">Tutores y responsables</h2><p class="view-subtitle">Legajos, contacto y cuentas de acceso de las familias.</p></div>
- <button type="button" class="btn-primary" (click)="openModal()"><span class="material-icons-outlined">person_add</span> Agregar responsable</button></div>
- @if(error){<p class="eco-error" role="alert">{{error}}</p>}@if(message){<p class="eco-success" role="status">{{message}}</p>}
- <div class="eco-filterbar"><label class="eco-searchbox"><span class="material-icons-outlined">search</span><input class="eco-search" [(ngModel)]="query" placeholder="Buscar nombre, DNI o correo" aria-label="Buscar tutor"></label>
-  <label class="eco-filterlabel">Vínculo<select class="eco-select" [(ngModel)]="relationship"><option value="ALL">Todos</option>@for(r of relations;track r){<option [value]="r">{{r}}</option>}</select></label>
-  <span class="eco-counter">{{filteredTutors.length}} de {{tutors().length}} responsables</span></div>
- <div class="table-container"><table class="data-table"><thead><tr><th>Responsable</th><th>DNI</th><th>Vínculo</th><th>Teléfono</th><th>Correo / acceso</th><th class="text-center">Acciones</th></tr></thead>
- <tbody>@if(filteredTutors.length===0){<tr><td colspan="6" class="empty-row">No hay tutores para los filtros elegidos.</td></tr>}
- @for(t of filteredTutors;track t.id){<tr><td><div class="eco-person"><span class="eco-initials">{{t.firstName[0]}}{{t.lastName[0]}}</span><strong>{{t.lastName}}, {{t.firstName}}</strong></div></td><td>{{t.documentNumber}}</td><td><span class="badge-relation">{{t.relationship}}</span></td><td>{{t.phone||'—'}}</td><td><strong>{{t.email||'Sin correo'}}</strong><p class="eco-table-muted">Cuenta individual TUTOR</p></td><td><div class="eco-row actions-cell"><a [routerLink]="['/tutors',t.id]" title="Ver el perfil del tutor" class="eco-profile-button"><span class="material-icons-outlined">badge</span> Ver perfil</a>
- <button class="btn-sm" type="button" (click)="openModal(t)" title="Editar"><span class="material-icons-outlined">edit</span></button></div></td></tr>}
- </tbody></table></div>
- @if(modalOpen){<app-tutor-modal [existing]="modalTutor" (saved)="createdOrEdited($event)" (dismissed)="modalOpen=false"></app-tutor-modal>}
+  <div class="view-header">
+    <div>
+      <p class="eyebrow">GESTIÓN INSTITUCIONAL</p>
+      <h2 class="view-title">Tutores y responsables</h2>
+      <p class="view-subtitle">Legajos, contacto y cuentas de acceso de las familias.</p>
+    </div>
+    <button type="button" class="btn-primary" (click)="openModal()">
+      <span class="material-icons-outlined">person_add</span> Agregar responsable
+    </button>
+  </div>
+  @if(error){
+    <p class="eco-error" role="alert">{{error}}</p>
+  }
+  @if(message){
+    <p class="eco-success" role="status">{{message}}</p>
+  }
+  <div class="eco-filterbar">
+    <label class="eco-searchbox">
+      <span class="material-icons-outlined">search</span>
+      <input
+        class="eco-search"
+        [(ngModel)]="query"
+        placeholder="Buscar nombre, DNI o correo"
+        aria-label="Buscar tutor">
+    </label>
+    <label class="eco-filterlabel">Vínculo
+      <select class="eco-select" [(ngModel)]="relationship">
+        <option value="ALL">Todos</option>
+        @for(r of relations;track r){
+          <option [value]="r">{{r}}</option>
+        }
+      </select>
+    </label>
+    <span class="eco-counter">{{filteredTutors.length}} de {{tutors().length}} responsables</span>
+  </div>
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Responsable</th>
+          <th>DNI</th>
+          <th>Vínculo</th>
+          <th>Teléfono</th>
+          <th>Correo / acceso</th>
+          <th class="text-center">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if(filteredTutors.length===0){
+          <tr>
+            <td colspan="6" class="empty-row">No hay tutores para los filtros elegidos.</td>
+          </tr>
+        }
+        @for(t of filteredTutors;track t.id){
+          <tr>
+            <td>
+              <div class="eco-person">
+                <span class="eco-initials">{{t.firstName[0]}}{{t.lastName[0]}}</span>
+                <strong>{{t.lastName}}, {{t.firstName}}</strong>
+              </div>
+            </td>
+            <td>{{t.documentNumber}}</td>
+            <td>
+              <span class="badge-relation">{{t.relationship}}</span>
+            </td>
+            <td>{{t.phone||'—'}}</td>
+            <td>
+              <strong>{{t.email||'Sin correo'}}</strong>
+              <p class="eco-table-muted">Cuenta individual TUTOR</p>
+            </td>
+            <td>
+              <div class="eco-row actions-cell">
+                <a [routerLink]="['/tutors',t.id]" title="Ver el perfil del tutor" class="eco-profile-button">
+                  <span class="material-icons-outlined">badge</span> Ver perfil
+                </a>
+                <button class="btn-sm" type="button" (click)="openModal(t)" title="Editar">
+                  <span class="material-icons-outlined">edit</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  @if(modalOpen){
+    <app-tutor-modal [existing]="modalTutor" (saved)="createdOrEdited($event)" (dismissed)="modalOpen=false"></app-tutor-modal>
+  }
 </div>

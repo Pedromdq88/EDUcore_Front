@@ -1,24 +1,192 @@
-<div class="form-wrapper"><div class="form-card"><div class="eco-toolbar"><h2 class="form-title">{{editingId?'Editar personal y asignaciones':'Registrar personal docente / administrativo'}}</h2>@if(embedded){<button type="button" class="btn-secondary" (click)="closeEditor()"><span class="material-icons-outlined">close</span></button>}</div>
-@if(error){<p class="eco-error" role="alert">{{error}}</p>}
-@if(loading){<p role="status">Recuperando los datos guardados del personal…</p>}
-@if(!loading&&!loadFailed){<form appValidateSubmit novalidate #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (submitStaff())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
-<h3 class="block-title">Datos del personal</h3><div class="form-grid">
-<label class="form-label">Nombre *<input class="form-input" name="firstName" [(ngModel)]="form.firstName" required></label>
-<label class="form-label">Apellido *<input class="form-input" name="lastName" [(ngModel)]="form.lastName" required></label>
-<label class="form-label">DNI *<input class="form-input" name="documentNumber" [(ngModel)]="form.documentNumber" type="text" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12" required></label>
-<label class="form-label">Email institucional *<input type="email" class="form-input" name="email" [(ngModel)]="form.email" required maxlength="150"></label>
-<label class="form-label">Rol administrativo<select class="form-input" name="role" [(ngModel)]="form.role"><option value="TEACHER">Docente</option><option value="PRECEPTOR">Preceptor</option>@if(isDirector){<option value="ADMINISTRATIVE">Administrativo</option><option value="DIRECTOR">Director/a</option>}</select></label>
-<label class="form-label">Teléfono<input class="form-input" name="phone" [(ngModel)]="form.phone" type="text" inputmode="numeric" pattern="[0-9]{6,20}" maxlength="20"></label>
-<label class="form-label">Fecha de alta<input type="date" class="form-input" name="hireDate" [(ngModel)]="form.hireDate"></label>
-<label class="form-label">Aula principal<select class="form-input" name="classroom" [(ngModel)]="form.classroom"><option [ngValue]="null">Sin aula</option>@for(r of classrooms();track r.id){<option [value]="r.name">{{r.name}}</option>}</select></label>
+<div class="form-wrapper">
+  <div class="form-card">
+    <div class="eco-toolbar">
+      <h2 class="form-title">{{editingId?'Editar personal y asignaciones':'Registrar personal docente / administrativo'}}</h2>
+      @if(embedded){
+        <button type="button" class="btn-secondary" (click)="closeEditor()">
+          <span class="material-icons-outlined">close</span>
+        </button>
+      }
+    </div>
+    @if(error){
+      <p class="eco-error" role="alert">{{error}}</p>
+    }
+    @if(loading){
+      <p role="status">Recuperando los datos guardados del personal…</p>
+    }
+    @if(!loading&&!loadFailed){
+      <form [formGroup]="staffForm" (ngSubmit)="submitStaff()" novalidate>
+        <h3 class="block-title">Datos del personal</h3>
+        <div class="form-grid">
+          <label class="form-label">Nombre *
+            <input class="form-input" name="firstName" formControlName="firstName" required maxlength="20">
+            @if (firstName.hasError('required') && firstName.touched) {
+              <small class="eco-field-error" role="alert">El nombre es obligatorio.</small>
+            }
+            @if (firstName.hasError('pattern') && firstName.touched) {
+              <small class="eco-field-error" role="alert">El nombre solo admite letras, espacios, tildes, guiones y apóstrofes.</small>
+            }
+            @if (firstName.hasError('minlength') && firstName.touched) {
+              <small class="eco-field-error" role="alert">El nombre es demasiado corto.</small>
+            }
+            @if (firstName.hasError('maxlength') && firstName.touched) {
+              <small class="eco-field-error" role="alert">El nombre supera el máximo de caracteres.</small>
+            }
+          </label>
+          <label class="form-label">Apellido *
+            <input class="form-input" name="lastName" formControlName="lastName" required maxlength="20">
+            @if (lastName.hasError('required') && lastName.touched) {
+              <small class="eco-field-error" role="alert">El apellido es obligatorio.</small>
+            }
+            @if (lastName.hasError('pattern') && lastName.touched) {
+              <small class="eco-field-error" role="alert">El apellido solo admite letras, espacios, tildes, guiones y apóstrofes.</small>
+            }
+            @if (lastName.hasError('minlength') && lastName.touched) {
+              <small class="eco-field-error" role="alert">El apellido es demasiado corto.</small>
+            }
+            @if (lastName.hasError('maxlength') && lastName.touched) {
+              <small class="eco-field-error" role="alert">El apellido supera el máximo de caracteres.</small>
+            }
+          </label>
+          <label class="form-label">DNI *
+            <input
+              class="form-input"
+              name="documentNumber"
+              formControlName="documentNumber"
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]{6,8}"
+              minlength="6"
+              maxlength="8"
+              required>
+            @if (documentNumber.hasError('required') && documentNumber.touched) {
+              <small class="eco-field-error" role="alert">El DNI es obligatorio.</small>
+            }
+            @if (documentNumber.hasError('duplicate') && documentNumber.touched) {
+              <small class="eco-field-error" role="alert">Ya existe personal con ese DNI.</small>
+            }
+            @if (documentNumber.hasError('pattern') && documentNumber.touched) {
+              <small class="eco-field-error" role="alert">El DNI no tiene un formato válido.</small>
+            }
+          </label>
+          <label class="form-label">Email institucional *
+            <input type="email" class="form-input" name="email" formControlName="email" required maxlength="30">
+            @if (email.hasError('required') && email.touched) {
+              <small class="eco-field-error" role="alert">El correo es obligatorio.</small>
+            }
+            @if (email.hasError('duplicate') && email.touched) {
+              <small class="eco-field-error" role="alert">Ya existe personal con ese correo.</small>
+            }
+            @if ((email.hasError('email') || email.hasError('pattern')) && email.touched) {
+              <small class="eco-field-error" role="alert">Ingresá un correo electrónico válido.</small>
+            }
+            @if (email.hasError('maxlength') && email.touched) {
+              <small class="eco-field-error" role="alert">El correo supera el máximo de caracteres.</small>
+            }
+          </label>
+          <label class="form-label">Rol administrativo
+            <select class="form-input" name="role" formControlName="role">
+              <option value="TEACHER">Docente</option>
+              <option value="PRECEPTOR">Preceptor</option>
+              @if(isDirector){
+                <option value="ADMINISTRATIVE">Administrativo</option>
+                <option value="DIRECTOR">Director/a</option>
+              }
+            </select>
+            @if (role.hasError('required') && role.touched) {
+              <small class="eco-field-error" role="alert">El rol es obligatorio.</small>
+            }
+          </label>
+          <label class="form-label">Teléfono
+            <input
+              class="form-input"
+              name="phone"
+              formControlName="phone"
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]{6,20}"
+              maxlength="20">
+            @if (phone.hasError('pattern') && phone.touched) {
+              <small class="eco-field-error" role="alert">El teléfono no tiene un formato válido.</small>
+            }
+          </label>
+          <label class="form-label">Fecha de alta
+            <input type="date" class="form-input" name="hireDate" formControlName="hireDate">
+            @if (hireDate.hasError('required') && hireDate.touched) {
+              <small class="eco-field-error" role="alert">La fecha de ingreso es obligatorio.</small>
+            }
+            @if (hireDate.hasError('pattern') && hireDate.touched) {
+              <small class="eco-field-error" role="alert">La fecha de ingreso no tiene un formato válido.</small>
+            }
+          </label>
+          <label class="form-label">Aula principal
+            <select class="form-input" name="classroom" formControlName="classroom">
+              <option [ngValue]="null">Sin aula</option>
+              @for(r of classrooms();track r.id){
+                <option [value]="r.name">{{r.name}}</option>
+              }
+            </select>
+          </label>
+        </div>
+        <h3 class="block-title eco-subheading">Asignaciones de materias y aulas</h3>
+        <div formArrayName="assignments">
+          @for(a of assignments.controls;track $index;let i=$index){
+            <div [formGroupName]="i" class="eco-card eco-inline-form">
+              <div class="form-grid">
+                <label class="form-label">Materia / actividad *
+                  <select class="form-input" [name]="'subject'+i" formControlName="subject" required maxlength="255">
+                    <option value="">Seleccionar materia de la institución</option>
+                    @for(m of subjects();track m.id){
+                      <option [value]="m.name">{{m.name}}</option>
+                    }
+                  </select>
+                  @if (assignmentField(i,'subject').hasError('required') && assignmentField(i,'subject').touched) {
+                    <small class="eco-field-error">Seleccioná una materia.</small>
+                  }
+                  @if (assignmentField(i,'subject').hasError('maxlength') && assignmentField(i,'subject').touched) {
+                    <small class="eco-field-error">Máximo 255 caracteres.</small>
+                  }
+                </label>
+                <label class="form-label">Aula *
+                  <select class="form-input" [name]="'room'+i" formControlName="classroom" required maxlength="255">
+                    <option value="">Elegir aula</option>
+                    @for(r of classrooms();track r.id){
+                      <option [value]="r.name">{{r.name}}</option>
+                    }
+                  </select>
+                  @if (assignmentField(i,'classroom').hasError('required') && assignmentField(i,'classroom').touched) {
+                    <small class="eco-field-error">Seleccioná un aula.</small>
+                  }
+                  @if (assignmentField(i,'classroom').hasError('maxlength') && assignmentField(i,'classroom').touched) {
+                    <small class="eco-field-error">Máximo 255 caracteres.</small>
+                  }
+                </label>
+                <label class="form-label">Turno
+                  <select class="form-input" [name]="'shift'+i" formControlName="shift">
+                    <option value="MANANA">Mañana</option>
+                    <option value="TARDE">Tarde</option>
+                  </select>
+                </label>
+                <label class="eco-check">
+                  <input type="checkbox" [name]="'lead'+i" formControlName="isClassroomTeacher"> Docente titular del aula
+                </label>
+              </div>
+              <button type="button" class="btn-danger" (click)="removeAssignment(i)">Quitar asignación</button>
+            </div>
+          }
+        </div>
+        <button type="button" class="btn-secondary" (click)="addAssignment()">+ Agregar asignación</button>
+        <p class="eco-muted">El registro del personal guarda su legajo y sus asignaciones. Al crear personal se habilita su cuenta con el correo institucional y el DNI sin puntos como contraseña temporal cifrada. Deberá cambiarla al entrar.</p>
+        <div class="form-actions">
+          @if(embedded){
+            <button type="button" (click)="closeEditor()" class="btn-secondary">Cancelar</button>
+          }
+          @else{
+            <a routerLink="/teachers" class="btn-secondary">Cancelar</a>
+          }
+          <button [disabled]="busy" type="submit" class="btn-primary">{{busy?'Guardando…':'Guardar personal'}}</button>
+        </div>
+      </form>
+    }
+  </div>
 </div>
-<h3 class="block-title eco-subheading">Asignaciones de materias y aulas</h3>
-@for(a of form.assignments;track $index;let i=$index){<div class="eco-card eco-inline-form"><div class="form-grid">
-<label class="form-label">Materia / actividad *<select class="form-input" [name]="'subject'+i" [(ngModel)]="a.subject" required><option value="">Seleccionar materia de la institución</option>@for(m of subjects();track m.id){<option [value]="m.name">{{m.name}}</option>}</select></label>
-<label class="form-label">Aula *<select class="form-input" [name]="'room'+i" [(ngModel)]="a.classroom" required><option value="">Elegir aula</option>@for(r of classrooms();track r.id){<option [value]="r.name">{{r.name}}</option>}</select></label>
-<label class="form-label">Turno<select class="form-input" [name]="'shift'+i" [(ngModel)]="a.shift"><option value="MANANA">Mañana</option><option value="TARDE">Tarde</option></select></label>
-<label class="eco-check"><input type="checkbox" [name]="'lead'+i" [(ngModel)]="a.isClassroomTeacher"> Docente titular del aula</label></div>
-<button type="button" class="btn-danger" (click)="removeAssignment(i)">Quitar asignación</button></div>}
-<button type="button" class="btn-secondary" (click)="addAssignment()">+ Agregar asignación</button>
-<p class="eco-muted">El registro del personal guarda su legajo y sus asignaciones. Al crear personal se habilita su cuenta con el correo institucional y el DNI sin puntos como contraseña temporal cifrada. Deberá cambiarla al entrar.</p>
-<div class="form-actions">@if(embedded){<button type="button" (click)="confirmDiscard(ecoForm1, 'dismissed')" class="btn-secondary">Cancelar</button>}@else{<a routerLink="/teachers" class="btn-secondary">Cancelar</a>}<button [disabled]="busy" type="submit" class="btn-primary">{{busy?'Guardando…':'Guardar personal'}}</button></div></form>}</div></div>

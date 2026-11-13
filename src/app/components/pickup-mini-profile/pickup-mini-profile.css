@@ -1,0 +1,20 @@
+.pickup-mini-profile{border:1px solid #e2e8f0;background:#fff;border-radius:12px;margin:9px 0;overflow:hidden}
+.pickup-mini-profile summary{display:flex;align-items:center;gap:12px;padding:14px;cursor:pointer;list-style:none}
+.pickup-mini-profile summary::-webkit-details-marker{display:none}
+.pickup-mini-profile summary:focus-visible{outline:3px solid #93c5fd;outline-offset:-3px}
+.pickup-mini-icon{display:grid;place-items:center;border-radius:11px;width:42px;height:42px;min-width:42px;background:#d1fae5;color:#047857;font-size:22px}
+.pickup-mini-heading{display:flex;flex:1;min-width:0;flex-direction:column;gap:5px}
+.pickup-mini-heading strong{font-size:14px;color:#0f172a;overflow-wrap:anywhere}
+.pickup-mini-heading small{font-size:12px;color:#64748b}
+.pickup-mini-toggle{display:inline-flex;align-items:center;gap:3px;font-size:12px;color:#047857;font-weight:750;white-space:nowrap}
+.pickup-mini-toggle .material-icons-outlined{font-size:18px;transition:transform .2s}
+.pickup-mini-profile[open] .pickup-mini-toggle .material-icons-outlined{transform:rotate(180deg)}
+.pickup-mini-data{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:13px 14px 16px;border-top:1px solid #e2e8f0;background:#f8fafc}
+.pickup-mini-data>div{min-width:0;background:white;padding:11px;border-radius:9px}
+.pickup-mini-data small{display:block;font-size:11px;color:#64748b;margin-bottom:5px}
+.pickup-mini-data strong{display:block;color:#0f172a;font-size:13px;overflow-wrap:anywhere}
+.pickup-mini-profile.pickup-mini-restricted{border-color:#fecdd3}
+.pickup-mini-restricted .pickup-mini-icon{background:#ffe4e6;color:#be123c}
+.pickup-mini-restricted .pickup-mini-toggle,.pickup-mini-denied{color:#be123c!important}
+.pickup-mini-data .pickup-mini-full{grid-column:1/-1}
+@media(max-width:560px){.pickup-mini-data{grid-template-columns:1fr}.pickup-mini-toggle{font-size:11px}}

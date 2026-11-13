@@ -1,22 +1,143 @@
-<aside class="sidebar" [class.collapsed]="collapsed" [class.mobile-open]="mobileOpen" id="appSidebar">
-<nav class="sidebar-nav" aria-label="Navegación de EduCore">
-<p class="nav-label">MI ESPACIO</p>
-@if(can('my-profile')){<a class="nav-item" routerLink="/my-profile" routerLinkActive="active-link" (click)="navigate.emit()"><span class="material-icons-outlined">account_circle</span><span class="nav-text">Mi perfil</span></a>}
-@if(can('my-students')){<a class="nav-item" routerLink="/my-students" routerLinkActive="active-link" (click)="navigate.emit()"><span class="material-icons-outlined">family_restroom</span><span class="nav-text">Mis estudiantes</span></a>}
-@if(can('dashboard')){<a class="nav-item" routerLink="/dashboard" routerLinkActive="active-link" (click)="navigate.emit()"><span class="material-icons-outlined">home</span><span class="nav-text">Inicio</span></a>}
-@if(can('school')){<a class="nav-item" routerLink="/school-profile" routerLinkActive="active-link" (click)="navigate.emit()"><span class="material-icons-outlined">account_balance</span><span class="nav-text">Datos de la escuela</span></a>}
-@if(can('announcements')){<a class="nav-item" routerLink="/announcements" routerLinkActive="active-link" (click)="navigate.emit()"><span class="material-icons-outlined">campaign</span><span class="nav-text">Avisos y comunicados</span></a>}
-@if(can('calendar')){<a class="nav-item" routerLink="/calendar" routerLinkActive="active-link" (click)="navigate.emit()"><span class="material-icons-outlined">event</span><span class="nav-text">Calendario</span></a>}
-@if(can('fees')){<a class="nav-item" routerLink="/fees" routerLinkActive="active-link" (click)="navigate.emit()"><span class="material-icons-outlined">payments</span><span class="nav-text">{{isTutor?'Mis cuotas':'Gestión de cuotas'}}</span></a>}
-@if(can('students')||can('staff')||can('tutors')||can('rooms')||can('subjects')){<p class="nav-label">GESTIÓN INSTITUCIONAL</p>}
-@if(can('students')){<a class="nav-item" routerLink="/students" routerLinkActive="active-link" (click)="navigate.emit()"><span class="material-icons-outlined">groups</span><span class="nav-text">Alumnos</span></a>}
-@if(can('tutors')){<a class="nav-item" routerLink="/tutors" routerLinkActive="active-link" (click)="navigate.emit()"><span class="material-icons-outlined">family_restroom</span><span class="nav-text">Tutores</span></a>}
-@if(can('staff')){<a class="nav-item" routerLink="/teachers" routerLinkActive="active-link" (click)="navigate.emit()"><span class="material-icons-outlined">badge</span><span class="nav-text">Personal</span></a>}
-@if(can('rooms')){<a class="nav-item" routerLink="/shifts" routerLinkActive="active-link" (click)="navigate.emit()"><span class="material-icons-outlined">class</span><span class="nav-text">Aulas y turnos</span></a>}
-@if(can('subjects')){<a class="nav-item" routerLink="/subjects" routerLinkActive="active-link" (click)="navigate.emit()"><span class="material-icons-outlined">menu_book</span><span class="nav-text">Materias</span></a>}
-@if(can('spreadsheet')){<a class="nav-item" routerLink="/spreadsheet" routerLinkActive="active-link" (click)="navigate.emit()"><span class="material-icons-outlined">table_view</span><span class="nav-text">Planilla Excel</span></a>}
-@if(can('medical')||can('pickups')||can('restrictions')){<p class="nav-label">SEGUIMIENTO Y SEGURIDAD</p>}
-@if(can('medical')){<a class="nav-item" routerLink="/medical" routerLinkActive="active-link" (click)="navigate.emit()"><span class="material-icons-outlined">medical_services</span><span class="nav-text">Fichas médicas</span></a>}
-@if(can('pickups')){<a class="nav-item" routerLink="/pickups" routerLinkActive="active-link" (click)="navigate.emit()"><span class="material-icons-outlined">how_to_reg</span><span class="nav-text">Control de retiros</span></a>}
-@if(can('restrictions')){<a class="nav-item" routerLink="/restrictions" routerLinkActive="active-link" (click)="navigate.emit()"><span class="material-icons-outlined">gavel</span><span class="nav-text">Restricciones judiciales</span></a>}
-</nav><div class="sidebar-foot"><span class="status-dot"></span><span class="nav-text">EduCore SGE · Sistema escolar</span></div></aside>
+<aside
+  class="sidebar"
+  [class.collapsed]="collapsed"
+  [class.mobile-open]="mobileOpen"
+  id="appSidebar">
+  <nav class="sidebar-nav" aria-label="Navegación de EduCore">
+    <p class="nav-label">MI ESPACIO</p>
+    @if(can('my-profile')){
+      <a
+        class="nav-item"
+        routerLink="/my-profile"
+        routerLinkActive="active-link"
+        (click)="navigate.emit()">
+        <span class="material-icons-outlined">account_circle</span>
+        <span class="nav-text">Mi perfil</span>
+      </a>
+    }
+    @if(can('my-students')){
+      <a
+        class="nav-item"
+        routerLink="/my-students"
+        routerLinkActive="active-link"
+        (click)="navigate.emit()">
+        <span class="material-icons-outlined">family_restroom</span>
+        <span class="nav-text">Mis estudiantes</span>
+      </a>
+    }
+    @if(can('dashboard')){
+      <a
+        class="nav-item"
+        routerLink="/dashboard"
+        routerLinkActive="active-link"
+        (click)="navigate.emit()">
+        <span class="material-icons-outlined">home</span>
+        <span class="nav-text">Inicio</span>
+      </a>
+    }
+    @if(can('school')){
+      <a
+        class="nav-item"
+        routerLink="/school-profile"
+        routerLinkActive="active-link"
+        (click)="navigate.emit()">
+        <span class="material-icons-outlined">account_balance</span>
+        <span class="nav-text">Datos de la escuela</span>
+      </a>
+    }
+    @if(can('announcements')){
+      <a
+        class="nav-item"
+        routerLink="/announcements"
+        routerLinkActive="active-link"
+        (click)="navigate.emit()">
+        <span class="material-icons-outlined">campaign</span>
+        <span class="nav-text">Avisos y comunicados</span>
+      </a>
+    }
+    @if(can('calendar')){
+      <a class="nav-item" routerLink="/calendar" routerLinkActive="active-link" (click)="navigate.emit()">
+        <span class="material-icons-outlined">event</span>
+        <span class="nav-text">Calendario</span>
+      </a>
+    }
+    @if(can('fees')){
+      <a class="nav-item" routerLink="/fees" routerLinkActive="active-link" (click)="navigate.emit()">
+        <span class="material-icons-outlined">payments</span>
+        <span class="nav-text">{{isTutor?'Mis cuotas':'Gestión de cuotas'}}</span>
+      </a>
+    }
+    @if(can('students')||can('staff')||can('tutors')||can('rooms')||can('subjects')){
+      <p class="nav-label">GESTIÓN INSTITUCIONAL</p>
+    }
+    @if(can('students')){
+      <a class="nav-item" routerLink="/students" routerLinkActive="active-link" (click)="navigate.emit()">
+        <span class="material-icons-outlined">groups</span>
+        <span class="nav-text">Alumnos</span>
+      </a>
+    }
+    @if(can('tutors')){
+      <a class="nav-item" routerLink="/tutors" routerLinkActive="active-link" (click)="navigate.emit()">
+        <span class="material-icons-outlined">family_restroom</span>
+        <span class="nav-text">Tutores</span>
+      </a>
+    }
+    @if(can('staff')){
+      <a class="nav-item" routerLink="/teachers" routerLinkActive="active-link" (click)="navigate.emit()">
+        <span class="material-icons-outlined">badge</span>
+        <span class="nav-text">Personal</span>
+      </a>
+    }
+    @if(can('rooms')){
+      <a class="nav-item" routerLink="/shifts" routerLinkActive="active-link" (click)="navigate.emit()">
+        <span class="material-icons-outlined">class</span>
+        <span class="nav-text">Aulas y turnos</span>
+      </a>
+    }
+    @if(can('subjects')){
+      <a class="nav-item" routerLink="/subjects" routerLinkActive="active-link" (click)="navigate.emit()">
+        <span class="material-icons-outlined">menu_book</span>
+        <span class="nav-text">Materias</span>
+      </a>
+    }
+    @if(can('spreadsheet')){
+      <a
+        class="nav-item"
+        routerLink="/spreadsheet"
+        routerLinkActive="active-link"
+        (click)="navigate.emit()">
+        <span class="material-icons-outlined">table_view</span>
+        <span class="nav-text">Planilla Excel</span>
+      </a>
+    }
+    @if(can('medical')||can('pickups')||can('restrictions')){
+      <p class="nav-label">SEGUIMIENTO Y SEGURIDAD</p>
+    }
+    @if(can('medical')){
+      <a class="nav-item" routerLink="/medical" routerLinkActive="active-link" (click)="navigate.emit()">
+        <span class="material-icons-outlined">medical_services</span>
+        <span class="nav-text">Fichas médicas</span>
+      </a>
+    }
+    @if(can('pickups')){
+      <a class="nav-item" routerLink="/pickups" routerLinkActive="active-link" (click)="navigate.emit()">
+        <span class="material-icons-outlined">how_to_reg</span>
+        <span class="nav-text">Control de retiros</span>
+      </a>
+    }
+    @if(can('restrictions')){
+      <a
+        class="nav-item"
+        routerLink="/restrictions"
+        routerLinkActive="active-link"
+        (click)="navigate.emit()">
+        <span class="material-icons-outlined">gavel</span>
+        <span class="nav-text">Restricciones judiciales</span>
+      </a>
+    }
+  </nav>
+  <div class="sidebar-foot">
+    <span class="status-dot"></span>
+    <span class="nav-text">EduCore SGE · Sistema escolar</span>
+  </div>
+</aside>

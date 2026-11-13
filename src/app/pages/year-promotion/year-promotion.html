@@ -7,18 +7,35 @@
       <p>Al cambiar el ciclo lectivo, los alumnos activos quedan sin aula hasta que decidas dónde ubicarlos.</p>
     </div>
   </div>
-  @if(error()){<p class="eco-error" role="alert">{{error()}}</p>}
-  @if(loading()){<p class="eco-muted">Cargando alumnos…</p>}
+  @if(error()){
+    <p class="eco-error" role="alert">{{error()}}</p>
+  }
+  @if(loading()){
+    <p class="eco-muted">Cargando alumnos…</p>
+  }
   @else{
-    <div class="promotion-summary">Pendientes de aula: <strong>{{unassigned.length}}</strong></div>
-    @if(unassigned.length===0){<p class="eco-card">No hay alumnos activos sin aula.</p>}
+    <div class="promotion-summary">Pendientes de aula: <strong>{{unassigned.length}}</strong>
+    </div>
+    @if(unassigned.length===0){
+      <p class="eco-card">No hay alumnos activos sin aula.</p>
+    }
     @else{
       <div class="promotion-table">
         <table>
-          <thead><tr><th>Alumno</th><th>DNI</th><th>Ciclo</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Alumno</th>
+              <th>DNI</th>
+              <th>Ciclo</th>
+            </tr>
+          </thead>
           <tbody>
             @for(student of unassigned;track student.id){
-              <tr><td>{{student.lastName}}, {{student.firstName}}</td><td>{{student.documentNumber}}</td><td>{{student.academicYear}}</td></tr>
+              <tr>
+                <td>{{student.lastName}}, {{student.firstName}}</td>
+                <td>{{student.documentNumber}}</td>
+                <td>{{student.academicYear}}</td>
+              </tr>
             }
           </tbody>
         </table>

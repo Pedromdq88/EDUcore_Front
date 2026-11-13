@@ -1,5 +1,4 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
-
 @Component({
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-tenant-list',
@@ -8,5 +7,4 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
   styleUrl: './tenant-list.css',
 })
 export class TenantList {
-
 }

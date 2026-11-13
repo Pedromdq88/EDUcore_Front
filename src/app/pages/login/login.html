@@ -1,39 +1,100 @@
 <div class="login-wrapper">
-  <div class="login-ambient ambient-one"></div><div class="login-ambient ambient-two"></div>
+  <div class="login-ambient ambient-one"></div>
+  <div class="login-ambient ambient-two"></div>
   <div class="login-card">
     <div class="login-header">
-      <div class="logo-box"><span class="material-icons-outlined">school</span></div>
+      <div class="logo-box">
+        <span class="material-icons-outlined">school</span>
+      </div>
       <h1 class="login-title">EduCore SGE</h1>
       <p class="login-subtitle">Sistema de Gestión Escolar · Multi-Tenant</p>
     </div>
-    <div class="login-separator"><span>ACCESO INSTITUCIONAL</span></div>
-    <form appValidateSubmit novalidate class="login-form" #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (handleLogin())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
-
-      <div class="form-group"><label for="loginInstitutionSelect">Institución educativa</label>
-        <select id="loginInstitutionSelect" name="institution" [(ngModel)]="institutionId" class="form-control" required>
+    <div class="login-separator">
+      <span>ACCESO INSTITUCIONAL</span>
+    </div>
+    <form class="login-form" [formGroup]="loginForm" (ngSubmit)="handleLogin()" novalidate>
+      <div class="form-group">
+        <label for="loginInstitutionSelect">Institución educativa</label>
+        <select
+          id="loginInstitutionSelect"
+          name="institution"
+          formControlName="institutionId"
+          class="form-control"
+          required>
           <option value="">{{ institutionsLoading ? 'Cargando instituciones…' : 'Seleccioná tu institución' }}</option>
-          @for (school of institutions(); track school.id) {<option [value]="school.id">{{ school.name }} · {{ school.educationLevel || 'Nivel Inicial' }}</option>}
+          @for (school of institutions(); track school.id) {
+            <option [value]="school.id">{{ school.name }} · {{ school.educationLevel || 'Nivel Inicial' }}</option>
+          }
         </select>
+        @if (institutionId.hasError('required') && institutionId.touched) {
+          <small class="eco-field-error" role="alert">El campo es obligatorio.</small>
+        }
       </div>
-      <div class="form-group"><label for="emailInput">Correo institucional</label>
-        <div class="input-shell"><span class="material-icons-outlined">mail_outline</span>
-          <input id="emailInput" type="email" [(ngModel)]="email" name="email" required autocomplete="username" placeholder="usuario@institucion.com" class="form-control">
+      <div class="form-group">
+        <label for="emailInput">Correo institucional</label>
+        <div class="input-shell">
+          <span class="material-icons-outlined">mail_outline</span>
+          <input
+            id="emailInput"
+            type="email"
+            formControlName="email"
+            name="email"
+            required
+            autocomplete="username"
+            placeholder="usuario@institucion.com"
+            class="form-control"
+            maxlength="30">
+          @if (email.hasError('required') && email.touched) {
+            <small class="eco-field-error" role="alert">El campo es obligatorio.</small>
+          }
+          @if ((email.hasError('email') || email.hasError('pattern')) && email.touched) {
+            <small class="eco-field-error" role="alert">Ingresá un correo válido.</small>
+          }
+          @if (email.hasError('maxlength') && email.touched) {
+            <small class="eco-field-error" role="alert">Supera la longitud máxima.</small>
+          }
         </div>
       </div>
-      <div class="form-group"><label for="passwordInput">Contraseña</label>
-        <div class="input-shell"><span class="material-icons-outlined">lock_outline</span>
-          <input id="passwordInput" [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" name="password" required autocomplete="current-password" placeholder="Ingresá tu contraseña" class="form-control">
-          <button class="eye-button" type="button" [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'" (click)="showPassword=!showPassword"><span class="material-icons-outlined">{{ showPassword ? 'visibility_off' : 'visibility' }}</span></button>
+      <div class="form-group">
+        <label for="passwordInput">Contraseña</label>
+        <div class="input-shell">
+          <span class="material-icons-outlined">lock_outline</span>
+          <input
+            id="passwordInput"
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
+            name="password"
+            required
+            autocomplete="current-password"
+            placeholder="Ingresá tu contraseña"
+            class="form-control">
+          @if (password.hasError('required') && password.touched) {
+            <small class="eco-field-error" role="alert">El campo es obligatorio.</small>
+          }
+          <button
+            class="eye-button"
+            type="button"
+            [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            (click)="showPassword=!showPassword">
+            <span class="material-icons-outlined">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+          </button>
         </div>
       </div>
-      @if(error){<p class="login-error" role="alert"><span class="material-icons-outlined">error_outline</span>{{ error }}</p>}
-      <button type="submit" class="btn-login" [disabled]="loading || institutionsLoading">
-        <span>{{ loading ? 'Ingresando…' : 'Ingresar al Sistema' }}</span><span class="material-icons-outlined">login</span>
+      @if(error){
+        <p class="login-error" role="alert">
+          <span class="material-icons-outlined">error_outline</span>{{ error }}
+        </p>
+      }
+      <button type="submit" class="btn-login" [disabled]="loading || institutionsLoading || loginForm.invalid">
+        <span>{{ loading ? 'Ingresando…' : 'Ingresar al Sistema' }}</span>
+        <span class="material-icons-outlined">login</span>
       </button>
     </form>
     <a class="forgot-link" routerLink="/forgot-password">¿Olvidaste tu contraseña?</a>
     <p class="login-note">El Director ingresa con su cuenta institucional. Los tutores usan su correo y, solo la primera vez, el DNI sin puntos; al entrar deberán cambiar esa clave.</p>
-    <p class="login-help"><span class="material-icons-outlined">verified_user</span> Acceso exclusivo para usuarios autorizados por la institución.</p>
+    <p class="login-help">
+      <span class="material-icons-outlined">verified_user</span> Acceso exclusivo para usuarios autorizados por la institución.
+    </p>
   </div>
   <p class="login-copyright">© 2026 EduCore · Gestión Escolar</p>
 </div>

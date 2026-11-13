@@ -2,66 +2,208 @@
   <div class="detail-wrapper">
     <div class="action-bar">
       <a routerLink="/teachers" class="btn-secondary">
-        <span class="material-icons-outlined">arrow_back</span> Volver al Listado
+        <span class="material-icons-outlined">arrow_back</span> Volver al listado
       </a>
-      @if(canEdit){<button type="button" class="btn-primary" (click)="editOpen=true">Editar personal</button><button (click)="bajaTeacher()" class="btn-danger">Dar de Baja</button>}
+      @if (canEdit) {
+        <div class="action-buttons">
+          <button type="button" class="btn-primary" (click)="editOpen=true">Editar personal</button>
+          <button type="button" (click)="bajaTeacher()" class="btn-danger">Dar de baja</button>
+        </div>
+      }
     </div>
-
     <div class="detail-card">
-      <div class="user-header">
-        <div class="avatar">{{ t.firstName[0] }}{{ t.lastName[0] }}</div>
+      <header class="user-header">
+        <div class="avatar">{{t.firstName?.[0]}}{{t.lastName?.[0]}}</div>
         <div>
-          <h1 class="user-name">{{ t.lastName }}, {{ t.firstName }}</h1>
+          <h1 class="user-name">{{t.lastName}}, {{t.firstName}}</h1>
           <div class="meta-tags">
-            <span class="tag">Email: {{ t.email }}</span>
-            <span class="tag">Rol: {{ t.role }}</span>
-            <span class="tag emerald">{{ t.status }}</span>
+            <span class="tag">{{roleName(t.role)}}</span>
+            <span class="tag">{{t.email}}</span>
+            <span class="tag emerald">{{t.status || 'Sin estado'}}</span>
           </div>
         </div>
-      </div>
-
-      <!-- Asignaciones Áulicas -->
-      <div class="section-block">
-        <h3 class="block-title">Asignaciones en Aulas</h3>
-        @if (!t.assignments || t.assignments.length === 0) {
-          <p class="empty-text">No tiene asignaciones de materias registradas.</p>
-        } @else {
-          @for (asg of t.assignments; track asg.id) {
-            <div class="sub-card">
-              <span class="font-bold text-xs">{{ asg.subject }}</span> — <span class="text-xs text-slate-500">Aula: {{ asg.classroom }}</span>
+      </header>
+      <section class="section-block">
+        <h3 class="block-title">Identidad y documentación</h3>
+        <div class="staff-info-grid">
+          <div>
+            <small>Nombre</small>
+            <strong>{{displayValue(t.firstName)}}</strong>
+          </div>
+          <div>
+            <small>Apellido</small>
+            <strong>{{displayValue(t.lastName)}}</strong>
+          </div>
+          <div>
+            <small>DNI</small>
+            <strong>{{displayValue(t.documentNumber)}}</strong>
+          </div>
+          <div>
+            <small>Rol</small>
+            <strong>{{roleName(t.role)}}</strong>
+          </div>
+        </div>
+      </section>
+      <section class="section-block">
+        <h3 class="block-title">Contacto y datos laborales</h3>
+        <div class="staff-info-grid">
+          <div>
+            <small>Correo institucional</small>
+            <strong>{{displayValue(t.email)}}</strong>
+          </div>
+          <div>
+            <small>Teléfono</small>
+            <strong>{{displayValue(t.phone)}}</strong>
+          </div>
+          <div>
+            <small>Fecha de alta</small>
+            <strong>{{t.hireDate ? (t.hireDate | date:'dd/MM/yyyy') : 'No informado'}}</strong>
+          </div>
+          <div>
+            <small>Estado</small>
+            <strong>{{displayValue(t.status)}}</strong>
+          </div>
+          <div>
+            <small>Aula principal</small>
+            <strong>{{t.classroom || 'Sin aula asignada'}}</strong>
+          </div>
+          <div>
+            <small>Asignaciones</small>
+            <strong>{{t.assignments?.length || 0}}</strong>
+          </div>
+        </div>
+      </section>
+      <section class="section-block">
+        <h3 class="block-title">Asignaciones de materias y aulas</h3>
+        @for (asg of t.assignments || []; track asg.id || $index) {
+          <div class="staff-assignment-card">
+            <strong>{{asg.subject || 'Sin materia'}}</strong>
+            <div class="staff-assignment-details">
+              <span>
+                <span class="material-icons-outlined" aria-hidden="true">school</span> {{asg.classroom || 'Sin aula'}}
+              </span>
+              <span>
+                <span class="material-icons-outlined" aria-hidden="true">schedule</span> {{shiftName(asg.shift)}}
+              </span>
+              @if (asg.isClassroomTeacher) {
+                <span class="staff-lead">Docente titular</span>
+              }
             </div>
-          }
+          </div>
         }
-      </div>
-
-      <!-- Portfolio Profesional -->
+        @empty {
+          <p class="empty-text">No tiene asignaciones registradas.</p>
+        }
+      </section>
       <div class="section-block">
-        <div class="eco-toolbar"><h3 class="block-title">Portfolio y Certificaciones</h3>@if(canEdit){<button type="button" class="btn-secondary" (click)="portfolioOpen=!portfolioOpen;portfolioEditId=''">+ Portfolio</button>}</div>
-        @if(portfolioError){<p class="eco-error">{{portfolioError}}</p>}
-        @if(portfolioOpen){<div class="eco-modal-backdrop" role="presentation"><form appValidateSubmit novalidate class="eco-modal records-edit-modal" role="dialog" aria-modal="true" aria-label="Editar portfolio" (click)="$event.stopPropagation()" #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (savePortfolio())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
-@if(portfolioError){<p class="eco-error" role="alert">{{portfolioError}}</p>}
-<h3 class="block-title">{{portfolioEditId?'Editar portfolio':'Agregar portfolio profesional'}}</h3>
-          <div class="form-grid"><label class="form-label">Título *<input class="form-input" name="ptitle" [(ngModel)]="portfolio.title" required></label>
-          <label class="form-label">Categoría<select class="form-input" name="pcat" [(ngModel)]="portfolio.category"><option value="CURSO">Curso</option><option value="CAPACITACION">Capacitación</option><option value="PROYECTO">Proyecto</option><option value="OTRO">Otro</option></select></label>
-          <label class="form-label">Fecha<input class="form-input" type="date" name="pdate" [(ngModel)]="portfolio.activityDate"></label>
-          <label class="form-label">URL material<input class="form-input" name="pmedia" [(ngModel)]="portfolio.mediaUrl"></label>
-          <label class="form-label">Descripción<textarea class="form-input" name="pdesc" [(ngModel)]="portfolio.description"></textarea></label></div>
-          <div class="form-actions"><button type="button" class="btn-secondary" (click)="confirmDiscard(ecoForm1, 'portfolioOpen')">Cancelar</button><button type="submit" class="btn-primary" [disabled]="portfolioBusy">Guardar portfolio</button></div>
-        </form></div>}
+        <div class="eco-toolbar">
+          <h3 class="block-title">Portfolio y Certificaciones</h3>
+          @if(canEdit){
+            <button type="button" class="btn-secondary" (click)="portfolioOpen=!portfolioOpen;portfolioEditId=''">+ Portfolio</button>
+          }
+        </div>
+        @if(portfolioError){
+          <p class="eco-error">{{portfolioError}}</p>
+        }
+        @if(portfolioOpen){
+          <div class="eco-modal-backdrop" role="presentation">
+            <form
+              class="eco-modal records-edit-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Editar portfolio"
+              (click)="$event.stopPropagation()"
+              [formGroup]="portfolioForm"
+              (ngSubmit)="savePortfolio()"
+              novalidate>
+              @if(portfolioError){
+                <p class="eco-error" role="alert">{{portfolioError}}</p>
+              }
+              <h3 class="block-title">{{portfolioEditId?'Editar portfolio':'Agregar portfolio profesional'}}</h3>
+              <div class="form-grid">
+                <label class="form-label">Título *
+                  <input class="form-input" name="ptitle" formControlName="title" required maxlength="255">
+                  @if(title.hasError('required') && title.touched) {
+                    <small class="eco-field-error">Campo obligatorio</small>
+                  }
+                  @if(title.hasError('maxlength') && title.touched) {
+                    <small class="eco-field-error">Valor inválido</small>
+                  }
+                </label>
+                <label class="form-label">Categoría
+                  <select class="form-input" name="pcat" formControlName="category">
+                    <option value="CURSO">Curso</option>
+                    <option value="CAPACITACION">Capacitación</option>
+                    <option value="PROYECTO">Proyecto</option>
+                    <option value="OTRO">Otro</option>
+                  </select>
+                  @if(category.hasError('required') && category.touched) {
+                    <small class="eco-field-error">Campo obligatorio</small>
+                  }
+                </label>
+                <label class="form-label">Fecha
+                  <input class="form-input" type="date" name="pdate" formControlName="activityDate">
+                  @if(activityDate.hasError('required') && activityDate.touched) {
+                    <small class="eco-field-error">Campo obligatorio</small>
+                  }
+                </label>
+                <label class="form-label">URL material
+                  <input class="form-input" name="pmedia" formControlName="mediaUrl">
+                  @if(mediaUrl.hasError('pattern') && mediaUrl.touched) {
+                    <small class="eco-field-error">Valor inválido</small>
+                  }
+                </label>
+                <label class="form-label">Descripción
+                  <textarea class="form-input" name="pdesc" formControlName="description" maxlength="5000">
+                  </textarea>
+                  @if(description.hasError('required') && description.touched) {
+                    <small class="eco-field-error">Campo obligatorio</small>
+                  }
+                  @if(description.hasError('maxlength') && description.touched) {
+                    <small class="eco-field-error">Valor inválido</small>
+                  }
+                </label>
+              </div>
+              <div class="form-actions">
+                <button type="button" class="btn-secondary" (click)="confirmDiscard(portfolioForm, 'portfolioOpen')">Cancelar</button>
+                <button type="submit" class="btn-primary" [disabled]="portfolioBusy">Guardar portfolio</button>
+              </div>
+            </form>
+          </div>
+        }
         @if (portfolios().length === 0) {
           <p class="empty-text">No hay registros en el portfolio profesional.</p>
-        } @else {
+        }
+        @else {
           @for (p of portfolios(); track p.id) {
             <div class="sub-card">
-              <span class="font-bold text-xs">{{ p.title }}</span> <span class="text-xs text-slate-400">({{ p.category }})</span>
+              <span class="font-bold text-xs">{{ p.title }}</span>
+              <span class="text-xs text-slate-400">({{ p.category }})</span>
               <p class="text-xs text-slate-600 mt-1">{{ p.description }}</p>
-              @if(canEdit){<button class="btn-sm" type="button" (click)="editPortfolio(p)">Editar</button> <button class="btn-danger" type="button" (click)="removePortfolio(p.id)">Eliminar</button>}
+              @if(canEdit){
+                <button class="btn-sm" type="button" (click)="editPortfolio(p)">Editar</button>
+                <button class="btn-danger" type="button" (click)="removePortfolio(p.id)">Eliminar</button>
+              }
             </div>
           }
         }
       </div>
-
     </div>
   </div>
 }
-@if(canEdit && editOpen && teacher(); as current){<div class="eco-modal-backdrop" role="presentation"><div class="eco-modal eco-student-modal" role="dialog" aria-modal="true" aria-label="Editar personal" (click)="$event.stopPropagation()"><app-teacher-form [embedded]="true" [staffId]="current.id||''" (saved)="afterEdit(current.id||'')" (dismissed)="editOpen=false"></app-teacher-form></div></div>}
+@if (canEdit && editOpen && teacher(); as current) {
+  <div class="eco-modal-backdrop" role="presentation">
+    <div
+      class="eco-modal eco-student-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Editar personal"
+      (click)="$event.stopPropagation()">
+      <app-teacher-form
+        [embedded]="true"
+        [staffId]="current.id || ''"
+        (saved)="afterEdit(current.id || '')"
+        (dismissed)="editOpen=false"></app-teacher-form>
+    </div>
+  </div>
+}

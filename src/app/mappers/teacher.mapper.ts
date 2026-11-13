@@ -1,6 +1,4 @@
 import { Teacher } from '../models/teacher';
-
-/** No enviar objetos del formulario por referencia al servicio de persistencia. */
 export function toTeacherPayload(source: Teacher): Teacher {
   return {
     ...source,
@@ -8,6 +6,8 @@ export function toTeacherPayload(source: Teacher): Teacher {
     lastName: source.lastName.trim(),
     email: source.email.trim().toLowerCase(),
     documentNumber: source.documentNumber?.trim(),
-    assignments: source.assignments.map(assignment => ({ ...assignment }))
+    assignments: source.assignments.map(assignment => ({
+      ...assignment
+    }))
   };
 }

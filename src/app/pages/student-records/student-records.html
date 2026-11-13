@@ -1,102 +1,466 @@
 <div class="view-wrapper">
- <div class="view-header"><div><p class="eyebrow">LEGAJOS INSTITUCIONALES</p><h2 class="view-title">{{title}}</h2><p class="view-subtitle">Consulta y administración de datos registrados en el backend.</p></div><a routerLink="/students" class="btn-secondary">Ver alumnos</a></div>
- <div class="records-layout"><aside class="eco-card student-selector" aria-label="Alumnos">
-  <div class="records-list-head"><strong>Seleccionar alumno</strong><span class="eco-counter">{{filteredStudents.length}}</span></div>
-  <label class="eco-searchbox"><span class="material-icons-outlined">search</span><input class="eco-search" [(ngModel)]="studentQuery" placeholder="Buscar nombre o DNI" aria-label="Buscar alumno"></label>
-  <div class="records-student-list">@for(s of filteredStudents;track s.id){<button type="button" class="record-student" [class.active]="selectedId===s.id" (click)="selectStudent(s.id||'')">
-   <span class="eco-initials">{{s.firstName[0]}}{{s.lastName[0]}}</span><span><strong>{{s.lastName}}, {{s.firstName}}</strong><small>DNI {{s.documentNumber}} · {{s.classroom||'Sin sala'}}</small></span><span class="material-icons-outlined">chevron_right</span>
-  </button>}</div></aside><div class="records-main">
- @if(!selectedId){<div class="eco-empty"><span class="material-icons-outlined">touch_app</span>Seleccioná un alumno para consultar {{title.toLowerCase()}}.</div>}
- @if(error){<p class="eco-error" role="alert">{{error}}</p>}@if(message){<p class="eco-success">{{message}}</p>}
- @if(loading){<div class="eco-empty">Cargando datos…</div>}
- @if(selectedId && !loading){<div class="eco-card records-content">
-  <div class="records-student-head"><span class="eco-initials">{{selectedStudent?.firstName?.[0]}}{{selectedStudent?.lastName?.[0]}}</span><div><h3>{{selectedStudent?.firstName}} {{selectedStudent?.lastName}}</h3><p>{{selectedStudent?.classroom}} · DNI {{selectedStudent?.documentNumber}}</p></div></div>
- @if(mode==='medical'){
-   @if(!medicalExists()){
-    <div class="medical-empty-state">
-      <div class="medical-empty-icon"><span class="material-icons-outlined">medical_services</span></div>
-      <h3>Este alumno todavía no tiene ficha médica</h3>
-      <p>Podés registrar el cuestionario completo sin salir de la pantalla. Se guarda en el legajo del alumno.</p>
-      @if(canEdit){<button type="button" class="btn-primary medical-create-btn" (click)="openMedical()"><span class="material-icons-outlined">add_circle_outline</span> Crear ficha médica</button>}
+  <div class="view-header">
+    <div>
+      <p class="eyebrow">LEGAJOS INSTITUCIONALES</p>
+      <h2 class="view-title">{{title}}</h2>
+      <p class="view-subtitle">Consulta y administración de datos registrados en el backend.</p>
     </div>
-   } @else {
-    <div class="eco-toolbar medical-record-toolbar"><div><h3 class="block-title">Ficha médica registrada</h3><p class="eco-muted">Podés consultar la declaración y editarla en una ventana independiente.</p></div>
-      @if(canEdit){<button type="button" class="btn-primary" (click)="openMedical()"><span class="material-icons-outlined">edit_note</span> Editar ficha</button>}
-    </div>
-    <div class="medical-review-grid">
-      @for(field of medicalTextFields;track field.key){<div class="medical-review-item"><small>{{field.label}}</small><strong>{{medical[field.key]||'Sin especificar'}}</strong></div>}
-    </div>
-    @for(group of medicalGroups;track group.label){
-      <div class="medical-review-section"><h4>{{group.label}}</h4><div class="medical-review-options">
-      @for(field of group.fields;track field[0]){<span class="medical-review-chip" [class.medical-yes]="!!medical[field[0]]"><span class="material-icons-outlined">{{medical[field[0]]?'check_circle':'remove_circle_outline'}}</span>{{field[1]}}</span>}
-      </div></div>
-    }
-   }
-   @if(medicalModal && canEdit){
-    <div class="eco-modal-backdrop" role="presentation">
-      <section class="eco-modal medical-form-modal" role="dialog" aria-modal="true" aria-labelledby="medical-dialog-title" (click)="$event.stopPropagation()">
-       <div class="medical-modal-head"><div><p class="eyebrow">FICHA MÉDICA ESCOLAR</p><h3 id="medical-dialog-title">{{medicalExists()?'Editar':'Crear'}} ficha de {{selectedStudent?.firstName}} {{selectedStudent?.lastName}}</h3><p>Declaración completa de salud · DNI {{selectedStudent?.documentNumber}}</p></div><button type="button" class="medical-close" (click)="closeMedicalEditor()" aria-label="Cerrar">×</button></div>
-       @if(error){<p class="eco-error" role="alert">{{error}}</p>}
-       <form appValidateSubmit novalidate #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (saveMedical())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
-
-        <div class="form-grid medical-modal-grid">@for(field of medicalTextFields;track field.key){<label class="form-label">{{field.label}}<input class="form-input" [name]="field.key" [(ngModel)]="medicalDraft[field.key]"></label>}</div>
-        @for(group of medicalGroups;track group.label){<h4 class="block-title eco-subheading">{{group.label}}</h4><div class="eco-check-grid medical-check-grid">@for(field of group.fields;track field[0]){<label class="eco-check"><input type="checkbox" [name]="field[0]" [(ngModel)]="medicalDraft[field[0]]"> {{field[1]}}</label>}</div>}
-        <div class="medical-modal-actions"><button class="btn-secondary" type="button" [disabled]="busy" (click)="confirmDiscard(ecoForm1, 'medicalModal')">Cancelar</button><button type="submit" class="btn-primary" [disabled]="busy">{{busy?'Guardando…':'Guardar ficha médica'}}</button></div>
-       </form>
-      </section>
-    </div>
-   }
- } @else {
- @if(mode==='pickups'){
-  <div class="eco-trustee"><div class="eco-toolbar"><h3 class="block-title">Responsables vinculados al alumno</h3><span class="badge-classroom">{{linkedTutors().length}} tutores</span></div>
-   @if(linkedTutors().length===0){<p class="eco-muted">No hay tutores vinculados desde matrícula. Podés vincularlos editando al alumno.</p>}
-   @for(t of linkedTutors();track t.id){<div class="records-tile"><span class="records-tile-icon material-icons-outlined">family_restroom</span><div><strong>{{t.firstName}} {{t.lastName}}</strong><p>{{t.relationship}} · DNI {{t.documentNumber}} · {{t.phone||'Sin teléfono'}}</p><small>Responsable vinculado · Verificá restricciones vigentes antes de entregar al menor.</small></div>@if(canEdit){<button class="btn-sm" type="button" (click)="authorizeTutor(t)" title="Registrar autorización de retiro"><span class="material-icons-outlined">how_to_reg</span> Autorizar retiro</button>}</div>}
+    <a routerLink="/students" class="btn-secondary">Ver alumnos</a>
   </div>
- }
- <div class="eco-toolbar"><h3 class="block-title">{{mode==='pickups'?'Otros autorizados registrados':title}}</h3>@if(canEdit){<button class="btn-primary" type="button" (click)="mode==='pickups'?openPickup():showForm=!showForm">+ Agregar registro</button>}</div>
- @if(records().length===0){<p class="eco-empty">No hay registros adicionales de este tipo para el alumno.</p>}
- @for(item of records();track item.id){<div class="records-tile"><div><strong>{{mode==='pickups'?item.fullName:(item.lastName+', '+item.firstName)}}</strong>
- <p>DNI: {{item.documentNumber||'—'}} · {{mode==='pickups'?(item.relationship||'Persona autorizada'):(item.description||'Restricción vigente')}}</p>
- @if(mode==='pickups'){<p>Edad: {{item.age}} · Teléfono: {{item.phone||'—'}}</p>}
- @else{<p>Legajo judicial: {{item.legajoNumber||'—'}} · Matrícula: {{item.matrixNumber||'—'}} · Folio: {{item.folioNumber||'—'}}</p>}
- </div>@if(canEdit){<div class="eco-row">@if(mode==='pickups'){<button type="button" class="btn-sm" (click)="openPickup(item)">Editar</button><button type="button" class="btn-danger" (click)="removePickup(item.id)">Eliminar</button>}@else{<button type="button" class="btn-danger" (click)="removeRestriction(item.id)">Eliminar</button>}</div>}</div>}
- @if(showForm&&canEdit){<div class="eco-modal-backdrop" role="presentation"><form appValidateSubmit novalidate class="eco-modal records-edit-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" #ecoForm2="ngForm" (ngSubmit)="ecoForm2.valid && (mode==='pickups'?savePickup():saveRestriction())">@if (ecoForm2.invalid && ecoForm2.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
- @if(error){<p class="eco-error" role="alert">{{error}}</p>}
-
- <h4>{{mode==='pickups'?(editPickupId?'Editar persona autorizada':'Nueva persona autorizada'):'Registrar restricción judicial'}}</h4>
- @if(mode==='pickups'){<div class="form-grid">
- <label class="form-label">Nombre y apellido *<input class="form-input" name="pickupName" [(ngModel)]="pickup.fullName" required></label>
- <label class="form-label">DNI *<input class="form-input" name="pickupDni" [(ngModel)]="pickup.documentNumber" required type="text" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12"></label>
- <label class="form-label">Fecha de nacimiento *<input type="date" class="form-input" name="pickupBirth" [(ngModel)]="pickup.birthDate" required min="1900-01-01" max="2100-12-31"></label>
- <div class="eco-age-preview">
-   <span class="material-icons-outlined">calculate</span>
-   <div>
-    <strong>Calculadora de mayoría de edad</strong>
-    <p>
-     @if (pickupAge === null) {
+  <div class="records-layout">
+    <aside class="eco-card student-selector" aria-label="Alumnos">
+      <div class="records-list-head">
+        <strong>Seleccionar alumno</strong>
+        <span class="eco-counter">{{filteredStudents.length}}</span>
+      </div>
+      <label class="eco-searchbox">
+        <span class="material-icons-outlined">search</span>
+        <input
+          class="eco-search"
+          [formControl]="studentQueryControl"
+          placeholder="Buscar nombre o DNI"
+          aria-label="Buscar alumno">
+      </label>
+      <div class="records-student-list">
+        @for(s of filteredStudents;track s.id){
+          <button
+            type="button"
+            class="record-student"
+            [class.active]="selectedId===s.id"
+            (click)="selectStudent(s.id||'')">
+            <span class="eco-initials">{{s.firstName[0]}}{{s.lastName[0]}}</span>
+            <span>
+              <strong>{{s.lastName}}, {{s.firstName}}</strong>
+              <small>DNI {{s.documentNumber}} · {{s.classroom||'Sin sala'}}</small>
+            </span>
+            <span class="material-icons-outlined">chevron_right</span>
+          </button>
+        }
+      </div>
+    </aside>
+    <div class="records-main">
+      @if(!selectedId){
+        <div class="eco-empty">
+          <span class="material-icons-outlined">touch_app</span>Seleccioná un alumno para consultar {{title.toLowerCase()}}.
+        </div>
+      }
+      @if(error){
+        <p class="eco-error" role="alert">{{error}}</p>
+      }
+      @if(message){
+        <p class="eco-success">{{message}}</p>
+      }
+      @if(loading){
+        <div class="eco-empty">Cargando datos…</div>
+      }
+      @if(selectedId && !loading){
+        <div class="eco-card records-content">
+          <div class="records-student-head">
+            <span class="eco-initials">{{selectedStudent?.firstName?.[0]}}{{selectedStudent?.lastName?.[0]}}</span>
+            <div>
+              <h3>{{selectedStudent?.firstName}} {{selectedStudent?.lastName}}</h3>
+              <p>{{selectedStudent?.classroom}} · DNI {{selectedStudent?.documentNumber}}</p>
+            </div>
+          </div>
+          @if(mode==='medical'){
+            @if(!medicalExists()){
+              <div class="medical-empty-state">
+                <div class="medical-empty-icon">
+                  <span class="material-icons-outlined">medical_services</span>
+                </div>
+                <h3>Este alumno todavía no tiene ficha médica</h3>
+                <p>Podés registrar el cuestionario completo sin salir de la pantalla. Se guarda en el legajo del alumno.</p>
+                @if(canEdit){
+                  <button type="button" class="btn-primary medical-create-btn" (click)="openMedical()">
+                    <span class="material-icons-outlined">add_circle_outline</span> Crear ficha médica
+                  </button>
+                }
+              </div>
+            }
+            @else {
+              <div class="eco-toolbar medical-record-toolbar">
+                <div>
+                  <h3 class="block-title">Ficha médica registrada</h3>
+                  <p class="eco-muted">Podés consultar la declaración y editarla en una ventana independiente.</p>
+                </div>
+                @if(canEdit){
+                  <button type="button" class="btn-primary" (click)="openMedical()">
+                    <span class="material-icons-outlined">edit_note</span> Editar ficha
+                  </button>
+                }
+              </div>
+              <div class="medical-review-grid">
+                @for(field of medicalTextFields;track field.key){
+                  <div class="medical-review-item">
+                    <small>{{field.label}}</small>
+                    <strong>{{medical[field.key]||'Sin especificar'}}</strong>
+                  </div>
+                }
+              </div>
+              @for(group of medicalGroups;track group.label){
+                <div class="medical-review-section">
+                  <h4>{{group.label}}</h4>
+                  <div class="medical-review-options">
+                    @for(field of group.fields;track field[0]){
+                      <span class="medical-review-chip" [class.medical-yes]="!!medical[field[0]]">
+                        <span class="material-icons-outlined">{{medical[field[0]]?'check_circle':'remove_circle_outline'}}</span>{{field[1]}}
+                      </span>
+                    }
+                  </div>
+                </div>
+              }
+            }
+            @if(medicalModal && canEdit){
+              <div class="eco-modal-backdrop" role="presentation">
+                <section
+                  class="eco-modal medical-form-modal"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="medical-dialog-title"
+                  (click)="$event.stopPropagation()">
+                  <div class="medical-modal-head">
+                    <div>
+                      <p class="eyebrow">FICHA MÉDICA ESCOLAR</p>
+                      <h3 id="medical-dialog-title">{{medicalExists()?'Editar':'Crear'}} ficha de {{selectedStudent?.firstName}} {{selectedStudent?.lastName}}</h3>
+                      <p>Declaración completa de salud · DNI {{selectedStudent?.documentNumber}}</p>
+                    </div>
+                    <button type="button" class="medical-close" (click)="closeMedicalEditor()" aria-label="Cerrar">×</button>
+                  </div>
+                  @if(error){
+                    <p class="eco-error" role="alert">{{error}}</p>
+                  }
+                  <form [formGroup]="medicalForm" (ngSubmit)="saveMedical()" novalidate>
+                    <div class="form-grid medical-modal-grid">
+                      @for(field of medicalTextFields;track field.key){
+                        <label class="form-label">{{field.label}}
+                          @if(field.max === 4000){
+                            <textarea class="form-input" rows="3" [formControlName]="field.key" [attr.maxlength]="field.max" [attr.aria-describedby]="'medical-' + field.key + '-hint'"></textarea>
+                          } @else {
+                            <input class="form-input" [formControlName]="field.key" [attr.maxlength]="field.max" [attr.inputmode]="field.key === 'anioOperacion' ? 'numeric' : null" [attr.aria-describedby]="'medical-' + field.key + '-hint'">
+                          }
+                          <small class="eco-muted" [id]="'medical-' + field.key + '-hint'">Opcional. Máximo {{field.max}} caracteres.</small>
+                          @if(medicalForm.get(field.key)?.hasError('spaces') && medicalForm.get(field.key)?.touched){
+                            <small class="eco-field-error" role="alert">Este campo no puede contener solo espacios.</small>
+                          }
+                          @if(medicalForm.get(field.key)?.hasError('maxlength') && medicalForm.get(field.key)?.touched){
+                            <small class="eco-field-error" role="alert">Máximo {{field.max}} caracteres.</small>
+                          }
+                          @if(medicalForm.get(field.key)?.hasError('year') && medicalForm.get(field.key)?.touched){
+                            <small class="eco-field-error" role="alert">Ingresá un año de cuatro cifras que no sea futuro.</small>
+                          }
+                          @if(medicalForm.get(field.key)?.hasError('pattern') && !medicalForm.get(field.key)?.hasError('spaces') && medicalForm.get(field.key)?.touched){
+                            <small class="eco-field-error" role="alert">{{field.hint || 'Revisá el formato ingresado.'}}</small>
+                          }
+                        </label>
+                      }
+                    </div>
+                    @for(group of medicalGroups;track group.label){
+                      <h4 class="block-title eco-subheading">{{group.label}}</h4>
+                      <div class="eco-check-grid medical-check-grid">
+                        @for(field of group.fields;track field[0]){
+                          <label class="eco-check">
+                            <input type="checkbox" [formControlName]="field[0]"> {{field[1]}}
+                          </label>
+                        }
+                      </div>
+                    }
+                    <div class="medical-modal-actions">
+                      <button class="btn-secondary" type="button" [disabled]="busy" (click)="closeMedicalEditor()">Cancelar</button>
+                      <button type="submit" class="btn-primary" [disabled]="busy">{{busy?'Guardando…':'Guardar ficha médica'}}</button>
+                    </div>
+                  </form>
+                </section>
+              </div>
+            }
+          }
+          @else {
+            @if(mode==='pickups'){
+              <div class="eco-trustee">
+                <div class="eco-toolbar">
+                  <h3 class="block-title">Responsables vinculados al alumno</h3>
+                  <span class="badge-classroom">{{linkedTutors().length}} tutores</span>
+                </div>
+                @if(linkedTutors().length===0){
+                  <p class="eco-muted">No hay tutores vinculados desde matrícula. Podés vincularlos editando al alumno.</p>
+                }
+                @for(t of linkedTutors();track t.id){
+                  <div class="records-tile">
+                    <span class="records-tile-icon material-icons-outlined">family_restroom</span>
+                    <div>
+                      <strong>{{t.firstName}} {{t.lastName}}</strong>
+                      <p>{{t.relationship}} · DNI {{t.documentNumber}} · {{t.phone||'Sin teléfono'}}</p>
+                      <small>Responsable vinculado · Verificá restricciones vigentes antes de entregar al menor.</small>
+                    </div>
+                    @if(canEdit){
+                      <button
+                        class="btn-sm"
+                        type="button"
+                        (click)="authorizeTutor(t)"
+                        title="Registrar autorización de retiro">
+                        <span class="material-icons-outlined">how_to_reg</span> Autorizar retiro
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            }
+            <div class="eco-toolbar">
+              <h3 class="block-title">{{mode==='pickups'?'Otros autorizados registrados':title}}</h3>
+              @if(canEdit){
+                <button class="btn-primary" type="button" (click)="mode==='pickups'?openPickup():showForm=!showForm">+ Agregar registro</button>
+              }
+            </div>
+            @if(records().length===0){
+              <p class="eco-empty">No hay registros adicionales de este tipo para el alumno.</p>
+            }
+            @for(item of records();track item.id){
+              <div class="records-tile">
+                <div>
+                  <strong>{{mode==='pickups'?item.fullName:(item.lastName+', '+item.firstName)}}</strong>
+                  <p>DNI: {{item.documentNumber||'—'}} · {{mode==='pickups'?(item.relationship||'Persona autorizada'):(item.description||'Restricción vigente')}}</p>
+                  @if(mode==='pickups'){
+                    <p>Edad: {{item.age}} · Teléfono: {{item.phone||'—'}}</p>
+                  }
+                  @else{
+                    <p>Legajo judicial: {{item.legajoNumber||'—'}} · Matrícula: {{item.matrixNumber||'—'}} · Folio: {{item.folioNumber||'—'}}</p>
+                  }
+                </div>
+                @if(canEdit){
+                  <div class="eco-row">
+                    @if(mode==='pickups'){
+                      <button type="button" class="btn-sm" (click)="openPickup(item)">Editar</button>
+                      <button type="button" class="btn-danger" (click)="removePickup(item.id)">Eliminar</button>
+                    }
+                    @else{
+                      <button type="button" class="btn-danger" (click)="removeRestriction(item.id)">Eliminar</button>
+                    }
+                  </div>
+                }
+              </div>
+            }
+            @if(showForm&&canEdit){
+              <div class="eco-modal-backdrop" role="presentation">
+                <form
+                  [formGroup]="mode==='pickups' ? pickupForm : restrictionForm"
+                  novalidate
+                  class="eco-modal records-edit-modal"
+                  (click)="$event.stopPropagation()"
+                  role="dialog"
+                  aria-modal="true"
+                  (ngSubmit)="mode==='pickups'?savePickup():saveRestriction()">
+                  @if(error){
+                    <p class="eco-error" role="alert">{{error}}</p>
+                  }
+                  <h4>{{mode==='pickups'?(editPickupId?'Editar persona autorizada':'Nueva persona autorizada'):'Registrar restricción judicial'}}</h4>
+                  @if(mode==='pickups'){
+                    <div class="form-grid">
+                      <label class="form-label">Nombre *
+                        <input class="form-input" formControlName="firstName" maxlength="20" required>
+                        @if(pickupFirstName.invalid && pickupFirstName.touched){
+                          <small class="eco-field-error" role="alert">Ingresá el nombre: hasta 20 caracteres, sin números.</small>
+                        }
+                      </label>
+                      <label class="form-label">Apellido *
+                        <input class="form-input" formControlName="lastName" maxlength="20" required>
+                        @if(pickupLastName.invalid && pickupLastName.touched){
+                          <small class="eco-field-error" role="alert">Ingresá el apellido: hasta 20 caracteres, sin números.</small>
+                        }
+                      </label>
+                      <label class="form-label">DNI *
+                        <input
+                          class="form-input"
+                          name="pickupDni"
+                          formControlName="documentNumber"
+                          required
+                          type="text"
+                          inputmode="numeric"
+                          pattern="[0-9]{6,8}"
+                          minlength="6"
+                          maxlength="8">
+                        @if (pickupDocumentNumber.hasError('required') && pickupDocumentNumber.touched) {
+                          <small class="eco-field-error" role="alert">El campo DNI es obligatorio.</small>
+                        }
+                        @if (pickupDocumentNumber.hasError('pattern') && pickupDocumentNumber.touched) {
+                          <small class="eco-field-error" role="alert">El campo DNI tiene un formato o longitud inválidos.</small>
+                        }
+                      </label>
+                      <label class="form-label">Fecha de nacimiento *
+                        <input
+                          type="date"
+                          class="form-input"
+                          name="pickupBirth"
+                          formControlName="birthDate"
+                          required
+                          min="1900-01-01"
+                          max="2100-12-31">
+                        @if (pickupBirthDate.hasError('required') && pickupBirthDate.touched) {
+                          <small class="eco-field-error" role="alert">El campo fecha de nacimiento es obligatorio.</small>
+                        }
+                        @if(pickupBirthDate.hasError('age') && pickupBirthDate.touched){
+                          <small class="eco-field-error">Debe tener entre 18 y 80 años.</small>
+                        }
+                      </label>
+                      <div class="eco-age-preview">
+                        <span class="material-icons-outlined">calculate</span>
+                        <div>
+                          <strong>Calculadora de mayoría de edad</strong>
+                          <p>
+                            @if (pickupAge === null) {
       Indicá la fecha de nacimiento.
-     } @else {
+                            }
+                            @else {
       Edad actual: {{ pickupAge }} años.
-      {{ pickupAge >= 18 ? 'Puede registrarse como autorizado.' : 'Debe tener al menos 18 años.' }}
-     }
-    </p>
-   </div>
+      {{ pickupAge >= 18 && pickupAge <= 80 ? 'Puede registrarse como autorizado.' : 'Debe tener entre 18 y 80 años.' }}
+                            }
+                          </p>
+                        </div>
+                      </div>
+                      <label class="form-label">Vínculo
+                        <input
+                          class="form-input"
+                          name="pickupRelationship"
+                          formControlName="relationship"
+                          required
+                          maxlength="255">
+                        @if (pickupRelationship.hasError('required') && pickupRelationship.touched) {
+                          <small class="eco-field-error" role="alert">El campo vínculo es obligatorio.</small>
+                        }
+                        @if (pickupRelationship.hasError('maxlength') && pickupRelationship.touched) {
+                          <small class="eco-field-error" role="alert">El campo vínculo tiene un formato o longitud inválidos.</small>
+                        }
+                      </label>
+                      <label class="form-label">Teléfono
+                        <input
+                          class="form-input"
+                          name="pickupPhone"
+                          formControlName="phone"
+                          required
+                          type="text"
+                          inputmode="numeric"
+                          pattern="[0-9]{6,20}"
+                          maxlength="20">
+                        @if (pickupPhone.hasError('required') && pickupPhone.touched) {
+                          <small class="eco-field-error" role="alert">El campo teléfono es obligatorio.</small>
+                        }
+                        @if (pickupPhone.hasError('pattern') && pickupPhone.touched) {
+                          <small class="eco-field-error" role="alert">El campo teléfono tiene un formato o longitud inválidos.</small>
+                        }
+                      </label>
+                    </div>
+                  }
+                  @else{
+                    <div class="form-grid">
+                      <label class="form-label">Nombre *
+                        <input class="form-input" name="resFirst" formControlName="firstName" required maxlength="20">
+                        @if (restrictionFirstName.hasError('required') && restrictionFirstName.touched) {
+                          <small class="eco-field-error" role="alert">El campo nombre es obligatorio.</small>
+                        }
+                        @if (restrictionFirstName.hasError('pattern') && restrictionFirstName.touched) {
+                          <small class="eco-field-error" role="alert">El nombre no puede contener números.</small>
+                        }
+                        @if (restrictionFirstName.hasError('minlength') && restrictionFirstName.touched) {
+                          <small class="eco-field-error" role="alert">El campo nombre tiene un formato o longitud inválidos.</small>
+                        }
+                        @if (restrictionFirstName.hasError('maxlength') && restrictionFirstName.touched) {
+                          <small class="eco-field-error" role="alert">El campo nombre tiene un formato o longitud inválidos.</small>
+                        }
+                      </label>
+                      <label class="form-label">Apellido *
+                        <input class="form-input" name="resLast" formControlName="lastName" required maxlength="20">
+                        @if (restrictionLastName.hasError('required') && restrictionLastName.touched) {
+                          <small class="eco-field-error" role="alert">El campo apellido es obligatorio.</small>
+                        }
+                        @if (restrictionLastName.hasError('pattern') && restrictionLastName.touched) {
+                          <small class="eco-field-error" role="alert">El apellido no puede contener números.</small>
+                        }
+                        @if (restrictionLastName.hasError('minlength') && restrictionLastName.touched) {
+                          <small class="eco-field-error" role="alert">El campo apellido tiene un formato o longitud inválidos.</small>
+                        }
+                        @if (restrictionLastName.hasError('maxlength') && restrictionLastName.touched) {
+                          <small class="eco-field-error" role="alert">El campo apellido tiene un formato o longitud inválidos.</small>
+                        }
+                      </label>
+                      <label class="form-label">Tipo documento
+                        <input class="form-input" name="resType" formControlName="documentType" required maxlength="20">
+                        <small class="eco-muted">Hasta 20 caracteres. Ej.: DNI.</small>
+                        @if ((restrictionDocumentType.hasError('pattern') || restrictionDocumentType.hasError('maxlength')) && restrictionDocumentType.touched) {
+                          <small class="eco-field-error" role="alert">Tipo de documento: revisá el formato y la longitud.</small>
+                        }
+                        @if (restrictionDocumentType.hasError('required') && restrictionDocumentType.touched) {
+                          <small class="eco-field-error" role="alert">El campo tipo de documento es obligatorio.</small>
+                        }
+                      </label>
+                      <label class="form-label">Número documento
+                        <input
+                          class="form-input"
+                          name="resDni"
+                          formControlName="documentNumber"
+                          required
+                          type="text"
+                          inputmode="numeric"
+                          pattern="[0-9]{6,8}"
+                          minlength="6"
+                          maxlength="8">
+                        @if (restrictionDocumentNumber.hasError('required') && restrictionDocumentNumber.touched) {
+                          <small class="eco-field-error" role="alert">El campo DNI es obligatorio.</small>
+                        }
+                        @if (restrictionDocumentNumber.hasError('pattern') && restrictionDocumentNumber.touched) {
+                          <small class="eco-field-error" role="alert">Ingresá entre 6 y 8 números, sin puntos ni espacios.</small>
+                        }
+                      </label>
+                      <label class="form-label">Descripción / medida *
+                        <textarea class="form-input" name="resDescription" formControlName="description" required maxlength="4000">
+                        </textarea>
+                        @if ((restrictionDescription.hasError('required') || restrictionDescription.hasError('spaces')) && restrictionDescription.touched) {
+                          <small class="eco-field-error" role="alert">El campo descripción es obligatorio.</small>
+                        }
+                        @if (restrictionDescription.hasError('minlength') && restrictionDescription.touched) {
+                          <small class="eco-field-error" role="alert">Ingresá entre 5 y 4.000 caracteres.</small>
+                        }
+                        @if (restrictionDescription.hasError('maxlength') && restrictionDescription.touched) {
+                          <small class="eco-field-error" role="alert">Ingresá entre 5 y 4.000 caracteres.</small>
+                        }
+                      </label>
+                      <label class="form-label">N° Legajo judicial
+                        <input class="form-input" name="resLegajo" formControlName="legajoNumber" maxlength="50">
+                        <small class="eco-muted">Opcional. Hasta 50 caracteres. Ej.: EXP-123/2026.</small>
+                        @if ((restrictionLegajoNumber.hasError('pattern') || restrictionLegajoNumber.hasError('maxlength')) && restrictionLegajoNumber.touched) {
+                          <small class="eco-field-error" role="alert">Legajo judicial: revisá el formato y la longitud.</small>
+                        }
+                        </label>
+                      <label class="form-label">Matrícula
+                        <input class="form-input" name="resMatrix" formControlName="matrixNumber" maxlength="50">
+                        <small class="eco-muted">Opcional. Hasta 50 caracteres. Ej.: MP-123.</small>
+                        @if ((restrictionMatrixNumber.hasError('pattern') || restrictionMatrixNumber.hasError('maxlength')) && restrictionMatrixNumber.touched) {
+                          <small class="eco-field-error" role="alert">Matrícula: revisá el formato y la longitud.</small>
+                        }
+                        </label>
+                      <label class="form-label">Folio
+                        <input class="form-input" name="resFolio" formControlName="folioNumber" maxlength="50">
+                        <small class="eco-muted">Opcional. Hasta 50 caracteres. Ej.: 12-A.</small>
+                        @if ((restrictionFolioNumber.hasError('pattern') || restrictionFolioNumber.hasError('maxlength')) && restrictionFolioNumber.touched) {
+                          <small class="eco-field-error" role="alert">Folio: revisá el formato y la longitud.</small>
+                        }
+                        </label>
+                      <label class="form-label">Fecha inscripción
+                        <input type="date" class="form-input" name="resDate" formControlName="inscriptionDate" [attr.max]="today">
+                        <small class="eco-muted">Opcional. Ingresá una fecha que no sea futura.</small>
+                        @if (restrictionInscriptionDate.invalid && restrictionInscriptionDate.touched) {
+                          <small class="eco-field-error" role="alert">Ingresá una fecha de inscripción válida que no sea futura.</small>
+                        }
+                      </label>
+                    </div>
+                  }
+                  <div class="form-actions">
+                    <button type="button" (click)="confirmDiscard(mode==='pickups'?pickupForm:restrictionForm, 'showForm')" class="btn-secondary">Cancelar</button>
+                    <button type="submit" [disabled]="busy" class="btn-primary">Guardar registro</button>
+                  </div>
+                </form>
+              </div>
+            }
+          }
+        </div>
+      }
+    </div>
   </div>
- <label class="form-label">Vínculo<input class="form-input" name="pickupRelationship" [(ngModel)]="pickup.relationship" required maxlength="50"></label>
- <label class="form-label">Teléfono<input class="form-input" name="pickupPhone" [(ngModel)]="pickup.phone" required type="text" inputmode="numeric" pattern="[0-9]{6,20}" maxlength="20"></label></div>}
- @else{<div class="form-grid">
- <label class="form-label">Nombre *<input class="form-input" name="resFirst" [(ngModel)]="restriction.firstName" required></label>
- <label class="form-label">Apellido *<input class="form-input" name="resLast" [(ngModel)]="restriction.lastName" required></label>
- <label class="form-label">Tipo documento<input class="form-input" name="resType" [(ngModel)]="restriction.documentType" required maxlength="50"></label>
- <label class="form-label">Número documento<input class="form-input" name="resDni" [(ngModel)]="restriction.documentNumber" required type="text" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12"></label>
- <label class="form-label">Descripción / medida *<textarea class="form-input" name="resDescription" [(ngModel)]="restriction.description" required maxlength="4000"></textarea></label>
- <label class="form-label">N° Legajo judicial<input class="form-input" name="resLegajo" [(ngModel)]="restriction.legajoNumber"></label>
- <label class="form-label">Matrícula<input class="form-input" name="resMatrix" [(ngModel)]="restriction.matrixNumber"></label>
- <label class="form-label">Folio<input class="form-input" name="resFolio" [(ngModel)]="restriction.folioNumber"></label>
- <label class="form-label">Fecha inscripción<input type="date" class="form-input" name="resDate" [(ngModel)]="restriction.inscriptionDate"></label></div>}
- <div class="form-actions"><button type="button" (click)="confirmDiscard(ecoForm2, 'showForm')" class="btn-secondary">Cancelar</button><button type="submit" [disabled]="busy" class="btn-primary">Guardar registro</button></div>
- </form></div>}
- }
- </div>}
- </div></div>
 </div>

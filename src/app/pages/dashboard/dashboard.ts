@@ -6,8 +6,6 @@ import { SubjectService } from '../../services/subjects/subjects';
 import { TeacherService } from '../../services/teacher/teacher';
 import { TutorService } from '../../services/tutor/tutor';
 import { StudentService } from '../../services/student/student';
-
-
 @Component({
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-dashboard',
@@ -17,28 +15,21 @@ import { StudentService } from '../../services/student/student';
   styleUrl: './dashboard.css'
 })
 export class Dashboard implements OnInit {
-  get isPreceptor():boolean{return sessionStorage.getItem('current_user_role')==='PRECEPTOR';}
+  get isPreceptor(): boolean {
+    return sessionStorage.getItem('current_user_role') === 'PRECEPTOR';
+  }
   totalStudents = signal(0);
   totalTutors = signal(0);
   totalStaff = signal(0);
   totalSubjects = signal(0);
   announcements = signal<any[]>([]);
-
-  constructor(
-    private studentService: StudentService,
-    private tutorService: TutorService,
-    private teacherService: TeacherService,
-    private subjectService: SubjectService,
-    private announcementService: AnnouncementService
-  ) {}
-
+  constructor(private studentService: StudentService, private tutorService: TutorService, private teacherService: TeacherService, private subjectService: SubjectService, private announcementService: AnnouncementService) { }
   ngOnInit(): void {
     this.loadDashboardData();
   }
-
   loadDashboardData() {
     this.studentService.getStudents().subscribe(data => this.totalStudents.set(data.length));
-    if(!this.isPreceptor){
+    if (!this.isPreceptor) {
       this.tutorService.getTutors().subscribe(data => this.totalTutors.set(data.length));
       this.teacherService.getStaff().subscribe(data => this.totalStaff.set(data.length));
     }

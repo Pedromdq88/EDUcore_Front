@@ -36,6 +36,5 @@ export interface Student {
   transportationMethods: string;
   tutorIds?: string[];
   tutors?: any[];
-  /** Tutor legal principal, almacenado en student_tutors.is_primary. */
   primaryTutorId?: string;
 }

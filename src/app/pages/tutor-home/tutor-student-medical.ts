@@ -4,13 +4,11 @@ import { HttpClient } from '@angular/common/http';
 import { switchMap } from 'rxjs';
 import { getMultiTenantHeaders } from '../../services/tenant/tenant';
 import { getMedicalSections } from './tutor-medical-fields';
-
 interface LinkedStudent {
   id: string;
   firstName: string;
   lastName: string;
 }
-
 @Component({
   selector: 'app-tutor-student-medical',
   standalone: true,
@@ -23,16 +21,13 @@ export class TutorStudentMedical implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly http = inject(HttpClient);
   private readonly route = inject(ActivatedRoute);
-
   student = signal<LinkedStudent | null>(null);
   medical = signal<Record<string, unknown> | null>(null);
   loading = true;
   error = '';
-
   get sections() {
     return getMedicalSections(this.medical());
   }
-
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
@@ -40,13 +35,15 @@ export class TutorStudentMedical implements OnInit {
       this.error = 'No se encontró el alumno.';
       return;
     }
-
     const headers = getMultiTenantHeaders();
-    this.http.get<LinkedStudent>(`/api/v1/auth/my-students/${encodeURIComponent(id)}`, {headers})
+    this.http.get<LinkedStudent>(`/api/v1/auth/my-students/${encodeURIComponent(id)}`, {
+      headers
+    })
       .pipe(switchMap(student => {
         this.student.set(student);
-        return this.http.get<Record<string, unknown>>(
-          `/api/v1/students/${encodeURIComponent(student.id)}/medical-record`, {headers});
+        return this.http.get<Record<string, unknown>>(`/api/v1/students/${encodeURIComponent(student.id)}/medical-record`, {
+          headers
+        });
       }))
       .subscribe({
         next: medical => {

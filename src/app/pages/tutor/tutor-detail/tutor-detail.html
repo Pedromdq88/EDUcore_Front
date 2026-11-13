@@ -1,40 +1,125 @@
 @if (tutor(); as t) {
   <div class="detail-wrapper">
     <div class="action-bar">
-      <a routerLink="/tutors" class="btn-secondary">Volver a tutores</a><button type="button" (click)="editOpen=true" class="btn-primary"><span class="material-icons-outlined">edit</span> Editar tutor</button><button (click)="bajaTutor()" class="btn-danger" [disabled]="bajaBusy">{{bajaBusy?'Procesando...':'Dar de baja'}}</button>
+      <a routerLink="/tutors" class="btn-secondary">Volver a tutores</a>
+      <div class="action-buttons">
+        <button type="button" (click)="editOpen=true" class="btn-primary">
+          <span class="material-icons-outlined">edit</span> Editar tutor
+        </button>
+        <button type="button" (click)="bajaTutor()" class="btn-danger" [disabled]="bajaBusy">{{bajaBusy ? 'Procesando…' : 'Dar de baja'}}</button>
+      </div>
     </div>
-    @if(error){<p class="eco-error" role="alert">{{error}}</p>}@if(message){<p class="eco-success">{{message}}</p>}
+    @if (error) {
+      <p class="eco-error" role="alert">{{error}}</p>
+    }
+    @if (message) {
+      <p class="eco-success" role="status">{{message}}</p>
+    }
     <div class="detail-card">
-      <div class="user-header">
-        <div class="avatar">{{ t.firstName[0] }}{{ t.lastName[0] }}</div>
+      <header class="user-header">
+        <div class="avatar">{{t.firstName?.[0]}}{{t.lastName?.[0]}}</div>
         <div>
-          <h1 class="user-name">{{ t.lastName }}, {{ t.firstName }}</h1>
-          <span class="tag">{{ t.relationship }}</span>
+          <h1 class="user-name">{{t.lastName}}, {{t.firstName}}</h1>
+          <div class="meta-tags">
+            <span class="tag">{{t.relationship || 'Tutor'}}</span>
+            <span class="tag">{{linkedStudents().length}} alumno(s) vinculado(s)</span>
+          </div>
         </div>
-      </div>
-      <div class="section-block">
-        <h3 class="block-title">Datos del tutor</h3>
+      </header>
+      <section class="section-block">
+        <h3 class="block-title">Identidad y documentación</h3>
         <div class="info-grid">
-          <div class="info-box"><label>DNI</label><span>{{ t.documentNumber }}</span></div>
-          <div class="info-box"><label>Email</label><span>{{ t.email || '-' }}</span></div>
-          <div class="info-box"><label>Teléfono</label><span>{{ t.phone || '-' }}</span></div>
-          <div class="info-box"><label>Vínculo</label><span>{{ t.relationship }}</span></div>
-          <div class="info-box"><label>Dirección</label><span>{{ t.direccion || '-' }}</span></div>
-          <div class="info-box"><label>Profesión</label><span>{{ t.profesion || '-' }}</span></div>
-          <div class="info-box"><label>Nacionalidad</label><span>{{ t.nacionalidad || '-' }}</span></div>
-          <div class="info-box"><label>Condición de actividad</label><span>{{ t.condicionActividad || '-' }}</span></div>
-          <div class="info-box"><label>Convive con el alumno</label><span>{{ t.convive || '-' }}</span></div>
+          <div class="info-box">
+            <label>Nombre</label>
+            <span>{{t.firstName || 'No informado'}}</span>
+          </div>
+          <div class="info-box">
+            <label>Apellido</label>
+            <span>{{t.lastName || 'No informado'}}</span>
+          </div>
+          <div class="info-box">
+            <label>DNI</label>
+            <span>{{t.documentNumber || 'No informado'}}</span>
+          </div>
+          <div class="info-box">
+            <label>Vínculo</label>
+            <span>{{t.relationship || 'No informado'}}</span>
+          </div>
+          <div class="info-box">
+            <label>Nacionalidad</label>
+            <span>{{t.nacionalidad || 'No informado'}}</span>
+          </div>
+          <div class="info-box">
+            <label>Convive con el alumno</label>
+            <span>{{t.convive || 'No informado'}}</span>
+          </div>
         </div>
-      </div>
-      <div class="section-block"><h3 class="block-title">Alumnos vinculados <span class="linked-count">{{linkedStudents().length}}</span></h3>
-        <p class="eco-muted">Cada ficha corresponde a un estudiante asociado a este tutor. La baja del último tutor también dará de baja al alumno; revisá los vínculos antes de confirmar.</p>
-        @if(linkedStudents().length===0){<p class="eco-muted">No hay alumnos vinculados a este tutor.</p>}
-        @for(s of linkedStudents();track s.id){<div class="sub-card linked-person-card"><span class="linked-person-avatar">{{s.firstName?.[0]}}{{s.lastName?.[0]}}</span><div class="linked-person-data"><strong>{{s.lastName}}, {{s.firstName}}</strong><small><span class="material-icons-outlined" aria-hidden="true">badge</span> DNI {{s.documentNumber}}</small><small><span class="material-icons-outlined" aria-hidden="true">school</span> {{s.classroom||'Sin asignar'}}</small></div><a class="linked-person-link" [routerLink]="['/students',s.id]"><span class="material-icons-outlined">open_in_new</span> Ver alumno</a></div>}
-      </div>
+      </section>
+      <section class="section-block">
+        <h3 class="block-title">Contacto y domicilio</h3>
+        <div class="info-grid">
+          <div class="info-box">
+            <label>Correo electrónico</label>
+            <span>{{t.email || 'No informado'}}</span>
+          </div>
+          <div class="info-box">
+            <label>Teléfono celular</label>
+            <span>{{t.phone || 'No informado'}}</span>
+          </div>
+          <div class="info-box">
+            <label>Teléfono fijo</label>
+            <span>{{t.phoneFijo || 'No informado'}}</span>
+          </div>
+          <div class="info-box">
+            <label>Dirección</label>
+            <span>{{t.direccion || 'No informado'}}</span>
+          </div>
+        </div>
+      </section>
+      <section class="section-block">
+        <h3 class="block-title">Situación laboral</h3>
+        <div class="info-grid">
+          <div class="info-box">
+            <label>Profesión</label>
+            <span>{{t.profesion || 'No informado'}}</span>
+          </div>
+          <div class="info-box">
+            <label>Condición de actividad</label>
+            <span>{{t.condicionActividad || 'No informado'}}</span>
+          </div>
+        </div>
+      </section>
+      <section class="section-block">
+        <h3 class="block-title">Alumnos vinculados <span class="linked-count">{{linkedStudents().length}}</span>
+        </h3>
+        <p class="eco-muted">La baja del último tutor puede dar de baja también al alumno. Revisá los vínculos antes de confirmar.</p>
+        @for (s of linkedStudents(); track s.id) {
+          <div class="sub-card linked-person-card">
+            <span class="linked-person-avatar">{{s.firstName?.[0]}}{{s.lastName?.[0]}}</span>
+            <div class="linked-person-data">
+              <strong>{{s.lastName}}, {{s.firstName}}</strong>
+              <small>
+                <span class="material-icons-outlined" aria-hidden="true">badge</span> DNI {{s.documentNumber || 'No informado'}}
+              </small>
+              <small>
+                <span class="material-icons-outlined" aria-hidden="true">school</span> {{s.classroom || 'Sin asignar'}}
+              </small>
+            </div>
+            <a class="linked-person-link" [routerLink]="['/students',s.id]">
+              <span class="material-icons-outlined">open_in_new</span> Ver alumno
+            </a>
+          </div>
+        }
+        @empty {
+          <p class="empty-text">No hay alumnos vinculados a este tutor.</p>
+        }
+      </section>
     </div>
   </div>
-} @else {
+}
+@else {
   <p class="empty-text">No se encontró el tutor o todavía se está cargando.</p>
 }
-
-@if(editOpen && tutor(); as current){<app-tutor-modal [existing]="current" (saved)="afterEdit($event)" (dismissed)="editOpen=false"></app-tutor-modal>}
+@if (editOpen && tutor(); as current) {
+  <app-tutor-modal [existing]="current" (saved)="afterEdit($event)" (dismissed)="editOpen=false"></app-tutor-modal>
+}

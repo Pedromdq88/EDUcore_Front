@@ -2,18 +2,24 @@
   <a class="family-back" [routerLink]="['/my-students', student()?.id]" >
     <span class="material-icons-outlined">arrow_back</span> Volver al alumno
   </a>
-
   <header class="tutor-medical-header">
     <div>
       <p class="tutor-medical-eyebrow">LEGAJO DEL ALUMNO · SOLO LECTURA</p>
       <h2>Ficha médica completa</h2>
-      @if (student(); as s) { <p>{{s.firstName}} {{s.lastName}}</p> }
+      @if (student(); as s) {
+        <p>{{s.firstName}} {{s.lastName}}</p>
+      }
     </div>
-    <span class="tutor-medical-readonly"><span class="material-icons-outlined">visibility</span> Solo consulta</span>
+    <span class="tutor-medical-readonly">
+      <span class="material-icons-outlined">visibility</span> Solo consulta
+    </span>
   </header>
-
-  @if (loading) { <div class="tutor-medical-panel" role="status">Cargando ficha médica…</div> }
-  @if (error) { <p class="eco-error" role="alert">{{error}}</p> }
+  @if (loading) {
+    <div class="tutor-medical-panel" role="status">Cargando ficha médica…</div>
+  }
+  @if (error) {
+    <p class="eco-error" role="alert">{{error}}</p>
+  }
   @if (!loading && !error) {
     @if (sections.length) {
       @for (section of sections; track section.title) {
@@ -29,7 +35,8 @@
           </div>
         </section>
       }
-    } @else {
+    }
+    @else {
       <div class="tutor-medical-panel">Este alumno todavía no tiene una ficha médica registrada.</div>
     }
   }

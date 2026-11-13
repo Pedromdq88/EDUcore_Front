@@ -1,17 +1,163 @@
-<div class="form-wrapper"><div class="form-card"><h2 class="form-title">{{editingId?'Editar tutor':'Registrar tutor o responsable'}}</h2>
-@if(error){<p class="eco-error" role="alert">{{error}}</p>}
-@if(loading){<p role="status">Recuperando los datos guardados del tutor…</p>}
-@if(!loading&&!loadFailed){<form appValidateSubmit novalidate #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (submitTutor())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
-<div class="form-grid">
-<label class="form-label">Nombre *<input class="form-input" name="firstName" [(ngModel)]="form.firstName" required></label>
-<label class="form-label">Apellido *<input class="form-input" name="lastName" [(ngModel)]="form.lastName" required></label>
-<label class="form-label">DNI *<input class="form-input" name="documentNumber" [(ngModel)]="form.documentNumber" required type="text" inputmode="numeric" pattern="[0-9]{6,12}" minlength="6" maxlength="12"></label>
-<label class="form-label">Vínculo<select class="form-input" name="relationship" [(ngModel)]="form.relationship"><option value="MADRE">Madre</option><option value="PADRE">Padre</option><option value="TUTOR_LEGAL">Tutor legal</option></select></label>
-<label class="form-label">Teléfono<input class="form-input" name="phone" [(ngModel)]="form.phone" type="text" inputmode="numeric" pattern="[0-9]{6,20}" maxlength="20"></label>
-<label class="form-label">Email *<input type="email" class="form-input" name="email" [(ngModel)]="form.email" required maxlength="150"></label>
-<label class="form-label">Nacionalidad<input class="form-input" name="nacionalidad" [(ngModel)]="form.nacionalidad"></label>
-<label class="form-label">Profesión<input class="form-input" name="profesion" [(ngModel)]="form.profesion"></label>
-<label class="form-label">Condición laboral<input class="form-input" name="condicionActividad" [(ngModel)]="form.condicionActividad"></label>
-<label class="form-label">¿Convive con el alumno?<select class="form-input" name="convive" [(ngModel)]="form.convive"><option value="SI">Sí</option><option value="NO">No</option></select></label>
-<label class="form-label">Dirección<input class="form-input" name="direccion" [(ngModel)]="form.direccion"></label>
-</div><p class="eco-success">Al crear un tutor nuevo se genera su cuenta. El acceso inicial es su correo y su DNI sin puntos; deberá cambiar la clave al entrar.</p><div class="form-actions"><a routerLink="/tutors" class="btn-secondary">Cancelar</a><button type="submit" [disabled]="busy" class="btn-primary">{{busy?'Guardando…':'Guardar tutor'}}</button></div></form>}</div></div>
+<div class="form-wrapper">
+  <div class="form-card">
+    <h2 class="form-title">{{editingId?'Editar tutor':'Registrar tutor o responsable'}}</h2>
+    @if(error){
+      <p class="eco-error" role="alert">{{error}}</p>
+    }
+    @if(loading){
+      <p role="status">Recuperando los datos guardados del tutor…</p>
+    }
+    @if(!loading&&!loadFailed){
+      <form [formGroup]="tutorForm" (ngSubmit)="submitTutor()" novalidate>
+        <div class="form-grid">
+          <label class="form-label">Nombre *
+            <input class="form-input" name="firstName" formControlName="firstName" required maxlength="20">
+            @if (firstName.hasError('required') && firstName.touched) {
+              <small class="eco-field-error" role="alert">El nombre es obligatorio.</small>
+            }
+            @if (firstName.hasError('pattern') && firstName.touched) {
+              <small class="eco-field-error" role="alert">El nombre solo admite letras, espacios, tildes, guiones y apóstrofes.</small>
+            }
+            @if (firstName.hasError('minlength') && firstName.touched) {
+              <small class="eco-field-error" role="alert">El nombre es demasiado corto.</small>
+            }
+            @if (firstName.hasError('maxlength') && firstName.touched) {
+              <small class="eco-field-error" role="alert">El nombre supera el máximo de caracteres.</small>
+            }
+          </label>
+          <label class="form-label">Apellido *
+            <input class="form-input" name="lastName" formControlName="lastName" required maxlength="20">
+            @if (lastName.hasError('required') && lastName.touched) {
+              <small class="eco-field-error" role="alert">El apellido es obligatorio.</small>
+            }
+            @if (lastName.hasError('pattern') && lastName.touched) {
+              <small class="eco-field-error" role="alert">El apellido solo admite letras, espacios, tildes, guiones y apóstrofes.</small>
+            }
+            @if (lastName.hasError('minlength') && lastName.touched) {
+              <small class="eco-field-error" role="alert">El apellido es demasiado corto.</small>
+            }
+            @if (lastName.hasError('maxlength') && lastName.touched) {
+              <small class="eco-field-error" role="alert">El apellido supera el máximo de caracteres.</small>
+            }
+          </label>
+          <label class="form-label">DNI *
+            <input
+              class="form-input"
+              name="documentNumber"
+              formControlName="documentNumber"
+              required
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]{6,8}"
+              minlength="6"
+              maxlength="8">
+            @if (documentNumber.hasError('duplicate') && documentNumber.touched) {
+              <small class="eco-field-error" role="alert">Ya existe un registro con este DNI.</small>
+            }
+            @if (documentNumber.hasError('required') && documentNumber.touched) {
+              <small class="eco-field-error" role="alert">El DNI es obligatorio.</small>
+            }
+            @if (documentNumber.hasError('pattern') && documentNumber.touched) {
+              <small class="eco-field-error" role="alert">El DNI no tiene un formato válido.</small>
+            }
+          </label>
+          <label class="form-label">Vínculo
+            <select class="form-input" name="relationship" formControlName="relationship">
+              <option value="MADRE">Madre</option>
+              <option value="PADRE">Padre</option>
+              <option value="TUTOR_LEGAL">Tutor legal</option>
+            </select>
+            @if (relationship.hasError('required') && relationship.touched) {
+              <small class="eco-field-error" role="alert">El vínculo es obligatorio.</small>
+            }
+          </label>
+          <label class="form-label">Teléfono
+            <input
+              class="form-input"
+              name="phone"
+              formControlName="phone"
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]{6,20}"
+              maxlength="20">
+            @if (phone.hasError('pattern') && phone.touched) {
+              <small class="eco-field-error" role="alert">El teléfono no tiene un formato válido.</small>
+            }
+          </label>
+          <label class="form-label">Email *
+            <input type="email" class="form-input" name="email" formControlName="email" required maxlength="30">
+            @if (email.hasError('duplicate') && email.touched) {
+              <small class="eco-field-error" role="alert">Ya existe un registro con este correo.</small>
+            }
+            @if (email.hasError('required') && email.touched) {
+              <small class="eco-field-error" role="alert">El correo es obligatorio.</small>
+            }
+            @if ((email.hasError('email') || email.hasError('pattern')) && email.touched) {
+              <small class="eco-field-error" role="alert">Ingresá un correo electrónico válido.</small>
+            }
+            @if (email.hasError('maxlength') && email.touched) {
+              <small class="eco-field-error" role="alert">El correo supera el máximo de caracteres.</small>
+            }
+          </label>
+          <label class="form-label">Nacionalidad
+            <input class="form-input" name="nacionalidad" formControlName="nacionalidad" maxlength="255">
+            @if (nacionalidad.hasError('spaces') && nacionalidad.touched) {
+              <small class="eco-field-error" role="alert">Este campo no puede contener solo espacios.</small>
+            }
+            @if (nacionalidad.hasError('maxlength') && nacionalidad.touched) {
+              <small class="eco-field-error" role="alert">Este campo supera el máximo de caracteres.</small>
+            }
+          </label>
+          <label class="form-label">Profesión
+            <input class="form-input" name="profesion" formControlName="profesion" maxlength="255">
+            @if (profesion.hasError('spaces') && profesion.touched) {
+              <small class="eco-field-error" role="alert">Este campo no puede contener solo espacios.</small>
+            }
+            @if (profesion.hasError('maxlength') && profesion.touched) {
+              <small class="eco-field-error" role="alert">Este campo supera el máximo de caracteres.</small>
+            }
+          </label>
+          <label class="form-label">Condición laboral
+            <input
+              class="form-input"
+              name="condicionActividad"
+              formControlName="condicionActividad"
+              maxlength="255">
+            @if (condicionActividad.hasError('maxlength') && condicionActividad.touched) {
+              <small class="eco-field-error" role="alert">Máximo 255 caracteres.</small>
+            }
+            @if (condicionActividad.hasError('spaces') && condicionActividad.touched) {
+              <small class="eco-field-error" role="alert">Este campo no puede contener solo espacios.</small>
+            }
+            @if (condicionActividad.hasError('required') && condicionActividad.touched) {
+              <small class="eco-field-error" role="alert">Este campo es obligatorio.</small>
+            }
+          </label>
+          <label class="form-label">¿Convive con el alumno?
+            <select class="form-input" name="convive" formControlName="convive">
+              <option value="SI">Sí</option>
+              <option value="NO">No</option>
+            </select>
+            @if (convive.hasError('required') && convive.touched) {
+              <small class="eco-field-error" role="alert">Este campo es obligatorio.</small>
+            }
+          </label>
+          <label class="form-label">Dirección
+            <input class="form-input" name="direccion" formControlName="direccion" maxlength="255">
+            @if (direccion.hasError('spaces') && direccion.touched) {
+              <small class="eco-field-error" role="alert">Este campo no puede contener solo espacios.</small>
+            }
+            @if (direccion.hasError('maxlength') && direccion.touched) {
+              <small class="eco-field-error" role="alert">Este campo supera el máximo de caracteres.</small>
+            }
+          </label>
+        </div>
+        <p class="eco-success">Al crear un tutor nuevo se genera su cuenta. El acceso inicial es su correo y su DNI sin puntos; deberá cambiar la clave al entrar.</p>
+        <div class="form-actions">
+          <a routerLink="/tutors" class="btn-secondary">Cancelar</a>
+          <button type="submit" [disabled]="busy" class="btn-primary">{{busy?'Guardando…':'Guardar tutor'}}</button>
+        </div>
+      </form>
+    }
+  </div>
+</div>

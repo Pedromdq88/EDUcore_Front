@@ -1,5 +1,3 @@
-/* Identidad visual adaptada del EduCore original (HTML/CSS/JS).
-   Estilos globales intencionales: aplican a TODAS las pantallas Angular. */
 :root {
   font-family: 'Roboto','Segoe UI',system-ui,sans-serif;
   font-synthesis: none;
@@ -24,13 +22,11 @@ button:disabled { cursor:not-allowed; opacity:.55; }
 ::-webkit-scrollbar { width: 7px; height: 7px; }
 ::-webkit-scrollbar-track { background: #f1f5f9; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
-/* Páginas y encabezados */
 .view-wrapper,.form-wrapper,.detail-wrapper,.dashboard-wrapper { max-width: 1152px; margin: 0 auto; width: 100%; animation: eco-in .22s ease-out; }
 @keyframes eco-in { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)} }
 .view-header,.action-bar { display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--eco-border);padding-bottom:18px;margin-bottom:22px; }
 .view-title { font-size:24px;font-weight:800;color:var(--eco-ink);margin:0;letter-spacing:-.5px; }
 .view-subtitle { margin:5px 0 0;color:var(--eco-muted);font-size:12px; }
-/* Botones originales */
 .btn-primary,.btn-secondary,.btn-danger,.btn-sm,.btn-action,.btn-action-secondary {
   display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:9px 16px;
   border:1px solid transparent;border-radius:10px;font-size:12px;font-weight:700;line-height:1.2;
@@ -47,7 +43,6 @@ button:disabled { cursor:not-allowed; opacity:.55; }
 .btn-sm:hover {background:#e2e8f0;}
 .btn-icon {display:inline-flex;align-items:center;justify-content:center;border:0;background:transparent;color:#94a3b8;border-radius:50%;padding:7px;text-decoration:none;}
 .btn-icon:hover {background:#ecfdf5;color:#059669;}
-/* Datos */
 .table-container {background:#fff;border:1px solid var(--eco-border);border-radius:14px;overflow-x:auto;box-shadow:var(--eco-shadow);}
 .data-table {width:100%;border-collapse:collapse;text-align:left;min-width:540px;}
 .data-table th {background:#f8fafc;color:#64748b;padding:14px 17px;font-size:11px;text-transform:uppercase;letter-spacing:.055em;font-weight:800;border-bottom:1px solid var(--eco-border);white-space:nowrap;}
@@ -59,7 +54,6 @@ button:disabled { cursor:not-allowed; opacity:.55; }
 .badge-classroom,.badge-relation,.badge-role,.badge-status,.tag {display:inline-flex;align-items:center;border-radius:7px;padding:5px 9px;background:#ecfdf5;color:#047857;font-size:11px;font-weight:700;white-space:nowrap;}
 .badge-relation {background:#fffbeb;color:#b45309;}.badge-status {background:#fff1f2;color:#be123c;}.badge-status.paid {background:#ecfdf5;color:#047857;}
 .badge-role {background:#f1f5f9;color:#475569;}
-/* Formularios */
 .form-card,.detail-card,.filter-card {background:#fff;border:1px solid var(--eco-border);border-radius:17px;padding:26px;box-shadow:var(--eco-shadow);}
 .form-title {font-size:20px;font-weight:800;letter-spacing:-.35px;color:var(--eco-ink);margin:0 0 23px;padding-bottom:16px;border-bottom:1px solid #f1f5f9;}
 .form-grid,.info-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;}
@@ -69,7 +63,6 @@ button:disabled { cursor:not-allowed; opacity:.55; }
 .form-input:focus,.form-control:focus {border-color:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.1);background:#fff;}
 .form-input:disabled,.form-control:disabled {background:#f1f5f9;color:#94a3b8;}
 .form-actions {display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;border-top:1px solid #f1f5f9;padding-top:18px;}
-/* Detalles */
 .user-header {display:flex;align-items:center;gap:18px;padding-bottom:22px;margin-bottom:22px;border-bottom:1px solid #f1f5f9;}
 .avatar {width:64px;height:64px;flex-shrink:0;border-radius:50%;background:#047857;color:white;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;}
 .avatar.school {border-radius:17px;}.avatar .material-icons-outlined {font-size:29px;}
@@ -83,7 +76,6 @@ button:disabled { cursor:not-allowed; opacity:.55; }
 .info-box span {display:block;font-size:13px;font-weight:600;color:#334155;overflow-wrap:anywhere;}
 .sub-card {border:1px solid #e2e8f0;background:#fff;border-radius:10px;padding:13px;margin:8px 0;}
 .sub-card.rose {background:#fff1f2;border-color:#fecdd3;}
-/* Misceláneos compartidos (sin depender de Tailwind) */
 .mt-4 {margin-top:16px;}.mt-6 {margin-top:24px;}.sm\:col-span-2{grid-column:span 2;}
 .eyebrow {font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:#059669;font-weight:900;}
 .eco-card {border:1px solid var(--eco-border);border-radius:15px;background:white;padding:24px;box-shadow:var(--eco-shadow);}
@@ -95,8 +87,6 @@ button:disabled { cursor:not-allowed; opacity:.55; }
 .eco-select {background:#fff;border:1px solid #cbd5e1;border-radius:9px;padding:9px 12px;min-height:38px;color:#475569;}
 .eco-search {width:min(100%,320px);background:#fff;border:1px solid #cbd5e1;border-radius:9px;padding:10px 12px;color:#334155;}
 @media (max-width:720px){.form-grid,.info-grid{grid-template-columns:1fr;}.sm\:col-span-2{grid-column:auto;}.form-card,.detail-card,.filter-card{padding:18px;}.view-title{font-size:21px;}.data-table{min-width:470px;}}
-
-/* Formularios de gestión agregados en la integración Calendario Update. */
 .eco-inline-form {margin: 16px 0;padding: 18px;}
 .eco-subheading {margin: 24px 0 14px;padding-bottom: 6px;border-bottom: 1px solid #e2e8f0;}
 .eco-check-grid {display:grid;grid-template-columns: repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:12px 0;}
@@ -106,8 +96,6 @@ button:disabled { cursor:not-allowed; opacity:.55; }
 .eco-event-link {border:0;background:transparent;color:inherit;padding:0;text-align:left;font:inherit;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;}
 .eco-event-link:hover {text-decoration:underline;}
 @media(max-width:700px){.eco-check-grid{grid-template-columns:1fr;}.eco-inline-form{padding:12px;}}
-
-/* V3 — Vista de gestión alineada con Calendario Update (slate/emerald). */
 .eco-filterbar{display:flex;align-items:end;gap:14px;flex-wrap:wrap;padding:15px 18px;margin:0 0 15px;border:1px solid #e2e8f0;border-radius:14px;background:white;box-shadow:0 1px 2px rgba(15,23,42,.03)}
 .eco-searchbox{position:relative;display:flex;align-items:center;flex:1 1 270px;min-width:190px}.eco-searchbox .material-icons-outlined{position:absolute;left:12px;color:#94a3b8;pointer-events:none}.eco-searchbox .eco-search{max-width:none;width:100%;padding-left:41px;background:#f8fafc;height:40px}
 .eco-filterlabel{display:flex;flex-direction:column;gap:4px;font-weight:750;font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.03em}.eco-filterlabel .eco-select{min-width:150px;background:#f8fafc;font-weight:650;font-size:12px}
@@ -119,8 +107,6 @@ button:disabled { cursor:not-allowed; opacity:.55; }
 .eco-modal-header{display:flex;align-items:start;justify-content:space-between;gap:20px}.eco-modal-close{border:0;background:#f1f5f9;border-radius:8px;padding:3px 11px;font-size:23px;color:#334155;cursor:pointer}
 .eco-student-modal{width:min(100%,1060px);padding:0}.eco-student-modal .form-wrapper{max-width:100%}.eco-student-modal .form-card{border:0;box-shadow:none;padding:25px}
 @media(max-width:670px){.eco-filterbar{align-items:stretch}.eco-searchbox{flex-basis:100%}.eco-counter{margin:0}.eco-student-modal .form-card{padding:14px}}
-
-/* Feedback inmediato de formularios: sin botones inactivos por campos inválidos. */
 form.ng-submitted input.ng-invalid:not([type="checkbox"]):not([type="radio"]),
 form.ng-submitted select.ng-invalid, form.ng-submitted textarea.ng-invalid,
 form input.ng-invalid.ng-touched:not([type="checkbox"]):not([type="radio"]),
@@ -131,7 +117,5 @@ form select.ng-invalid.ng-touched, form textarea.ng-invalid.ng-touched {
 }
 form.ng-submitted .eco-error[role="alert"] {margin: 10px 0 16px;font-weight: 700;}
 .eco-modal-backdrop, .eco-modal-shade {overscroll-behavior: contain;}
-
-/* Mensajes recién al salir del campo o presionar Guardar/Continuar. */
 .eco-field-error{display:block;margin:4px 0 6px;color:#b91c1c;font-size:12px;font-weight:600;line-height:1.4}
 form input[aria-invalid="true"],form select[aria-invalid="true"],form textarea[aria-invalid="true"]{border:2px solid #b91c1c!important;background:#fff7f7!important}

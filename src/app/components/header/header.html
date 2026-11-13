@@ -1,24 +1,94 @@
 <header class="app-header">
   <div class="header-left">
-    <button type="button" class="btn-toggle-menu" (click)="menuToggle.emit()" title="Plegar o abrir menú" aria-label="Abrir o cerrar menú">
-      <span class="logo-box"><span class="material-icons-outlined">school</span></span>
+    <button
+      type="button"
+      class="btn-toggle-menu"
+      (click)="menuToggle.emit()"
+      title="Plegar o abrir menú"
+      aria-label="Abrir o cerrar menú">
+      <span class="logo-box">
+        <span class="material-icons-outlined">school</span>
+      </span>
       <span class="brand-text">EduCore</span>
     </button>
     <span class="divider">|</span>
     <span class="school-badge">{{ institution }}</span>
   </div>
   <div class="header-right">
-    <div class="user-info"><p class="user-email">{{ email }}</p><p class="user-role">{{ role }}</p></div>
-    <button type="button" class="btn-logout" (click)="changingPassword=true" title="Cambiar contraseña" aria-label="Cambiar contraseña"><span class="material-icons-outlined">lock_reset</span></button>
-    <button type="button" class="btn-logout" (click)="logout()" title="Cerrar sesión" aria-label="Cerrar sesión"><span class="material-icons-outlined">logout</span></button>
+    <div class="user-info">
+      <p class="user-email">{{ email }}</p>
+      <p class="user-role">{{ role }}</p>
+    </div>
+    <button
+      type="button"
+      class="btn-logout"
+      (click)="changingPassword=true"
+      title="Cambiar contraseña"
+      aria-label="Cambiar contraseña">
+      <span class="material-icons-outlined">lock_reset</span>
+    </button>
+    <button
+      type="button"
+      class="btn-logout"
+      (click)="logout()"
+      title="Cerrar sesión"
+      aria-label="Cerrar sesión">
+      <span class="material-icons-outlined">logout</span>
+    </button>
   </div>
 </header>
-
-@if(changingPassword){<div class="password-shade"><form appValidateSubmit novalidate class="password-modal" #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (savePassword())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
-<h3>Cambiar contraseña</h3>
- <label>Contraseña actual<input name="old" [(ngModel)]="oldPassword" type="password" required autocomplete="current-password"></label>
- <label>Nueva contraseña (mínimo 12 caracteres)<input name="new" [(ngModel)]="newPassword" type="password" required minlength="12" autocomplete="new-password"></label>
- <label>Confirmar contraseña<input name="repeat" [(ngModel)]="repeatPassword" type="password" required autocomplete="new-password"></label>
- @if(changeError){<p role="alert" class="password-error">{{changeError}}</p>}
- <div class="password-actions"><button type="button" class="btn-secondary" (click)="confirmDiscard(ecoForm1, 'changingPassword')">Cancelar</button><button type="submit" class="btn-primary" [disabled]="saving">Guardar y cerrar sesión</button></div>
- </form></div>}
+@if(changingPassword){
+  <div class="password-shade">
+    <form class="password-modal" [formGroup]="passwordForm" (ngSubmit)="savePassword()" novalidate>
+      <h3>Cambiar contraseña</h3>
+      <label>Contraseña actual
+        <input
+          name="old"
+          formControlName="oldPassword"
+          type="password"
+          required
+          autocomplete="current-password">
+        @if(oldPassword.hasError('required') && oldPassword.touched) {
+          <small class="eco-field-error">Campo obligatorio</small>
+        }
+      </label>
+      <label>Nueva contraseña (mínimo 12 caracteres)
+        <input
+          name="new"
+          formControlName="newPassword"
+          type="password"
+          required
+          minlength="12"
+          autocomplete="new-password"
+          maxlength="72">
+        @if(newPassword.hasError('required') && newPassword.touched) {
+          <small class="eco-field-error">Campo obligatorio</small>
+        }
+        @if(newPassword.hasError('minlength') && newPassword.touched) {
+          <small class="eco-field-error">Valor o formato inválido</small>
+        }
+        @if(newPassword.hasError('maxlength') && newPassword.touched) {
+          <small class="eco-field-error">Valor o formato inválido</small>
+        }
+      </label>
+      <label>Confirmar contraseña
+        <input
+          name="repeat"
+          formControlName="repeatPassword"
+          type="password"
+          required
+          autocomplete="new-password">
+        @if(repeatPassword.hasError('required') && repeatPassword.touched) {
+          <small class="eco-field-error">Campo obligatorio</small>
+        }
+      </label>
+      @if(changeError){
+        <p role="alert" class="password-error">{{changeError}}</p>
+      }
+      <div class="password-actions">
+        <button type="button" class="btn-secondary" (click)="confirmDiscard(passwordForm, 'changingPassword')">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="saving">Guardar y cerrar sesión</button>
+      </div>
+    </form>
+  </div>
+}

@@ -5,7 +5,6 @@ export interface Assignment {
   shift: string;
   isClassroomTeacher: boolean;
 }
-
 export interface Teacher {
   id?: string;
   firstName: string;
@@ -21,7 +20,6 @@ export interface Teacher {
   tenantId?: string;
   assignments: Assignment[];
 }
-
 export interface Portfolio {
   id?: string;
   staffId: string;

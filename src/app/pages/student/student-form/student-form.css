@@ -87,7 +87,6 @@
 .btn-primary:hover {
   background-color: #047857;
 }
-/* Selector de cursos persistidos: calculadora + ventana modal del tutor */
 .room-calculator { grid-column: 1 / -1; border: 1px solid #a7f3d0; background: #f0fdf4; padding: 1rem; border-radius: .85rem; margin-bottom: .6rem; color:#14532d; }
 .room-calculator p { margin: .5rem 0; line-height:1.55; }
 .room-calculator select { margin-top: .5rem; background:#fff; }
@@ -104,8 +103,6 @@
 .eco-error-text {display:block;color:#be123c;margin-top:5px;font-weight:650;}
 
 .room-calculator{grid-column:1/-1;margin-top:8px!important;border:1px solid #a7f3d0;background:linear-gradient(120deg,#ecfdf5,#f8fafc);border-radius:16px;padding:18px}.eco-schoolyear{display:flex;flex-direction:column;border-radius:12px;background:#eff6ff;padding:12px 16px;gap:5px}.eco-schoolyear small{color:#64748b}.form-card h3.block-title:first-of-type{margin-top:18px}
-
-/* Buscador dentro del selector de tutor: un <select> HTML nativo no permite inputs internos */
 .tutor-picker-field{position:relative;min-width:0}
 .tutor-picker-trigger{width:100%;min-height:46px;text-align:left;background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:9px;color:#334155;cursor:pointer;font-size:13px}
 .tutor-picker-trigger>span:nth-child(2){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -120,3 +117,72 @@
 .tutor-picker-results button:hover,.tutor-picker-results button[aria-selected="true"]{background:#ecfdf5}
 .tutor-picker-results button>span:nth-child(2){display:flex;flex-direction:column;gap:3px}.tutor-picker-results small{font-size:11px;color:#64748b}
 .tutor-picker-empty{font-size:12px;color:#64748b;padding:13px}
+
+.possible-siblings{background:#f0fdfa;border:1px solid #99f6e4;border-radius:12px;padding:13px 15px;margin:12px 0;color:#115e59}
+.possible-siblings strong{display:block;font-size:13px}
+.possible-siblings p{font-size:12px;line-height:1.5;margin:6px 0}
+.possible-siblings span{display:inline-block;font-size:12px;background:#fff;border:1px solid #ccfbf1;border-radius:8px;padding:7px 9px;margin:4px 6px 2px 0}
+
+.tutor-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 18px 0 14px;
+}
+
+.form-card .tutor-section-header h3.block-title:first-of-type {
+  margin: 0;
+}
+
+.tutor-add-button {
+  flex-shrink: 0;
+  min-height: 42px;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.tutor-add-button .material-icons-outlined {
+  font-size: 20px;
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .tutor-section-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .tutor-add-button {
+    width: 100%;
+  }
+}
+
+.room-context {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+  gap: 16px;
+}
+
+.room-context > .eco-field-error {
+  grid-column: 1 / -1;
+}
+
+.room-context .form-label {
+  margin: 0;
+}
+
+.room-context select {
+  display: block;
+  margin-top: 6px;
+}
+
+@media (max-width: 640px) {
+  .room-context {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

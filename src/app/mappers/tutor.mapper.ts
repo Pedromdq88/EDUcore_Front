@@ -1,5 +1,4 @@
 import { Tutor } from '../models/tutor';
-
 export function toTutorPayload(source: Tutor): Tutor {
   return {
     ...source,
@@ -10,7 +9,6 @@ export function toTutorPayload(source: Tutor): Tutor {
     phone: (source.phone ?? '').trim()
   };
 }
-
 export interface TutorAssignmentPayload {
   tutorId: string;
   relationshipType: string;

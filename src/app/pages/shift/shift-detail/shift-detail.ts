@@ -1,5 +1,4 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
-
 @Component({
   changeDetection: ChangeDetectionStrategy.Eager,
   selector: 'app-shift-detail',
@@ -8,5 +7,4 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
   styleUrl: './shift-detail.css',
 })
 export class ShiftDetail {
-
 }

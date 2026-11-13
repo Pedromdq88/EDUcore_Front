@@ -1,19 +1,74 @@
 <div class="view-wrapper">
- <div class="view-header"><div><p class="eyebrow">PLAN DE ESTUDIOS</p><h2 class="view-title">Gestión de Materias</h2><p class="view-subtitle">Catálogo de asignaturas y talleres institucionales</p></div>
- <span class="badge-role">{{subjects().length}} materias</span></div>
- <div class="subject-layout">
-  <section class="eco-card"><h3 class="block-title">Nueva materia / Asignatura</h3><p class="eco-muted text-xs">Agregá una materia al catálogo oficial del establecimiento.</p>
-   <form appValidateSubmit novalidate #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (add())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
-<label class="form-label" for="subjectName">Nombre de la materia *</label><input id="subjectName" name="name" class="form-input" [(ngModel)]="name" placeholder="Ej. Matemática, Música, Historia" required [disabled]="!canEdit">
-   <button type="submit" class="btn-primary full-button" [disabled]="!canEdit || busy"><span class="material-icons-outlined">save</span>Guardar asignatura</button></form>
-   @if(!canEdit){<p class="eco-muted text-xs">Solo Dirección y Administración pueden modificar el catálogo.</p>}
-  </section>
-  <section class="eco-card"><div class="eco-toolbar"><h3 class="block-title">Materias registradas</h3><span class="badge-classroom">{{subjects().length}} Materias</span></div>
-    @if(subjects().length===0){<div class="eco-empty">No hay materias registradas.</div>}
-    <div class="subject-grid">@for(sub of subjects();track sub.id){<div class="subject-tile"><span class="material-icons-outlined">bookmark</span><strong>{{sub.name}}</strong>
-      @if(canEdit){<button type="button" (click)="remove(sub.id)" class="btn-icon" [attr.aria-label]="'Eliminar '+sub.name"><span class="material-icons-outlined">delete</span></button>}
-    </div>}</div>
-  </section>
- </div>
- @if(error){<p class="eco-error">{{error}}</p>}
+  <div class="view-header">
+    <div>
+      <p class="eyebrow">PLAN DE ESTUDIOS</p>
+      <h2 class="view-title">Gestión de Materias</h2>
+      <p class="view-subtitle">Catálogo de asignaturas y talleres institucionales</p>
+    </div>
+    <span class="badge-role">{{subjects().length}} materias</span>
+  </div>
+  <div class="subject-layout">
+    <section class="eco-card">
+      <h3 class="block-title">Nueva materia / Asignatura</h3>
+      <p class="eco-muted text-xs">Agregá una materia al catálogo oficial del establecimiento.</p>
+      <form [formGroup]="subjectForm" (ngSubmit)="add()" novalidate>
+        <label class="form-label" for="subjectName">Nombre de la materia *</label>
+        <input
+          id="subjectName"
+          name="name"
+          class="form-input"
+          formControlName="name"
+          placeholder="Ej. Matemática, Música, Historia"
+          required
+          maxlength="255">
+        @if (name.hasError('spaces') && name.touched) {
+          <small class="eco-field-error" role="alert">Este campo no puede contener solo espacios.</small>
+        }
+        @if (name.hasError('required') && name.touched) {
+          <small class="eco-field-error" role="alert">El campo es obligatorio.</small>
+        }
+        @if (name.hasError('minlength') && name.touched) {
+          <small class="eco-field-error" role="alert">No alcanza la longitud mínima.</small>
+        }
+        @if (name.hasError('maxlength') && name.touched) {
+          <small class="eco-field-error" role="alert">Supera la longitud máxima.</small>
+        }
+        <button type="submit" class="btn-primary full-button" [disabled]="!canEdit || busy || subjectForm.invalid">
+          <span class="material-icons-outlined">save</span>Guardar asignatura
+        </button>
+      </form>
+      @if(!canEdit){
+        <p class="eco-muted text-xs">Solo Dirección y Administración pueden modificar el catálogo.</p>
+      }
+    </section>
+    <section class="eco-card">
+      <div class="eco-toolbar">
+        <h3 class="block-title">Materias registradas</h3>
+        <span class="badge-classroom">{{subjects().length}} Materias</span>
+      </div>
+      @if(subjects().length===0){
+        <div class="eco-empty">No hay materias registradas.</div>
+      }
+      <div class="subject-grid">
+        @for(sub of subjects();track sub.id){
+          <div class="subject-tile">
+            <span class="material-icons-outlined">bookmark</span>
+            <strong>{{sub.name}}</strong>
+            @if(canEdit){
+              <button
+                type="button"
+                (click)="remove(sub.id)"
+                class="btn-icon"
+                [attr.aria-label]="'Eliminar '+sub.name">
+                <span class="material-icons-outlined">delete</span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+  @if(error){
+    <p class="eco-error">{{error}}</p>
+  }
 </div>

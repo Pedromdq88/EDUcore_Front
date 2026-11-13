@@ -1,18 +1,36 @@
 <div class="eco-modal-backdrop" role="presentation">
-  <section class="eco-modal classroom-assignment" role="dialog" aria-modal="true" aria-label="Asignar aula">
+  <section
+    class="eco-modal classroom-assignment"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Asignar aula">
     <div class="assignment-header">
       <h2>Asignar aula</h2>
-      <button type="button" class="btn-secondary" (click)="cancel()" [disabled]="saving()" aria-label="Cerrar">✕</button>
+      <button
+        type="button"
+        class="btn-secondary"
+        (click)="cancel()"
+        [disabled]="saving()"
+        aria-label="Cerrar">✕</button>
     </div>
-    <p><strong>{{student.lastName}}, {{student.firstName}}</strong></p>
+    <p>
+      <strong>{{student.lastName}}, {{student.firstName}}</strong>
+    </p>
     <p class="eco-muted">Nacimiento: {{student.birthDate}} · Ciclo: {{student.academicYear}}</p>
-    <div class="assignment-age">Edad al 30/06: <strong>{{age===null?'No disponible':age+' años'}}</strong></div>
-    @if(error()){<p class="eco-error" role="alert">{{error()}}</p>}
+    <div class="assignment-age">Edad al 30/06: <strong>{{age===null?'No disponible':age+' años'}}</strong>
+    </div>
+    @if(error()){
+      <p class="eco-error" role="alert">{{error()}}</p>
+    }
     <form [formGroup]="form" (ngSubmit)="save()" class="assignment-form">
       <label class="form-label">Turno
         <select class="form-input" formControlName="shift">
-          <option value="MANANA">Mañana</option><option value="TARDE">Tarde</option>
+          <option value="MANANA">Mañana</option>
+          <option value="TARDE">Tarde</option>
         </select>
+        @if(form.controls.shift.hasError('required') && form.controls.shift.touched){
+          <small class="eco-field-error">Elegí un turno.</small>
+        }
       </label>
       <label class="form-label">Aula registrada
         <select class="form-input" formControlName="classroom">
@@ -21,9 +39,16 @@
             <option [value]="room.name">{{room.name}}{{isRecommended(room.name)?' · Recomendada':' · Excepción'}}</option>
           }
         </select>
+        @if(form.controls.classroom.hasError('required') && form.controls.classroom.touched){
+          <small class="eco-field-error">Elegí un aula.</small>
+        }
       </label>
-      @if(loading()){<p class="eco-muted">Cargando aulas…</p>}
-      @if(!loading() && available.length===0){<p class="eco-error">No hay aulas registradas para ese turno.</p>}
+      @if(loading()){
+        <p class="eco-muted">Cargando aulas…</p>
+      }
+      @if(!loading() && available.length===0){
+        <p class="eco-error">No hay aulas registradas para ese turno.</p>
+      }
       <p class="eco-muted">La calculadora recomienda según la edad, pero podés elegir otra aula del turno si corresponde una excepción.</p>
       <div class="form-actions">
         <button type="button" class="btn-secondary" (click)="cancel()" [disabled]="saving()">Cancelar</button>

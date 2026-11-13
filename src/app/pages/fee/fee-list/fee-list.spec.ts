@@ -1,22 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { FeeList } from './fee-list';
-
 describe('FeeList', () => {
   let component: FeeList;
   let fixture: ComponentFixture<FeeList>;
-
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [FeeList]
     })
-    .compileComponents();
-
+      .compileComponents();
     fixture = TestBed.createComponent(FeeList);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
-
   it('should create', () => {
     expect(component).toBeTruthy();
   });

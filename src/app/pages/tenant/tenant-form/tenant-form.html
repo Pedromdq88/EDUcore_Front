@@ -1,45 +1,246 @@
 <div class="form-wrapper">
-  <div class="form-card">
+  <form class="form-card" [formGroup]="tenantForm" (ngSubmit)="saveTenant()" novalidate>
     <h2 class="form-title">{{isDirector?'Editar perfil institucional':'Editar perfil institucional'}}</h2>
-    @if(error()){<p class="eco-error" role="alert">{{error()}}</p>}
-    @if(loading()){<p class="eco-muted" role="status">Cargando el perfil institucional…</p>}
-    
+    @if(error()){
+      <p class="eco-error" role="alert">{{error()}}</p>
+    }
+    @if(loading()){
+      <p class="eco-muted" role="status">Cargando el perfil institucional…</p>
+    }
     <div class="form-grid">
       <div>
         <label class="form-label">Nombre Comercial *</label>
-        <input type="text" [(ngModel)]="tenant.name" class="form-input">
+        <input type="text" formControlName="name" class="form-input" maxlength="255">
+        @if (name.hasError('spaces') && name.touched) {
+          <small class="eco-field-error" role="alert">Este campo no puede contener solo espacios.</small>
+        }
+        @if (name.hasError('required') && name.touched) {
+          <small class="eco-field-error" role="alert">El campo nombre institucional es obligatorio.</small>
+        }
+        @if (name.hasError('minlength') && name.touched) {
+          <small class="eco-field-error" role="alert">El campo nombre institucional es demasiado corto.</small>
+        }
+        @if (name.hasError('maxlength') && name.touched) {
+          <small class="eco-field-error" role="alert">El campo nombre institucional supera el límite permitido.</small>
+        }
+        @if ((name.hasError('email') || name.hasError('pattern')) && name.touched) {
+          <small class="eco-field-error" role="alert">Ingresá un correo electrónico válido.</small>
+        }
+        @if (name.hasError('pattern') && name.touched) {
+          <small class="eco-field-error" role="alert">El formato del campo nombre institucional no es válido.</small>
+        }
+        @if (name.hasError('min') && name.touched) {
+          <small class="eco-field-error" role="alert">El campo nombre institucional es menor al permitido.</small>
+        }
+        @if (name.hasError('max') && name.touched) {
+          <small class="eco-field-error" role="alert">El campo nombre institucional es mayor al permitido.</small>
+        }
       </div>
       <div>
         <label class="form-label">Razón Social *</label>
-        <input type="text" [(ngModel)]="tenant.legalName" class="form-input">
+        <input type="text" formControlName="legalName" class="form-input" maxlength="255">
+        @if (legalName.hasError('spaces') && legalName.touched) {
+          <small class="eco-field-error" role="alert">Este campo no puede contener solo espacios.</small>
+        }
+        @if (legalName.hasError('required') && legalName.touched) {
+          <small class="eco-field-error" role="alert">El campo razón social es obligatorio.</small>
+        }
+        @if (legalName.hasError('minlength') && legalName.touched) {
+          <small class="eco-field-error" role="alert">El campo razón social es demasiado corto.</small>
+        }
+        @if (legalName.hasError('maxlength') && legalName.touched) {
+          <small class="eco-field-error" role="alert">El campo razón social supera el límite permitido.</small>
+        }
+        @if ((legalName.hasError('email') || legalName.hasError('pattern')) && legalName.touched) {
+          <small class="eco-field-error" role="alert">Ingresá un correo electrónico válido.</small>
+        }
+        @if (legalName.hasError('pattern') && legalName.touched) {
+          <small class="eco-field-error" role="alert">El formato del campo razón social no es válido.</small>
+        }
+        @if (legalName.hasError('min') && legalName.touched) {
+          <small class="eco-field-error" role="alert">El campo razón social es menor al permitido.</small>
+        }
+        @if (legalName.hasError('max') && legalName.touched) {
+          <small class="eco-field-error" role="alert">El campo razón social es mayor al permitido.</small>
+        }
       </div>
       <div>
         <label class="form-label">CUE</label>
-        <input type="text" [(ngModel)]="tenant.cue" class="form-input">
+        <input type="text" formControlName="cue" class="form-input" maxlength="50">
+        @if (cue.hasError('required') && cue.touched) {
+          <small class="eco-field-error" role="alert">El campo CUE es obligatorio.</small>
+        }
+        @if (cue.hasError('minlength') && cue.touched) {
+          <small class="eco-field-error" role="alert">El campo CUE es demasiado corto.</small>
+        }
+        @if (cue.hasError('maxlength') && cue.touched) {
+          <small class="eco-field-error" role="alert">El campo CUE supera el límite permitido.</small>
+        }
+        @if ((cue.hasError('email') || cue.hasError('pattern')) && cue.touched) {
+          <small class="eco-field-error" role="alert">Ingresá un correo electrónico válido.</small>
+        }
+        @if (cue.hasError('pattern') && cue.touched) {
+          <small class="eco-field-error" role="alert">El formato del campo CUE no es válido.</small>
+        }
+        @if (cue.hasError('min') && cue.touched) {
+          <small class="eco-field-error" role="alert">El campo CUE es menor al permitido.</small>
+        }
+        @if (cue.hasError('max') && cue.touched) {
+          <small class="eco-field-error" role="alert">El campo CUE es mayor al permitido.</small>
+        }
       </div>
       <div>
         <label class="form-label">DIPREGEP</label>
-        <input type="text" [(ngModel)]="tenant.dipregep" class="form-input">
+        <input type="text" formControlName="dipregep" class="form-input" maxlength="50">
+        @if (dipregep.hasError('required') && dipregep.touched) {
+          <small class="eco-field-error" role="alert">El campo DIPREGEP es obligatorio.</small>
+        }
+        @if (dipregep.hasError('minlength') && dipregep.touched) {
+          <small class="eco-field-error" role="alert">El campo DIPREGEP es demasiado corto.</small>
+        }
+        @if (dipregep.hasError('maxlength') && dipregep.touched) {
+          <small class="eco-field-error" role="alert">El campo DIPREGEP supera el límite permitido.</small>
+        }
+        @if ((dipregep.hasError('email') || dipregep.hasError('pattern')) && dipregep.touched) {
+          <small class="eco-field-error" role="alert">Ingresá un correo electrónico válido.</small>
+        }
+        @if (dipregep.hasError('pattern') && dipregep.touched) {
+          <small class="eco-field-error" role="alert">El formato del campo DIPREGEP no es válido.</small>
+        }
+        @if (dipregep.hasError('min') && dipregep.touched) {
+          <small class="eco-field-error" role="alert">El campo DIPREGEP es menor al permitido.</small>
+        }
+        @if (dipregep.hasError('max') && dipregep.touched) {
+          <small class="eco-field-error" role="alert">El campo DIPREGEP es mayor al permitido.</small>
+        }
       </div>
       <div>
         <label class="form-label">Distrito</label>
-        <input type="text" [(ngModel)]="tenant.district" class="form-input">
+        <input type="text" formControlName="district" class="form-input" maxlength="255">
+        @if (district.hasError('required') && district.touched) {
+          <small class="eco-field-error" role="alert">El campo distrito es obligatorio.</small>
+        }
+        @if (district.hasError('minlength') && district.touched) {
+          <small class="eco-field-error" role="alert">El campo distrito es demasiado corto.</small>
+        }
+        @if (district.hasError('maxlength') && district.touched) {
+          <small class="eco-field-error" role="alert">El campo distrito supera el límite permitido.</small>
+        }
+        @if ((district.hasError('email') || district.hasError('pattern')) && district.touched) {
+          <small class="eco-field-error" role="alert">Ingresá un correo electrónico válido.</small>
+        }
+        @if (district.hasError('pattern') && district.touched) {
+          <small class="eco-field-error" role="alert">El formato del campo distrito no es válido.</small>
+        }
+        @if (district.hasError('min') && district.touched) {
+          <small class="eco-field-error" role="alert">El campo distrito es menor al permitido.</small>
+        }
+        @if (district.hasError('max') && district.touched) {
+          <small class="eco-field-error" role="alert">El campo distrito es mayor al permitido.</small>
+        }
       </div>
       <div>
         <label class="form-label">Ciudad</label>
-        <input type="text" [(ngModel)]="tenant.city" class="form-input">
+        <input type="text" formControlName="city" class="form-input" maxlength="255">
+        @if (city.hasError('required') && city.touched) {
+          <small class="eco-field-error" role="alert">El campo ciudad es obligatorio.</small>
+        }
+        @if (city.hasError('minlength') && city.touched) {
+          <small class="eco-field-error" role="alert">El campo ciudad es demasiado corto.</small>
+        }
+        @if (city.hasError('maxlength') && city.touched) {
+          <small class="eco-field-error" role="alert">El campo ciudad supera el límite permitido.</small>
+        }
+        @if ((city.hasError('email') || city.hasError('pattern')) && city.touched) {
+          <small class="eco-field-error" role="alert">Ingresá un correo electrónico válido.</small>
+        }
+        @if (city.hasError('pattern') && city.touched) {
+          <small class="eco-field-error" role="alert">El formato del campo ciudad no es válido.</small>
+        }
+        @if (city.hasError('min') && city.touched) {
+          <small class="eco-field-error" role="alert">El campo ciudad es menor al permitido.</small>
+        }
+        @if (city.hasError('max') && city.touched) {
+          <small class="eco-field-error" role="alert">El campo ciudad es mayor al permitido.</small>
+        }
       </div>
       <div>
         <label class="form-label">Teléfono</label>
-        <input [(ngModel)]="tenant.phone" class="form-input" type="text" inputmode="numeric" pattern="[0-9]{6,20}" maxlength="20">
+        <input
+          formControlName="phone"
+          class="form-input"
+          type="text"
+          inputmode="numeric"
+          pattern="[0-9]{6,20}"
+          maxlength="20">
+        @if (phone.hasError('required') && phone.touched) {
+          <small class="eco-field-error" role="alert">El campo teléfono es obligatorio.</small>
+        }
+        @if (phone.hasError('minlength') && phone.touched) {
+          <small class="eco-field-error" role="alert">El campo teléfono es demasiado corto.</small>
+        }
+        @if (phone.hasError('maxlength') && phone.touched) {
+          <small class="eco-field-error" role="alert">El campo teléfono supera el límite permitido.</small>
+        }
+        @if ((phone.hasError('email') || phone.hasError('pattern')) && phone.touched) {
+          <small class="eco-field-error" role="alert">Ingresá un correo electrónico válido.</small>
+        }
+        @if (phone.hasError('pattern') && phone.touched) {
+          <small class="eco-field-error" role="alert">El formato del campo teléfono no es válido.</small>
+        }
+        @if (phone.hasError('min') && phone.touched) {
+          <small class="eco-field-error" role="alert">El campo teléfono es menor al permitido.</small>
+        }
+        @if (phone.hasError('max') && phone.touched) {
+          <small class="eco-field-error" role="alert">El campo teléfono es mayor al permitido.</small>
+        }
       </div>
       <div>
         <label class="form-label">Email Institucional</label>
-        <input type="email" [(ngModel)]="tenant.email" maxlength="150" class="form-input">
+        <input type="email" formControlName="email" maxlength="30" class="form-input">
+        @if (email.hasError('required') && email.touched) {
+          <small class="eco-field-error" role="alert">El campo correo es obligatorio.</small>
+        }
+        @if (email.hasError('minlength') && email.touched) {
+          <small class="eco-field-error" role="alert">El campo correo es demasiado corto.</small>
+        }
+        @if (email.hasError('maxlength') && email.touched) {
+          <small class="eco-field-error" role="alert">El campo correo supera el límite permitido.</small>
+        }
+        @if ((email.hasError('email') || email.hasError('pattern')) && email.touched) {
+          <small class="eco-field-error" role="alert">Ingresá un correo electrónico válido.</small>
+        }
+        @if (email.hasError('pattern') && email.touched) {
+          <small class="eco-field-error" role="alert">El formato del campo correo no es válido.</small>
+        }
+        @if (email.hasError('min') && email.touched) {
+          <small class="eco-field-error" role="alert">El campo correo es menor al permitido.</small>
+        }
+        @if (email.hasError('max') && email.touched) {
+          <small class="eco-field-error" role="alert">El campo correo es mayor al permitido.</small>
+        }
       </div>
       <div>
         <label class="form-label">Ciclo lectivo activo *</label>
-        <input type="number" [min]="currentYear ?? 2000" [max]="(currentYear ?? 2099) + 1" [(ngModel)]="tenant.academicYear" class="form-input" [disabled]="!isDirector || !yearChangeEnabled">
+        <input
+          type="number"
+          [min]="currentYear ?? 2000"
+          [max]="(currentYear ?? 2099) + 1"
+          formControlName="academicYear"
+          class="form-input"
+          [readonly]="!isDirector || !yearChangeEnabled">
+        @if (academicYear.hasError('integer') && academicYear.touched) {
+          <small class="eco-field-error" role="alert">Ingresá un año entero.</small>
+        }
+        @if (academicYear.hasError('required') && academicYear.touched) {
+          <small class="eco-field-error" role="alert">El campo ciclo lectivo es obligatorio.</small>
+        }
+        @if (academicYear.hasError('min') && academicYear.touched) {
+          <small class="eco-field-error" role="alert">El campo ciclo lectivo es menor al permitido.</small>
+        }
+        @if (academicYear.hasError('max') && academicYear.touched) {
+          <small class="eco-field-error" role="alert">El campo ciclo lectivo es mayor al permitido.</small>
+        }
         <small class="eco-muted">Único ciclo utilizado en la calculadora y cuotas.</small>
         @if(isDirector && currentYear !== null && !yearChangeEnabled){
           <p class="year-change-locked" role="status">El siguiente ciclo se habilitará el {{unlockDate}}.</p>
@@ -50,22 +251,63 @@
       </div>
       <div class="sm:col-span-2">
         <label class="form-label">Dirección</label>
-        <input type="text" [(ngModel)]="tenant.address" class="form-input">
+        <input type="text" formControlName="address" class="form-input" maxlength="255">
+        @if (address.hasError('required') && address.touched) {
+          <small class="eco-field-error" role="alert">El campo dirección es obligatorio.</small>
+        }
+        @if (address.hasError('minlength') && address.touched) {
+          <small class="eco-field-error" role="alert">El campo dirección es demasiado corto.</small>
+        }
+        @if (address.hasError('maxlength') && address.touched) {
+          <small class="eco-field-error" role="alert">El campo dirección supera el límite permitido.</small>
+        }
+        @if ((address.hasError('email') || address.hasError('pattern')) && address.touched) {
+          <small class="eco-field-error" role="alert">Ingresá un correo electrónico válido.</small>
+        }
+        @if (address.hasError('pattern') && address.touched) {
+          <small class="eco-field-error" role="alert">El formato del campo dirección no es válido.</small>
+        }
+        @if (address.hasError('min') && address.touched) {
+          <small class="eco-field-error" role="alert">El campo dirección es menor al permitido.</small>
+        }
+        @if (address.hasError('max') && address.touched) {
+          <small class="eco-field-error" role="alert">El campo dirección es mayor al permitido.</small>
+        }
       </div>
     </div>
-
     @if(isDirector && yearChangeRequested){
       <section class="year-change-danger" role="alert">
-        <h3><span class="material-icons-outlined" aria-hidden="true">warning_amber</span> Cambio de ciclo lectivo definitivo</h3>
-        <p>Los alumnos activos quedarán <strong>Sin asignar</strong>. Sus aulas actuales se desvincularán y no se recuperarán automáticamente.</p>
-        <p><strong>Una vez aplicado el cambio, no podrás volver al ciclo anterior desde EDUcore.</strong></p>
-        <label class="year-change-ack"><input type="checkbox" [(ngModel)]="acknowledgedYearChange"> Entiendo que el cambio no se puede deshacer y que tendré que reasignar las aulas.</label>
+        <h3>
+          <span class="material-icons-outlined" aria-hidden="true">warning_amber</span> Cambio de ciclo lectivo definitivo
+        </h3>
+        <p>Los alumnos activos quedarán <strong>Sin asignar</strong>. Sus aulas actuales se desvincularán y no se recuperarán automáticamente.
+        </p>
+        <p>
+          <strong>Una vez aplicado el cambio, no podrás volver al ciclo anterior desde EDUcore.</strong>
+        </p>
+        <label class="year-change-ack">
+          <input type="checkbox" formControlName="acknowledgedYearChange"> Entiendo que el cambio no se puede deshacer y que tendré que reasignar las aulas.
+        </label>
       </section>
     }
-    @if(!isDirector){<div class="eco-card eco-inline-form"><label class="form-label">Motivo del cambio *<textarea class="form-input" [(ngModel)]="reason" rows="3" placeholder="Describí por qué se solicitan estos cambios"></textarea></label><p class="eco-muted">Los cambios se aplicarán una vez aprobados por Dirección.</p></div>}
+    @if(!isDirector){
+      <div class="eco-card eco-inline-form">
+        <label class="form-label">Motivo del cambio *
+          <textarea class="form-input" formControlName="reason" maxlength="4000" rows="3" placeholder="Describí por qué se solicitan estos cambios">
+          </textarea>
+          @if (reasonControl.hasError('required') && reasonControl.touched) {
+            <small class="eco-field-error">El motivo es obligatorio.</small>
+          }
+          @if (reasonControl.hasError('maxlength') && reasonControl.touched) {
+            <small class="eco-field-error">El motivo supera los 4000 caracteres.</small>
+          }
+        </label>
+        <p class="eco-muted">Los cambios se aplicarán una vez aprobados por Dirección.</p>
+      </div>
+    }
     <div class="form-actions">
       <a routerLink="/school-profile" class="btn-secondary">Cancelar</a>
-      <button (click)="saveTenant()" [disabled]="busy() || loading()" class="btn-primary">{{isDirector?"Guardar cambios":"Enviar solicitud"}}</button>
+      <button type="submit" [disabled]="busy() || loading()" class="btn-primary">{{isDirector?"Guardar cambios":"Enviar solicitud"}}</button>
     </div>
-  </div>
+  </form>
 </div>

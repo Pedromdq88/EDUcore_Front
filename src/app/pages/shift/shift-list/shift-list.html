@@ -1,20 +1,93 @@
 <div class="view-wrapper">
   <div class="view-header">
-    <div><p class="eyebrow">AULAS Y TURNOS</p><h2 class="view-title">Gestión de aulas</h2><p class="view-subtitle">Salas, secciones y turnos independientes</p></div>
+    <div>
+      <p class="eyebrow">AULAS Y TURNOS</p>
+      <h2 class="view-title">Gestión de aulas</h2>
+      <p class="view-subtitle">Salas, secciones y turnos independientes</p>
+    </div>
   </div>
-
-  @if(error){<p class="eco-error">{{error}}</p>}
-  @if(canEdit){<div class="eco-toolbar"><button class="btn-primary" type="button" (click)="openRoom()">+ Configurar aula</button>
-  @if(classrooms().length===0){<button type="button" class="btn-secondary" [disabled]="busy" (click)="createDefaults()">Cargar Maternal, 1ª, 2ª y 3ª sección</button>}</div>}
-  @if(showForm){<form appValidateSubmit novalidate class="eco-card eco-inline-form" #ecoForm1="ngForm" (ngSubmit)="ecoForm1.valid && (saveRoom())">@if (ecoForm1.invalid && ecoForm1.submitted) {<p class="eco-error" role="alert">Revisá los campos obligatorios y el formato de los datos antes de guardar.</p>}
-
-    <h3 class="block-title">{{editingId?'Modificar aula':'Crear aula'}}</h3>
-    <div class="form-grid"><label class="form-label">Nombre de la sala *<input class="form-input" name="name" [(ngModel)]="room.name" required></label>
-    <label class="form-label">Edad mínima al 30/06<input class="form-input" type="number" min="0" max="25" name="age" [(ngModel)]="room.minimumAge" required></label>
-    <label class="form-label">Turno<select class="form-input" name="shift" [(ngModel)]="room.shift"><option value="MANANA">Mañana</option><option value="TARDE">Tarde</option>@if(!editingId){<option value="AMBOS">Ambos turnos (crea mañana y tarde)</option>}</select></label></div>
-    <div class="form-actions"><button class="btn-secondary" type="button" (click)="confirmDiscard(ecoForm1, 'showForm')">Cancelar</button><button type="submit" [disabled]="busy" class="btn-primary">Guardar aula</button></div>
-  </form>}
-  <div class="eco-toolbar shift-summary"><div class="eco-row"><span class="badge-classroom">{{classrooms().length}} aulas</span></div><a routerLink="/calendar" class="btn-primary"><span class="material-icons-outlined">event</span>Ver calendario de aulas</a></div>
+  @if(error){
+    <p class="eco-error">{{error}}</p>
+  }
+  @if(canEdit){
+    <div class="eco-toolbar">
+      <button class="btn-primary" type="button" (click)="openRoom()">+ Configurar aula</button>
+      @if(classrooms().length===0){
+        <button type="button" class="btn-secondary" [disabled]="busy" (click)="createDefaults()">Cargar Maternal, 1ª, 2ª y 3ª sección</button>
+      }
+    </div>
+  }
+  @if(showForm){
+    <form class="eco-card eco-inline-form" [formGroup]="roomForm" (ngSubmit)="saveRoom()" novalidate>
+      <h3 class="block-title">{{editingId?'Modificar aula':'Crear aula'}}</h3>
+      <div class="form-grid">
+        <label class="form-label">Nombre de la sala *
+          <input class="form-input" name="name" formControlName="name" required maxlength="255">
+          @if (name.hasError('spaces') && name.touched) {
+            <small class="eco-field-error" role="alert">Este campo no puede contener solo espacios.</small>
+          }
+          @if(name.hasError('required') && name.touched) {
+            <small class="eco-field-error">Campo obligatorio</small>
+          }
+          @if(name.hasError('minlength') && name.touched) {
+            <small class="eco-field-error">Valor inválido</small>
+          }
+          @if(name.hasError('maxlength') && name.touched) {
+            <small class="eco-field-error">Valor inválido</small>
+          }
+        </label>
+        <label class="form-label">Edad mínima al 30/06
+          <input
+            class="form-input"
+            type="number"
+            min="0"
+            max="25"
+            name="age"
+            formControlName="minimumAge"
+            required>
+          @if (minimumAge.hasError('integer') && minimumAge.touched) {
+            <small class="eco-field-error" role="alert">Ingresá un número entero.</small>
+          }
+          @if(minimumAge.hasError('required') && minimumAge.touched) {
+            <small class="eco-field-error">Campo obligatorio</small>
+          }
+          @if(minimumAge.hasError('min') && minimumAge.touched) {
+            <small class="eco-field-error">Valor inválido</small>
+          }
+          @if(minimumAge.hasError('max') && minimumAge.touched) {
+            <small class="eco-field-error">Valor inválido</small>
+          }
+        </label>
+        <label class="form-label">Turno
+          <select class="form-input" name="shift" formControlName="shift">
+            <option value="MANANA">Mañana</option>
+            <option value="TARDE">Tarde</option>
+            @if(!editingId){
+              <option value="AMBOS">Ambos turnos (crea mañana y tarde)</option>
+            }
+          </select>
+          @if(shift.hasError('required') && shift.touched) {
+            <small class="eco-field-error">Campo obligatorio</small>
+          }
+          @if(shift.hasError('pattern') && shift.touched) {
+            <small class="eco-field-error">Valor inválido</small>
+          }
+        </label>
+      </div>
+      <div class="form-actions">
+        <button class="btn-secondary" type="button" (click)="confirmDiscard(roomForm, 'showForm')">Cancelar</button>
+        <button type="submit" [disabled]="busy" class="btn-primary">Guardar aula</button>
+      </div>
+    </form>
+  }
+  <div class="eco-toolbar shift-summary">
+    <div class="eco-row">
+      <span class="badge-classroom">{{classrooms().length}} aulas</span>
+    </div>
+    <a routerLink="/calendar" class="btn-primary">
+      <span class="material-icons-outlined">event</span>Ver calendario de aulas
+    </a>
+  </div>
   <div class="section-block">
     <h3 class="block-title">Aulas y Secciones Habilitadas</h3>
     <div class="table-container">
@@ -23,7 +96,10 @@
           <tr>
             <th>Nombre de Sala / Aula</th>
             <th>Nivel</th>
-            <th>Turno</th>@if(canEdit){<th>Acciones</th>}
+            <th>Turno</th>
+            @if(canEdit){
+              <th>Acciones</th>
+            }
           </tr>
         </thead>
         <tbody>
@@ -31,12 +107,19 @@
             <tr>
               <td [attr.colspan]="canEdit?4:3" class="empty-row">No hay aulas configuradas.</td>
             </tr>
-          } @else {
+          }
+          @else {
             @for (c of classrooms(); track c.id) {
               <tr>
                 <td class="font-bold">{{ c.name }}</td>
                 <td>{{c.minimumAge===1 && c.name.toLowerCase().includes("maternal")?"1 a 2":c.minimumAge}} años</td>
-                <td>{{ c.shift || '-' }}</td>@if(canEdit){<td class="eco-row"><button type="button" class="btn-sm" (click)="openRoom(c)">Editar</button><button type="button" class="btn-danger" (click)="removeRoom(c.id)">Eliminar</button></td>}
+                <td>{{ c.shift || '-' }}</td>
+                @if(canEdit){
+                  <td class="eco-row">
+                    <button type="button" class="btn-sm" (click)="openRoom(c)">Editar</button>
+                    <button type="button" class="btn-danger" (click)="removeRoom(c.id)">Eliminar</button>
+                  </td>
+                }
               </tr>
             }
           }
@@ -44,6 +127,4 @@
       </table>
     </div>
   </div>
-
-  <!-- Los horarios se gestionan exclusivamente desde Calendario. -->
 </div>
